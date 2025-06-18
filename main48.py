@@ -300,7 +300,7 @@ draw = ImageDraw.Draw(base_img)
 # FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
 # font = ImageFont.truetype(FONT_PATH, size=18)  
 # font_bold = ImageFont.truetype(FONT_PATH_BOLD, size=21)  
-font = ImageFont.load_default()
+font = ImageFont.load_default(size=21)
 font_bold = font
 
 # Colormap für Wind
@@ -633,7 +633,7 @@ draw = ImageDraw.Draw(base_img)
 # FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
 # font = ImageFont.truetype(FONT_PATH, size=18)  
 # font_bold = ImageFont.truetype(FONT_PATH_BOLD, size=21)  
-font = ImageFont.load_default()
+font = ImageFont.load_default(size=21)
 font_bold = font
 
 # Colormap für Wind

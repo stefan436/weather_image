@@ -31,4 +31,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wetterbild updaten
-          path: Wettervorhersage large widget.png
+          path: Wettervorhersage large widget.png        
+
+      - name: 🔁 Bild in Repository committen
+        run: |
+          git config user.name "Stefan436"
+          git config user.email "stefwiedemann0103@web.de"
+          git pull origin main
+          git add "Wettervorhersage large widget.png"
+          git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -296,12 +296,8 @@ draw = ImageDraw.Draw(base_img)
 
 
 # Font laden
-# FONT_PATH_BOLD = BASE_DIR / "fonts" / "arialbd.ttf"
-# FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
-# font = ImageFont.truetype(FONT_PATH, size=18)  
-# font_bold = ImageFont.truetype(FONT_PATH_BOLD, size=21)  
-font = ImageFont.load_default(size=21)
-font_bold = font
+font = ImageFont.load_default(size=18)
+font_bold = ImageFont.load_default(size=21)
 
 # Colormap für Wind
 norm1 = Normalize(vmin=0, vmax=35)
@@ -629,12 +625,8 @@ draw = ImageDraw.Draw(base_img)
 
 
 # Font laden
-# FONT_PATH_BOLD = BASE_DIR / "fonts" / "arialbd.ttf"
-# FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
-# font = ImageFont.truetype(FONT_PATH, size=18)  
-# font_bold = ImageFont.truetype(FONT_PATH_BOLD, size=21)  
-font = ImageFont.load_default(size=21)
-font_bold = font
+font = ImageFont.load_default(size=18)
+font_bold = ImageFont.load_default(size=21)
 
 # Colormap für Wind
 norm1 = Normalize(vmin=0, vmax=35)

@@ -511,7 +511,7 @@ if sehr_gut:
     draw.text((x0, height - (height*0.93)), "Sehr gute Sicht!", font=font_bold, fill="rgb(255,0,0)")
     
 
-base_img.save(BASE_DIR / "temp images" / "erste reihe.png")
+base_img.save(BASE_DIR / "erste reihe.png")
 
 # zweites bild generieren
 anzahl_std = len(df_2) - 1
@@ -845,12 +845,12 @@ if gut:
 if sehr_gut:
     draw.text((x0, height - (height*0.93)), "Sehr gute Sicht!", font=font_bold, fill="rgb(255,0,0)")
 
-base_img.save(BASE_DIR / "temp images" / "zweite reihe.png")
+base_img.save(BASE_DIR / "zweite reihe.png")
 
 
 # Bilder laden
-oberes_bild = Image.open(BASE_DIR / "temp images" / "erste reihe.png").convert("RGBA")
-unteres_bild = Image.open(BASE_DIR / "temp images" / "zweite reihe.png").convert("RGBA")
+oberes_bild = Image.open(BASE_DIR / "erste reihe.png").convert("RGBA")
+unteres_bild = Image.open(BASE_DIR / "zweite reihe.png").convert("RGBA")
 
 # Breite = maximale Breite der beiden Bilder
 gesamt_breite = max(oberes_bild.width, unteres_bild.width)

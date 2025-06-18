@@ -296,8 +296,10 @@ draw = ImageDraw.Draw(base_img)
 
 
 # Font laden
-font = ImageFont.truetype("arial.ttf", size=18)  
-font_bold = ImageFont.truetype("arialbd.ttf", size=21)  
+FONT_PATH_BOLD = BASE_DIR / "fonts" / "arialbd.ttf"
+FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
+font = ImageFont.truetype(FONT_PATH, size=18)  
+font_bold = ImageFont.truetype(FONT_PATH_BOLD, size=21)  
 
 
 # Colormap für Wind
@@ -322,8 +324,6 @@ SUNSET_PATH = BASE_DIR / "icons" / "sunset.png"
 FOG_PATH = BASE_DIR / "icons" / "fog.png"
 RAIN_PATH = BASE_DIR / "icons" / "rain.png"
 THUNDERSTORM_PATH = BASE_DIR / "icons" / "thunderstorm.png"
-FONT_PATH_BOLD = BASE_DIR / "fonts" / "arialbd.ttf"
-FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
 icon_arrow = Image.open(ARROW_PATH).convert("RGBA")
 icon_arrow = icon_arrow.resize((int(width_per_hour*0.66), int(height*0.1*0.66)))
 
@@ -628,8 +628,10 @@ draw = ImageDraw.Draw(base_img)
 
 
 # Font laden
-font = ImageFont.truetype("arial.ttf", size=18)  
-font_bold = ImageFont.truetype("arialbd.ttf", size=21)  
+FONT_PATH_BOLD = BASE_DIR / "fonts" / "arialbd.ttf"
+FONT_PATH = BASE_DIR / "fonts" / "arial.ttf"
+font = ImageFont.truetype(FONT_PATH, size=18)  
+font_bold = ImageFont.truetype(FONT_PATH_BOLD, size=21)  
 
 
 # Colormap für Wind

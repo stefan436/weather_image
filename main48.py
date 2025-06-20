@@ -507,7 +507,7 @@ if sehr_gut:
     draw.text((x0, height - (height*0.93)), "Sehr gute Sicht!", font=font_bold, fill="rgb(255,0,0)")
     
 
-base_img.save(BASE_DIR / "erste reihe.png")
+base_img.save(BASE_DIR / "Wettervorhersage.png", format="PNG")
 
 # zweites bild generieren
 anzahl_std = len(df_2) - 1
@@ -841,7 +841,7 @@ base_img.save(BASE_DIR / "zweite reihe.png")
 
 
 # Bilder laden
-oberes_bild = Image.open(BASE_DIR / "erste reihe.png").convert("RGBA")
+oberes_bild = Image.open(BASE_DIR / "Wettervorhersage.png").convert("RGBA")
 unteres_bild = Image.open(BASE_DIR / "zweite reihe.png").convert("RGBA")
 
 # Breite = maximale Breite der beiden Bilder
@@ -863,9 +863,7 @@ draw.line([0, oberes_bild.height, gesamt_breite, oberes_bild.height], fill='blac
 
 kombiniert.save(BASE_DIR / "Wettervorhersage large widget.png", format="PNG")
 
-os.remove(BASE_DIR / "erste reihe.png")
+
 os.remove(BASE_DIR / "zweite reihe.png")
-
-
 os.remove(kmz_file_s)
 os.remove(kmz_file_mosmix_l)

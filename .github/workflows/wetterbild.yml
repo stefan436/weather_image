@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wetterbild 24 std updaten
-          path: Wettervorhersage klein.png   
+          path: Wettervorhersage.png   
 
       - name: 🔁 Bild in Repository committen
         run: |
@@ -46,7 +46,7 @@ jobs:
           git pull origin main
           git add "Wettervorhersage large widget.png"
           git commit -m "Update Wetterbild 48h automatisch [CI]" || echo "No changes to commit"
-          git add "Wettervorhersage klein.png"
+          git add "Wettervorhersage.png"
           git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
           git push origin main
         env:

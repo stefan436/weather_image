@@ -46,7 +46,7 @@ jobs:
           git pull origin main
           git add "Wettervorhersage large widget.png"
           git commit -m "Update Wetterbild 48h automatisch [CI]" || echo "No changes to commit"
-          git add "Wettervorhersage.png"
+          git add "Wettervorhersage klein.png"
           git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
           git push origin main
         env:

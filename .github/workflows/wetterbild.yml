@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wetterbild 24 std updaten
-          path: Wettervorhersage.png   
+          path: Wettervorhersage klein.png   
 
       - name: 🔁 Bild in Repository committen
         run: |

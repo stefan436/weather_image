@@ -187,6 +187,7 @@ anzahl_std = len(df_1) - 1
 width_per_hour = 50 # muss angepasst werden auf 25 wenn anstatt von 24 48 stunden gezeigt werden sollen
 width = width_per_hour * len(df_1)
 height = int((width/360) * 188)
+height_for_small_widget = int((width/360) * 168)
 dpi = 150
 
 # Interpolation vorbereiten
@@ -278,21 +279,27 @@ curve_img = curve_img.crop(bbox)
 # Zielgröße berechnen
 target_width = width  # gleiche Breite wie Basisbild
 target_height = height // 2  # halbe Höhe
+target_height_for_small_widget = height_for_small_widget // 2
 
 # Resize auf Zielgröße
 curve_img = curve_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+curve_img_for_small_widget = curve_img.resize((target_width, target_height_for_small_widget), Image.Resampling.LANCZOS)
 
 # Basisbild erstellen
 base_img = Image.new("RGBA", (width, height), "lightgrey")
+base_img_for_small_widget = Image.new("RGBA", (width, height_for_small_widget), "lightgrey")
 
 # Position: 20% der Basisbildhöhe von oben
 paste_y = int(height * 0.2)
+paste_y_for_small_widget = int(height_for_small_widget * 0.2)
 
 # Bild einfügen
 base_img.paste(curve_img, (0, paste_y), curve_img)
+base_img_for_small_widget.paste(curve_img_for_small_widget, (0, paste_y_for_small_widget), curve_img_for_small_widget)
 
 # Zeichnen vorbereiten
 draw = ImageDraw.Draw(base_img)
+draw_small_widget = ImageDraw.Draw(base_img_for_small_widget)
 
 
 # Font laden
@@ -323,6 +330,7 @@ RAIN_PATH = BASE_DIR / "icons" / "rain.png"
 THUNDERSTORM_PATH = BASE_DIR / "icons" / "thunderstorm.png"
 icon_arrow = Image.open(ARROW_PATH).convert("RGBA")
 icon_arrow = icon_arrow.resize((int(width_per_hour*0.66), int(height*0.1*0.66)))
+icon_arrow_for_small_widget = icon_arrow.resize((int(width_per_hour* 0.66), int(height_for_small_widget*0.1*0.66)))
 
 
 icon_sunrise = Image.open(SUNRISE_PATH).convert("RGBA")
@@ -331,6 +339,13 @@ icon_sunrise = icon_sunrise.resize((int(width_per_hour*0.66), int(height*0.1*0.6
 icon_sunset = icon_sunset.resize((int(width_per_hour*0.66), int(height*0.1*0.66)))
 icon_sunrise_width, icon_sunrise_height = icon_sunrise.size
 icon_sunset_width, icon_sunset_height = icon_sunset.size
+
+icon_sunrise_for_small_widget = icon_sunrise.resize((int(width_per_hour* 0.66), int(height_for_small_widget*0.1*0.66)))
+icon_sunset_for_small_widget = icon_sunset.resize((int(width_per_hour* 0.66), int(height_for_small_widget*0.1*0.66)))
+icon_sunrise_width_for_small_widget, icon_sunrise_height_for_small_widget = icon_sunrise_for_small_widget.size
+icon_sunset_width_for_small_widget, icon_sunset_height_for_small_widget = icon_sunset_for_small_widget.size
+
+
 
 
 icon_fog = Image.open(FOG_PATH)
@@ -343,6 +358,13 @@ icon_fog_width, icon_fog_heigt = icon_fog.size
 icon_rain_width, icon_rain_height = icon_rain.size
 icon_thunderstorm_width, icon_thunderstorm_height = icon_thunderstorm.size
 
+icon_fog_for_small_widget = icon_fog.resize((int(width_per_hour*0.66), int(height_for_small_widget*0.1*0.66)))
+icon_rain_for_small_widget = icon_rain.resize((int(width_per_hour*0.66), int(height_for_small_widget*0.1*0.66)))
+icon_thunderstorm_for_small_widget = icon_thunderstorm.resize((int(width_per_hour*0.66), int(height_for_small_widget*0.1*0.66)))
+icon_fog_width_for_small_widget, icon_fog_heigt_for_small_widget = icon_fog_for_small_widget.size
+icon_rain_width_for_small_widget, icon_rain_height_for_small_widget = icon_rain_for_small_widget.size
+icon_thunderstorm_width_for_small_widget, icon_thunderstorm_height_for_small_widget = icon_thunderstorm_for_small_widget.size
+
 # Ort definieren für sonnenaufgang
 stadt = LocationInfo(name="Muenchen", region="Germany", timezone="Europe/Berlin", latitude=48.166144, longitude=11.658285)
 s = sun(stadt.observer, date=date.today(), tzinfo=stadt.timezone)
@@ -352,6 +374,7 @@ def draw_filled_circle(percentage, size=33, background="rgba(0,0,0,0)", fill_col
     # Create image and drawing context
     img = Image.new("RGBA", (size, size), background)
     draw = ImageDraw.Draw(img)
+    
 
     # Define bounding box for the circle
     bbox = [0, 0, size-1, size-1]
@@ -379,63 +402,93 @@ for i, row in df_1.iterrows():
         y_target = height - int(height * 0.77)
         position = (x_target - icon_fog_width // 2, y_target - icon_fog_heigt // 2)
         base_img.paste(icon_fog, position, icon_fog)
+        y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77)
+        position_small_widget = (x_target - icon_fog_width_for_small_widget // 2, y_target_for_small_widget - icon_fog_heigt_for_small_widget // 2)
+        base_img_for_small_widget.paste(icon_fog_for_small_widget, position_small_widget, icon_fog_for_small_widget)
     if row['ww_x'] in [81, 82]:      # mäßige und äußerst hefitge regenshauer
         x_target = x0 + width_per_hour // 2
         y_target = height - int(height * 0.77)
         position = (x_target - icon_rain_width // 2, y_target - icon_rain_height // 2)
         base_img.paste(icon_rain, position, icon_rain)
+        y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77)
+        position_small_widget = (x_target - icon_rain_width_for_small_widget // 2, y_target_for_small_widget - icon_rain_height_for_small_widget // 2)
+        base_img_for_small_widget.paste(icon_rain_for_small_widget, position_small_widget, icon_rain_for_small_widget)
     if row['ww_x'] == 95:      # Gewitter
         x_target = x0 + width_per_hour // 2
         y_target = height - int(height * 0.77)
         position = (x_target - icon_thunderstorm_width // 2, y_target - icon_thunderstorm_height // 2)
         base_img.paste(icon_thunderstorm, position, icon_thunderstorm)
+        y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77)
+        position_small_widget = (x_target - icon_thunderstorm_width_for_small_widget // 2, y_target_for_small_widget - icon_thunderstorm_height_for_small_widget // 2)
+        base_img_for_small_widget.paste(icon_thunderstorm_for_small_widget, position_small_widget, icon_thunderstorm_for_small_widget)
+        
     
     
     zeit = pd.to_datetime(row['Zeit'])  # Falls Zeit als String vorliegt
     stunde = zeit.hour
 
-    # Wenn Stunde 00 ist → Wochentagskürzel anzeigen und sonnenauf unduntergang
+    # Wenn Stunde 00 ist → Wochentagskürzel anzeigen und Sonnenauf- und -untergang
     if stunde == 0:
         label = wochentage[zeit.weekday()]
+        label_small_widget = label
     elif stunde == int(s['sunrise'].strftime('%H')):
         draw.text((x0 + 3, height - (height*0.93)), f"{s['sunrise'].strftime('%H:%M')}", font=font, fill="rgb(236, 87, 0)")
+        draw_small_widget.text((x0 + 3, height_for_small_widget - (height_for_small_widget*0.93)), f"{s['sunrise'].strftime('%H:%M')}", font=font, fill="rgb(236, 87, 0)")
         x_target = x0 + width_per_hour // 2
         if row['ww_x'] in [45, 49, 81, 82, 95]:
             y_target = height - int(height * 0.77) + icon_fog_heigt + 2
+            y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77) + icon_fog_heigt_for_small_widget + 2
         else:
             y_target = height - int(height * 0.77)
+            y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77)
         position = (x_target - icon_sunrise_width // 2, y_target - icon_sunrise_height // 2)
+        position_small_widget = (x_target - icon_sunrise_width_for_small_widget // 2, y_target_for_small_widget - icon_sunrise_height_for_small_widget // 2)
         base_img.paste(icon_sunrise, position, icon_sunrise)
+        base_img_for_small_widget.paste(icon_sunrise_for_small_widget, position_small_widget, icon_sunrise_for_small_widget)
         label = f"{stunde:02d}h"
+        label_small_widget = label
     elif stunde == int(s['sunset'].strftime('%H')):
         draw.text((x0 + 3, height - (height*0.93)), f"{s['sunset'].strftime('%H:%M')}", font=font, fill="rgb(236, 87, 0)")
+        draw_small_widget.text((x0 + 3, height_for_small_widget - (height_for_small_widget*0.93)), f"{s['sunset'].strftime('%H:%M')}", font=font, fill="rgb(236, 87, 0)")
         x_target = x0 + width_per_hour // 2
         if row['ww_x'] in [45, 49, 81, 82, 95]:
             y_target = height - int(height * 0.77) + icon_fog_heigt + 2
+            y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77) + icon_fog_heigt_for_small_widget + 2
         else:
             y_target = height - int(height * 0.77)
+            y_target_for_small_widget = height_for_small_widget - int(height_for_small_widget * 0.77)
         position = (x_target - icon_sunset_width // 2, y_target - icon_sunset_height // 2)
+        position_small_widget = (x_target - icon_sunset_width_for_small_widget // 2, y_target_for_small_widget - icon_sunset_height_for_small_widget // 2)
         base_img.paste(icon_sunset, position, icon_sunset)
+        base_img_for_small_widget.paste(icon_sunset_for_small_widget, position_small_widget, icon_sunset_for_small_widget)
         label = f"{stunde:02d}h"
+        label_small_widget = label
     else:
         label = f"{stunde:02d}h"
+        label_small_widget = label
 
     # Uhrzeit oder Wochentag zeichnen
     draw.text((x0 + 8, height - (height*0.98)), label, font=font_bold, fill="navy")
+    draw_small_widget.text((x0 + 8, height_for_small_widget - (height_for_small_widget*0.98)), label_small_widget, font=font_bold, fill="navy")
 
     # Temperatur (Zahl)
     if row['TTT_x'] == df_1['TTT_x'].max():
         draw.text((x0 + 10, height - (height*0.66)), f"{row['TTT_x']}°", font=font_bold, fill="rgb(219, 11, 11)")
+        draw_small_widget.text((x0 + 10, height_for_small_widget - (height_for_small_widget*0.66)), f"{row['TTT_x']}°", font=font_bold, fill="rgb(219, 11, 11)")
     elif row['TTT_x'] == df_1['TTT_x'].min():
         draw.text((x0 + 10, height - (height*0.66)), f"{row['TTT_x']}°", font=font_bold, fill="rgb(13, 27, 181)")
+        draw_small_widget.text((x0 + 10, height_for_small_widget - (height_for_small_widget*0.66)), f"{row['TTT_x']}°", font=font_bold, fill="rgb(13, 27, 181)")
     else:
         draw.text((x0 + 10, height - (height*0.66)), f"{row['TTT_x']}°", font=font_bold, fill="black")
+        draw_small_widget.text((x0 + 10, height_for_small_widget - (height_for_small_widget*0.66)), f"{row['TTT_x']}°", font=font_bold, fill="black")
     
     # Regendaten (Zahl)
     if row['RR1c_x'] != 0:
         draw.text((x0 + 11, height - (height*0.50)), f"{row['RR1c_x']}", font=font_bold, fill="black")
+        draw_small_widget.text((x0 + 11, height_for_small_widget - (height_for_small_widget*0.50)), f"{row['RR1c_x']}", font=font_bold, fill="black")
     if row['RR1c_x'] != 0 and row['DRR1'] != 0:
         draw.text((x0 + 14, height - (height*0.45)), f"{int(row['DRR1']/60)}", font=font_bold, fill="black")
+        draw_small_widget.text((x0 + 14, height_for_small_widget - (height_for_small_widget*0.45)), f"{int(row['DRR1']/60)}", font=font_bold, fill="black")
     if row['RR1c_x'] != 0 and row['DRR1'] != 0:
         rain_intensity = (row['RR1c_x']/row['DRR1'])*3600
         if rain_intensity < 2:
@@ -449,65 +502,85 @@ for i, row in df_1.iterrows():
         else:
             color = "#b20003"  
         draw.text((x0 + 14, height - (height*0.40)), f"{round(rain_intensity)}", font=font_bold, fill=color)
+        draw_small_widget.text((x0 + 14, height_for_small_widget - (height_for_small_widget*0.40)), f"{round(rain_intensity)}", font=font_bold, fill=color)
     if row['wwP'] >= 10:
         draw.text((x0 + 6, height - (height*0.35)), f"{int(row['wwP'])}%", font=font_bold, fill="black")
+        draw_small_widget.text((x0 + 6, height_for_small_widget - (height_for_small_widget*0.35)), f"{int(row['wwP'])}%", font=font_bold, fill="black")
     
-    # # Wind-Kästchen average farbig 
+    # Wind-Kästchen average farbig 
     wind_color = tuple((np.array(colormap1(norm1(row['FF_x']))[:3]) * 255).astype(int))
     draw.rectangle([x0, height - (height*0.3), x0 + width_per_hour, height - (height*0.2)], fill=wind_color)
+    draw_small_widget.rectangle([x0, height_for_small_widget - (height_for_small_widget*0.3), x0 + width_per_hour, height_for_small_widget - (height_for_small_widget*0.2)], fill=wind_color)
     draw.text((x0 + 14, height - (height*0.27)), f"{row['FF_x']}", font=font_bold, fill="lightgrey")
+    draw_small_widget.text((x0 + 14, height_for_small_widget - (height_for_small_widget*0.27)), f"{row['FF_x']}", font=font_bold, fill="lightgrey")
 
     # Wind max 
     wind_color = tuple((np.array(colormap2(norm2(row['FX1_x']))[:3]) * 255).astype(int))
     draw.rectangle([x0, height - (height*0.2), x0 + width_per_hour, height - (height*0.1)], fill=wind_color)
+    draw_small_widget.rectangle([x0, height_for_small_widget - (height_for_small_widget*0.2), x0 + width_per_hour, height_for_small_widget - (height_for_small_widget*0.1)], fill=wind_color)
     draw.text((x0 + 14, height - (height*0.17)), f"{row['FX1_x']}", font=font_bold, fill="black")
-    
+    draw_small_widget.text((x0 + 14, height_for_small_widget - (height_for_small_widget*0.17)), f"{row['FX1_x']}", font=font_bold, fill="black")
     
     # Windrichtungspfeil (aus u/v)
     wind_dir_deg = row['DD_x']
     wind_dir_deg_corrected = wind_dir_deg + 90      # Icon für windrichtung zeigt ursprünglich nach rechts (Osten)
-    
-    rotated_icon_arrow = icon_arrow.rotate(wind_dir_deg_corrected, expand=True)        # expand=True sorgt dafür, dass nichts abgeschnitten wird
-    rotated_icon_arrow_width, rotated_icon_arrow_height = rotated_icon_arrow.size      # der mittelpunkt des rotierten arrow stimmt nicht mit dem des unrotierten überein. deshalb muss es hier bestimmt werden
-    
+    rotated_icon_arrow = icon_arrow.rotate(wind_dir_deg_corrected, expand=True)
+    rotated_icon_arrow_width, rotated_icon_arrow_height = rotated_icon_arrow.size
+    rotated_icon_arrow_small = icon_arrow_for_small_widget.rotate(wind_dir_deg_corrected, expand=True)
+    rotated_icon_arrow_small_width, rotated_icon_arrow_small_height = rotated_icon_arrow_small.size
+
     x_target = x0 + width_per_hour // 2
     y_target = height - int(height * 0.05)
+    y_target_small_widget = height_for_small_widget - int(height_for_small_widget * 0.05)
     position = (x_target - rotated_icon_arrow_width // 2, y_target - rotated_icon_arrow_width // 2)
-    
+    position_small_widget = (x_target - rotated_icon_arrow_small_width // 2, y_target_small_widget - rotated_icon_arrow_small_width // 2)
     base_img.paste(rotated_icon_arrow, position, rotated_icon_arrow)
-    
+    base_img_for_small_widget.paste(rotated_icon_arrow_small, position_small_widget, rotated_icon_arrow_small)
 
-    # Linien zu besseren zuordnung
+    # Linien zu besseren Zuordnung
     draw.line([x0, height, x0, 0], fill='grey', width=0)
-    
+    draw_small_widget.line([x0, height_for_small_widget, x0, 0], fill='grey', width=0)
     
     # Wolkenbedeckung
     img = draw_filled_circle(row['Neff_x'], size=38)
+    img_small = draw_filled_circle(row['Neff_x'], size=28)
     x_target = x0 + width_per_hour // 2
     y_target = height - int(height * 0.85)
+    y_target_small_widget = height_for_small_widget - int(height_for_small_widget * 0.85)
     position = (x_target - img.size[0] // 2, y_target - img.size[1] // 2)
+    position_small_widget = (x_target - img_small.size[0] // 2, y_target_small_widget - img_small.size[1] // 2)
     base_img.paste(img, position, img)
-    
+    base_img_for_small_widget.paste(img_small, position_small_widget, img_small)
 
     # Sichtweite ? parameter setzten 
     gut = False
     sehr_gut = False
+    gut_small = False
+    sehr_gut_small = False
     if 90000 <= row['VV_x'] < 120000:
         gut = True
+        gut_small = True
         draw.circle((x0 + width_per_hour // 2, height - (height*0.85)), radius=5, fill="rgb(236, 87, 0)")
+        draw_small_widget.circle((x0 + width_per_hour // 2, height_for_small_widget - (height_for_small_widget*0.85)), radius=4, fill="rgb(236, 87, 0)")
     if 120000 <= row['VV_x']:
         sehr_gut = True
+        sehr_gut_small = True
         draw.circle((x0 + width_per_hour // 2, height - (height*0.85)), radius=5, fill="rgb(255,0,0)")
+        draw_small_widget.circle((x0 + width_per_hour // 2, height_for_small_widget - (height_for_small_widget*0.85)), radius=4, fill="rgb(255,0,0)")
             
 
 if gut:
     draw.text((x0, height - (height*0.93)), "Gute Sicht", font=font_bold, fill="rgb(236, 87, 0)")
-    
 if sehr_gut:
     draw.text((x0, height - (height*0.93)), "Sehr gute Sicht!", font=font_bold, fill="rgb(255,0,0)")
-    
+if 'gut_small' in locals() and gut_small:
+    draw_small_widget.text((x0, height_for_small_widget - (height_for_small_widget*0.93)), "Gute Sicht", font=font_bold, fill="rgb(236, 87, 0)")
+if 'sehr_gut_small' in locals() and sehr_gut_small:
+    draw_small_widget.text((x0, height_for_small_widget - (height_for_small_widget*0.93)), "Sehr gute Sicht!", font=font_bold, fill="rgb(255,0,0)")
 
 base_img.save(BASE_DIR / "Wettervorhersage.png", format="PNG")
+base_img_for_small_widget.save(BASE_DIR / "Wettervorhersage klein.png", format="PNG")
+
 
 # zweites bild generieren
 anzahl_std = len(df_2) - 1
@@ -863,7 +936,7 @@ draw.line([0, oberes_bild.height, gesamt_breite, oberes_bild.height], fill='blac
 
 kombiniert.save(BASE_DIR / "Wettervorhersage large widget.png", format="PNG")
 
-
 os.remove(BASE_DIR / "zweite reihe.png")
+os.remove(BASE_DIR / "erste reihe.png")
 os.remove(kmz_file_s)
 os.remove(kmz_file_mosmix_l)

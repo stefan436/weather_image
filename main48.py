@@ -25,6 +25,8 @@ from pathlib import Path
 # Basisverzeichnis
 BASE_DIR = Path(__file__).parent
 
+# Stationen
+stations_names=['ASCHHEIM', 'OBERPFAFFENHOFEN', 'Schaeftlarn-Kloster', 'Isen-Westach', 'Deisenhofen, Kreis M', 'SAUERLACH', 'BRUCKMUEHL', 'HOLZKIRCHEN/OBB.', 'Feldkirchen-Westerha', 'Assling', 'EBERSBERG', 'Finsing (Kraftwerk)', 'GARCHING', 'Oberschleissheim', 'DACHAU', 'MAISACH-GALGEN', 'FUERSTENFELDBRUCK', 'MUENCHEN STADT', 'MUENCHEN-FL.']
 
 
 def download_file(url, target_path):
@@ -152,7 +154,7 @@ kmz_file_s = DATA_DIR / filename_mosmix_s
 
 download_file(url_mosmix_s, kmz_file_s)
 
-stations_names=['FUERSTENFELDBRUCK', 'MUENCHEN STADT', 'MUENCHEN-FL.']
+
 for name in stations_names:
     with tempfile.TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(kmz_file_s, "r") as z:

@@ -39,13 +39,12 @@ jobs:
           name: wetterbild 24 std updaten
           path: Wettervorhersage MUENCHEN STADT.png  
 
-      - name:  📤 Artefakt hochladen (html)
-        uses: actions/upload-artifact@v4
-        with:
-          name: map 
-          path: map_wettervorhersage.html
+      - name: 📤 Move HTML to docs
+        run: |
+          mkdir -p docs
+          mv map_wettervorhersage.html docs/map_wettervorhersage.html
 
-      - name: 🔁 Bild in Repository committen
+      - name: 🔁 Bild und html in Repository committen
         run: |
           git config user.name "Stefan436"
           git config user.email "stefwiedemann0103@web.de"
@@ -54,8 +53,8 @@ jobs:
           git commit -m "Update Wetterbild 48h automatisch [CI]" || echo "No changes to commit"
           git add "Wettervorhersage MUENCHEN STADT.png"
           git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
-          git add "map_wettervorhersage.html"
-          git commit -m "Update Karte automatisch [CI]" || echo "No changes to commit"
+          git add docs/map_wettervorhersage.html
+          git commit -m "Deploy HTML"
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

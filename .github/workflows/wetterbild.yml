@@ -31,13 +31,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wetterbild 48 std updaten
-          path: Wettervorhersage large widget.png        
+          path: Wettervorhersage large widget MUENCHEN STADT.png        
 
       - name: 📤 Artefakt hochladen (Bild)
         uses: actions/upload-artifact@v4
         with:
           name: wetterbild 24 std updaten
-          path: Wettervorhersage.png  
+          path: Wettervorhersage MUENCHEN STADT.png  
 
       - name:  📤 Artefakt hochladen (html)
         uses: actions/upload-artifact@v4
@@ -50,9 +50,9 @@ jobs:
           git config user.name "Stefan436"
           git config user.email "stefwiedemann0103@web.de"
           git pull origin main
-          git add "Wettervorhersage large widget.png"
+          git add "Wettervorhersage large widget MUENCHEN STADT.png"
           git commit -m "Update Wetterbild 48h automatisch [CI]" || echo "No changes to commit"
-          git add "Wettervorhersage.png"
+          git add "Wettervorhersage MUENCHEN STADT.png"
           git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
           git add "map_wettervorhersage.html"
           git commit -m "Update Karte automatisch [CI]" || echo "No changes to commit"

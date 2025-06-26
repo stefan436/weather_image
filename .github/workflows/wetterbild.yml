@@ -40,7 +40,7 @@ jobs:
           path: Wettervorhersage.png  
 
       - name:  📤 Artefakt hochladen (html)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: map 
           path: map_wettervorhersage.html

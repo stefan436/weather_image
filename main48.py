@@ -26,7 +26,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent
 
 # Stationen
-stations_names=['ASCHHEIM', 'OBERHACHING-LAUFZORN', 'Finsing (Kraftwerk)', 'GARCHING', 'Oberschleissheim', 'MAISACH-GALGEN', 'FUERSTENFELDBRUCK', 'MUENCHEN STADT', 'MUENCHEN-FL.']
+stations_names=['ASCHHEIM', 'OBERHACHING-LAUFZORN', 'GARCHING', 'Oberschleissheim', 'MAISACH-GALGEN', 'FUERSTENFELDBRUCK', 'MUENCHEN STADT', 'MUENCHEN-FL.', 'Finsing']
 
 
 def download_file(url, target_path):

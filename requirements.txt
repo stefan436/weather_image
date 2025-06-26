@@ -7,3 +7,4 @@ pillow
 pytz
 requests
 scipy
+folium

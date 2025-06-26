@@ -42,7 +42,7 @@ jobs:
       - name: 📤 Move HTML to docs
         run: |
           mkdir -p docs
-          mv map_wettervorhersage.html docs/map_wettervorhersage.html
+          mv map_wettervorhersage.html docs/index.html
 
       - name: 🔁 Bild und html in Repository committen
         run: |
@@ -53,7 +53,7 @@ jobs:
           git commit -m "Update Wetterbild 48h automatisch [CI]" || echo "No changes to commit"
           git add "Wettervorhersage MUENCHEN STADT.png"
           git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
-          git add docs/map_wettervorhersage.html
+          git add docs/index.html
           git commit -m "Deploy HTML"
           git push origin main
         env:

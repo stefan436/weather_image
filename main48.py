@@ -585,7 +585,7 @@ for name in stations_names:
         draw_small_widget.text((x0, height_for_small_widget - (height_for_small_widget*0.93)), "Sehr gute Sicht!", font=font_bold, fill="rgb(255,0,0)")
     
     base_img.save(BASE_DIR / "erste reihe.png", format="PNG")
-    base_img_for_small_widget.save(BASE_DIR / "Wettervorhersage.png", format="PNG")
+    base_img_for_small_widget.save(BASE_DIR / "Wettervorhersage {name}.png", format="PNG")
     
     
     # zweites bild generieren

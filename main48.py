@@ -94,8 +94,8 @@ def parse_kml_forecast_for_station_mosmix_s(kml_file, target_station_name):
         df['FF'] = df['FF'] * 3.6
         df['FF'] = df['FF'].round(0).astype(int)  
         df['FX1'] = df['FX1'] * 3.6
-        df['FX1'] = df['FX1'].round(0).astype('Int64')          
-        df['RR1c'] = df['RR1c'].round(1).astype('Int64')
+        df['FX1'] = df['FX1'].round(0).astype(int)          
+        df['RR1c'] = df['RR1c'].round(1).astype(int)
         return df, station_lon, station_lat, station_height, station_id
 
     # Falls Station nicht gefunden wurde

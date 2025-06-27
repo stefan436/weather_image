@@ -96,7 +96,8 @@ def parse_kml_forecast_for_station_mosmix_s(kml_file, target_station_name):
         df['FX1'] = pd.to_numeric(df['FX1'], errors='coerce')  # Convert to float, set invalid parsing as NaN
         df['FX1'] = df['FX1'] * 3.6
         df['FX1'] = df['FX1'].round(0).astype('Int64')          # Use nullable integer type to keep NaNs
-        df['RR1c'] = df['RR1c'].round(1)
+        df['RR1c'] = pd.to_numeric(df['RR1c'], errors='coerce')
+        df['RR1c'] = df['RR1c'].round(1).astype('Int64')
         return df, station_lon, station_lat, station_height, station_id
 
     # Falls Station nicht gefunden wurde

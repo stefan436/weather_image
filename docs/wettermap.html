@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <title>Marching Squares Test</title>
-  <!-- FUNKTIONIERENDE BROWSER-KOMPATIBLE VERSION -->
-  <script src="https://cdn.jsdelivr.net/npm/marchingsquares-isobands@1.0.0/dist/marchingsquares-isobands.min.js"></script>
+  <!-- Besserer CDN ohne CORB-Warnung -->
+  <script src="https://unpkg.com/marchingsquares-isobands@1.0.0/dist/marchingsquares-isobands.min.js"></script>
 </head>
 <body>
-  <h1>Marching Squares Test1</h1>
+  <h1>Marching Squares Test</h1>
   <pre id="output"></pre>
 
   <script>
-    // Warten bis DOM + Scripts vollständig geladen
     window.addEventListener('load', () => {
       const raster = [
         [0, 0, 0, 0, 0],
@@ -21,9 +20,7 @@
         [0, 0, 0, 0, 0]
       ];
 
-      // Der globale Name ist nun: MarchingSquares
       const contours = MarchingSquares.isoLines(raster, 1.5);
-
       document.getElementById('output').textContent = JSON.stringify(contours, null, 2);
     });
   </script>

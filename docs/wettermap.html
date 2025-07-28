@@ -2,178 +2,24 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Radolan Konturen</title>
-  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <title>Test Marching Squares</title>
   <script src="https://unpkg.com/marching-squares@0.0.16/dist/marching-squares.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 </head>
 <body>
-  <button id="start">Radolan Daten laden und verarbeiten</button>
-  <pre id="output" style="max-height:300px; overflow:auto;"></pre>
+  <h1>Marching Squares Test</h1>
+  <pre id="output"></pre>
 
   <script>
-    const DateTime = luxon.DateTime;
+    const raster = [
+      [0, 0, 0, 0, 0],
+      [0, 1, 1, 1, 0],
+      [0, 1, 2, 1, 0],
+      [0, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0]
+    ];
 
-    // Hilfsfunktion: Erzeuge den Dateinamen nach dem Schema
-    function getRadolanFilename() {
-      let now = DateTime.utc().minus({ minutes: 5 });
-      let minute = Math.floor(now.minute / 15) * 15;
-      let rounded = now.set({ minute, second: 0, millisecond: 0 });
-      let filenameTime = rounded.toFormat('yyMMddHHmm');
-      return `RQ${filenameTime}_000.gz`;
-    }
-
-    // Hilfsfunktion: Liest Koordinaten per fetch aus einer Textdatei
-    async function parseCoordinatesUrl(url, digits = 8) {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Fehler beim Laden der Datei ${url}`);
-      let text = await response.text();
-      text = text.replace(/\s+/g, '');
-      if (text.length % digits !== 0) {
-        throw new Error(`Datei ${url} Länge ist kein Vielfaches von ${digits}`);
-      }
-      const coords = [];
-      for (let i = 0; i < text.length; i += digits) {
-        coords.push(parseFloat(text.slice(i, i + digits)));
-      }
-      return coords;
-    }
-
-    // Raster aus 1D-Liste erstellen
-    function makeRaster(coords, nCols) {
-      if (coords.length % nCols !== 0) {
-        throw new Error("Rastergröße stimmt nicht mit Datenlänge überein.");
-      }
-      const nRows = coords.length / nCols;
-      const raster = [];
-      for (let i = 0; i < nRows; i++) {
-        raster.push(coords.slice(i * nCols, (i + 1) * nCols));
-      }
-      return raster;
-    }
-
-    // Hauptfunktion: Verarbeitung eines gepufferten RADOLAN-Datensatzes
-    function readGzRadvorFromBuffer(buffer, nCols = 900) {
-      // Die Koordinaten müssen vorher geladen und übergeben werden, nicht hier lokal
-      throw new Error("Bitte übergebe lat/lon Koordinaten separat.");
-    }
-
-    // Hier Version, die lat/lon als Argumente bekommt
-    function readGzRadvorFromBufferWithCoords(buffer, latCoords, lonCoords, nCols = 900) {
-      const minLen = Math.min(latCoords.length, lonCoords.length);
-
-      const lat = makeRaster(latCoords.slice(0, minLen), nCols);
-      const lon = makeRaster(lonCoords.slice(0, minLen), nCols);
-
-      // Dekomprimieren mit pako
-      const raw = pako.ungzip(buffer);
-      // Suche ETX (ASCII 3)
-      let headerEnd = raw.indexOf(3);
-      if (headerEnd === -1) throw new Error('Kein ETX Zeichen gefunden');
-      const headerText = new TextDecoder('utf-8').decode(raw.slice(0, headerEnd));
-      const binData = raw.slice(headerEnd + 1);
-
-      const shapeMatch = headerText.match(/GP\s+(\d+)x\s*(\d+)/);
-      if (!shapeMatch) throw new Error('Shape in Header nicht gefunden');
-      const nx = parseInt(shapeMatch[2]);
-      const ny = parseInt(shapeMatch[1]);
-
-      const data = [];
-      for (let i = 0; i < binData.length; i += 2) {
-        data.push(binData[i] + (binData[i+1] << 8)); // little endian
-      }
-
-      const dataFloat = data.map(v => (v === 0 || v > 4095) ? 0 : v * 0.1);
-
-      const rasterData = [];
-      for (let i = 0; i < ny; i++) {
-        rasterData.push(dataFloat.slice(i * nx, (i + 1) * nx));
-      }
-
-      return {
-        data: rasterData,
-        lat: lat,
-        lon: lon
-      };
-    }
-
-    // Index-Koordinaten in Geo-Koordinaten konvertieren
-    function convertIndicesToLatLon(line, latGrid, lonGrid) {
-      return line.map(([x, y]) => {
-        const xi = Math.round(x);
-        const yi = Math.round(y);
-        if (
-          yi >= 0 && yi < latGrid.length &&
-          xi >= 0 && xi < latGrid[0].length
-        ) {
-          return [latGrid[yi][xi], lonGrid[yi][xi]];
-        } else {
-          return null;
-        }
-      }).filter(pt => pt !== null);
-    }
-
-    async function fetchAndProcessRadvor() {
-      const output = document.getElementById('output');
-      output.textContent = "Starte Verarbeitung ...";
-
-      const radolanFilename = getRadolanFilename();
-      const proxy = 'https://corsproxy.io/?';
-      const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
-
-      const phiUrl = 'phi_bottom.txt';
-      const lambdaUrl = 'lambda_bottom.txt';
-
-
-      output.textContent = `Lade Radolan-Datei: ${url}\n`;
-      try {
-        // Koordinaten laden
-        output.textContent += 'Lade phi Koordinaten...\n';
-        const phiCoords = await parseCoordinatesUrl(phiUrl);
-        output.textContent += 'Lade lambda Koordinaten...\n';
-        const lambdaCoords = await parseCoordinatesUrl(lambdaUrl);
-
-        output.textContent += 'Lade Radolan gzip Daten...\n';
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Fehler beim Laden: ${response.statusText}`);
-
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = new Uint8Array(arrayBuffer);
-
-        const result = readGzRadvorFromBufferWithCoords(buffer, phiCoords, lambdaCoords);
-        const raster = result.data;
-        const latGrid = result.lat;
-        const lonGrid = result.lon;
-
-        const contourLevels = [0.1, 0.5, 1, 1.5, 2, 5, 10, 15, 20];
-
-        output.textContent += 'Berechne Konturlinien...\n';
-        const contoursGeoJSON = contourLevels.map(level => {
-          const lines = MarchingSquaresJS.isoLines(raster, level);
-          const geoLines = lines.map(line => convertIndicesToLatLon(line, latGrid, lonGrid));
-          return { level, lines: geoLines };
-        });
-
-        // JSON als Download anbieten
-        const jsonStr = JSON.stringify(contoursGeoJSON, null, 2);
-        output.textContent += 'Konturlinien berechnet.\n';
-
-        // Download-Link erzeugen
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const urlDownload = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = urlDownload;
-        a.download = 'radolan.json';
-        a.textContent = 'Radolan JSON herunterladen';
-        output.appendChild(document.createElement('br'));
-        output.appendChild(a);
-      } catch (err) {
-        output.textContent += `Fehler: ${err.message}\n`;
-        console.error(err);
-      }
-    }
-
-    document.getElementById('start').addEventListener('click', fetchAndProcessRadvor);
+    const contour = MarchingSquaresJS.isoLines(raster, 1.5);
+    document.getElementById('output').textContent = JSON.stringify(contour, null, 2);
   </script>
 </body>
 </html>

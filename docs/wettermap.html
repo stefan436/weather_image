@@ -194,8 +194,6 @@
     const colorScale = chroma.scale(['#440154', '#31688e', '#35b779', '#fde725']).domain([0, 20]);
 
     async function fetchAndProcessRadvor() {
-      output.textContent = "Starte Verarbeitung ...\n";
-
       const radolanFilename = getRadolanFilename();
       const proxy = 'https://corsproxy.io/?';
       const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
@@ -204,14 +202,11 @@
       const lambdaUrl = 'lambda_bottom.txt';
 
       try {
-        output.textContent += `Lade Radolan-Datei: ${url}\n`;
-
-        output.textContent += 'Lade phi Koordinaten...\n';
+        output.textContent += `Lade Radolan-Datei: ${radolanFilename}\n`;
+        
         const phiCoords = await parseCoordinatesUrl(phiUrl);
-        output.textContent += 'Lade lambda Koordinaten...\n';
         const lambdaCoords = await parseCoordinatesUrl(lambdaUrl);
 
-        output.textContent += 'Lade Radolan gzip Daten...\n';
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Fehler beim Laden: ${response.statusText}`);
 
@@ -225,7 +220,6 @@
 
         const contourLevels = [0.1, 0.5, 1, 1.5, 2, 5, 10, 15, 20];
 
-        output.textContent += 'Berechne Konturlinien...\n';
 
         // Alle alten Polylines entfernen
         if (window.contourLayers) {
@@ -249,7 +243,6 @@
           });
         });
 
-        output.textContent += 'Konturlinien wurden auf der Karte dargestellt.\n';
 
         // Legende anzeigen
         document.getElementById('legend').style.display = 'block';

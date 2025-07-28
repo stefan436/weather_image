@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Test Marching Squares</title>
-  <script src="https://unpkg.com/marching-squares@0.0.16/dist/marching-squares.min.js"></script>
+  <title>Marching Squares Test</title>
+  <script src="https://cdn.jsdelivr.net/gh/RaumZeit/MarchingSquares.js@v1.0.2/bin/MarchingSquares.min.js"></script>
 </head>
 <body>
   <h1>Marching Squares Test</h1>
@@ -18,8 +18,8 @@
       [0, 0, 0, 0, 0]
     ];
 
-    const contour = MarchingSquaresJS.isoLines(raster, 1.5);
-    document.getElementById('output').textContent = JSON.stringify(contour, null, 2);
+    const contours = MarchingSquaresJS.isoLines(raster, 1.5);
+    document.getElementById('output').textContent = JSON.stringify(contours, null, 2);
   </script>
 </body>
 </html>

@@ -118,7 +118,9 @@
       output.textContent = "Starte Verarbeitung ...";
 
       const radolanFilename = getRadolanFilename();
-      const url = `https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
+      const proxy = 'https://corsproxy.io/?';
+      const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
+
       const phiUrl = 'phi_bottom.txt';
       const lambdaUrl = 'lambda_bottom.txt';
 

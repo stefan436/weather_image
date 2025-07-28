@@ -119,8 +119,9 @@
 
       const radolanFilename = getRadolanFilename();
       const url = `https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
-      const phiUrl = 'phi_bottom.txt';   // Beispiel: muss auf deinem Server liegen
-      const lambdaUrl = 'lambda_bottom.txt'; // Beispiel: muss auf deinem Server liegen
+      const phiUrl = 'phi_bottom.txt';
+      const lambdaUrl = 'lambda_bottom.txt';
+
 
       output.textContent = `Lade Radolan-Datei: ${url}\n`;
       try {

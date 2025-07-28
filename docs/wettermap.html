@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Radolan Konturen</title>
   <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marchingsquares@1.3.0/marchingsquares.min.js"></script>
+  <script src="https://unpkg.com/marching-squares@0.0.16/dist/marching-squares.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 </head>
 <body>
@@ -149,7 +149,7 @@
 
         output.textContent += 'Berechne Konturlinien...\n';
         const contoursGeoJSON = contourLevels.map(level => {
-          const lines = MarchingSquares.isoLines(raster, level, {
+          const lines = MarchingSquaresJS.isoLines(raster, level, {
             successCallback: () => {},
             noQuadTree: true
           });

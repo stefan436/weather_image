@@ -160,7 +160,7 @@
 
         output.textContent += 'Berechne Konturlinien...\n';
         const contoursGeoJSON = contourLevels.map(level => {
-          const lines = MarchingSquares.isoLines(raster, level, {
+          const lines = MarchingSquaresJS.isoLines(raster, level, {
             successCallback: () => {},
             noQuadTree: true
           });

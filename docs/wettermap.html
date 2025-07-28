@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>Marching Squares Test</title>
-  <!-- Die Library -->
-  <script src="https://cdn.jsdelivr.net/gh/RaumZeit/MarchingSquares.js@v1.0.2/bin/MarchingSquares.min.js"></script>
+  <!-- FUNKTIONIERENDE BROWSER-KOMPATIBLE VERSION -->
+  <script src="https://cdn.jsdelivr.net/npm/marchingsquares-isobands@1.0.0/dist/marchingsquares-isobands.min.js"></script>
 </head>
 <body>
-  <h1>Marching Squares Test2</h1>
+  <h1>Marching Squares Test1</h1>
   <pre id="output"></pre>
 
-  <!-- Dein eigener Code erst NACH der Library -->
   <script>
-    // Sicherstellen, dass MarchingSquaresJS geladen wurde
+    // Warten bis DOM + Scripts vollständig geladen
     window.addEventListener('load', () => {
       const raster = [
         [0, 0, 0, 0, 0],
@@ -22,7 +21,9 @@
         [0, 0, 0, 0, 0]
       ];
 
-      const contours = MarchingSquaresJS.isoLines(raster, 1.5);
+      // Der globale Name ist nun: MarchingSquares
+      const contours = MarchingSquares.isoLines(raster, 1.5);
+
       document.getElementById('output').textContent = JSON.stringify(contours, null, 2);
     });
   </script>

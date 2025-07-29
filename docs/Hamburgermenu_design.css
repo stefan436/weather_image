@@ -1,0 +1,90 @@
+/* Grundlegende Styles */
+body {
+    font-family: sans-serif;
+    margin: 0;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 10px 20px;
+    color: white;
+}
+
+.navbar .logo {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+.nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex; /* Links nebeneinander */
+}
+
+.nav-links li {
+    margin-left: 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Hamburger Menü Styles */
+.hamburger-menu {
+    display: none; /* Standardmäßig versteckt auf größeren Bildschirmen */
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.hamburger-menu span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: white;
+    margin: 5px 0;
+    transition: all 0.3s ease; /* Für die Animation beim Öffnen/Schließen */
+}
+
+/* Responsive Design für kleine Bildschirme */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none; /* Menü auf kleinen Bildschirmen standardmäßig verstecken */
+        flex-direction: column;
+        width: 100%;
+        background-color: #444;
+        position: absolute;
+        top: 60px; /* Unter dem Header */
+        left: 0;
+        text-align: center;
+    }
+
+    .nav-links.active {
+        display: flex; /* Menü anzeigen, wenn 'active' Klasse hinzugefügt wird */
+    }
+
+    .nav-links li {
+        margin: 10px 0;
+    }
+
+    .hamburger-menu {
+        display: flex; /* Hamburger Icon auf kleinen Bildschirmen anzeigen */
+    }
+
+    /* Animation für das Hamburger-Icon (wird durch JS hinzugefügt) */
+    .hamburger-menu.open span:nth-child(1) {
+        transform: rotate(-45deg) translate(-5px, 6px);
+    }
+    .hamburger-menu.open span:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger-menu.open span:nth-child(3) {
+        transform: rotate(45deg) translate(-5px, -6px);
+    }
+}

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Radolan Konturen Karte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Externe Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
+
+  <!-- MarchingSquaresJS -->
+  <script src="MarchingSquares.js"></script>
+
+  <style>
+    body, html {
+      margin: 0; padding: 0; height: 100%;
+      display: flex; flex-direction: column;
+    }
+    #controls {
+      padding: 10px;
+      background: #f0f0f0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #map {
+      flex: 1 1 auto; /* Füllt den restlichen Bildschirm */
+    }
+    .legend {
+      position: absolute;
+      bottom: 30px;
+      right: 20px;
+      padding: 10px;
+      background: white;
+      line-height: 1.2em;
+      font-size: 14px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    .legend .scale {
+      width: 200px;
+      height: 12px;
+      background: linear-gradient(to right, #440154, #31688e, #35b779, #fde725);
+      margin-bottom: 5px;
+    }
+    .legend .labels {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button id="start">Radolan Daten laden und verarbeiten</button>
+    <pre id="output" style="max-height:100px; overflow:auto;"></pre>
+  </div>
+
+  <div id="map"></div>
+
+  <div id="legend" class="legend" style="display:none;">
+    <div class="scale"></div>
+    <div class="labels">
+      <span id="minLabel">min</span>
+      <span id="maxLabel">max</span>
+    </div>
+  </div>
+
+  <script>
+    const DateTime = luxon.DateTime;
+
+    // Leaflet Karte initialisieren
+    const map = L.map('map').setView([51, 10], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
+
+    const output = document.getElementById('output');
+
+    // Hilfsfunktion: Erzeuge den Dateinamen nach dem Schema
+    function getRadolanFilename() {
+      let now = DateTime.utc().minus({ minutes: 5 });
+      let minute = Math.floor(now.minute / 15) * 15;
+      let rounded = now.set({ minute, second: 0, millisecond: 0 });
+      let filenameTime = rounded.toFormat('yyMMddHHmm');
+      return `RQ${filenameTime}_000.gz`;
+    }
+
+    // Hilfsfunktion: Liest Koordinaten per fetch aus einer Textdatei
+    async function parseCoordinatesUrl(url, digits = 8) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Fehler beim Laden der Datei ${url}`);
+      let text = await response.text();
+      text = text.replace(/\s+/g, '');
+      if (text.length % digits !== 0) {
+        throw new Error(`Datei ${url} Länge ist kein Vielfaches von ${digits}`);
+      }
+      const coords = [];
+      for (let i = 0; i < text.length; i += digits) {
+        coords.push(parseFloat(text.slice(i, i + digits)));
+      }
+      return coords;
+    }
+
+    // Raster aus 1D-Liste erstellen
+    function makeRaster(coords, nCols) {
+      if (coords.length % nCols !== 0) {
+        throw new Error("Rastergröße stimmt nicht mit Datenlänge überein.");
+      }
+      const nRows = coords.length / nCols;
+      const raster = [];
+      for (let i = 0; i < nRows; i++) {
+        raster.push(coords.slice(i * nCols, (i + 1) * nCols));
+      }
+      return raster;
+    }
+
+    // Hauptfunktion: Verarbeitung eines gepufferten RADOLAN-Datensatzes
+    function readGzRadvorFromBuffer(buffer, nCols = 900) {
+      // Die Koordinaten müssen vorher geladen und übergeben werden, nicht hier lokal
+      throw new Error("Bitte übergebe lat/lon Koordinaten separat.");
+    }
+
+    // Hier Version, die lat/lon als Argumente bekommt
+    function readGzRadvorFromBufferWithCoords(buffer, latCoords, lonCoords, nCols = 900) {
+      const minLen = Math.min(latCoords.length, lonCoords.length);
+
+      const lat = makeRaster(latCoords.slice(0, minLen), nCols);
+      const lon = makeRaster(lonCoords.slice(0, minLen), nCols);
+
+      // Dekomprimieren mit pako
+      const raw = pako.ungzip(buffer);
+      // Suche ETX (ASCII 3)
+      let headerEnd = raw.indexOf(3);
+      if (headerEnd === -1) throw new Error('Kein ETX Zeichen gefunden');
+      const headerText = new TextDecoder('utf-8').decode(raw.slice(0, headerEnd));
+      const binData = raw.slice(headerEnd + 1);
+
+      const shapeMatch = headerText.match(/GP\s+(\d+)x\s*(\d+)/);
+      if (!shapeMatch) throw new Error('Shape in Header nicht gefunden');
+      const nx = parseInt(shapeMatch[2]);
+      const ny = parseInt(shapeMatch[1]);
+
+      const data = [];
+      for (let i = 0; i < binData.length; i += 2) {
+        data.push(binData[i] + (binData[i+1] << 8)); // little endian
+      }
+
+      const dataFloat = data.map(v => (v === 0 || v > 4095) ? 0 : v * 0.1);
+
+      const rasterData = [];
+      for (let i = 0; i < ny; i++) {
+        rasterData.push(dataFloat.slice(i * nx, (i + 1) * nx));
+      }
+
+      return {
+        data: rasterData,
+        lat: lat,
+        lon: lon
+      };
+    }
+
+    // Index-Koordinaten in Geo-Koordinaten konvertieren
+    function convertIndicesToLatLon(line, latGrid, lonGrid) {
+      return line.map(([x, y]) => {
+        const xi = Math.round(x);
+        const yi = Math.round(y);
+        if (
+          yi >= 0 && yi < latGrid.length &&
+          xi >= 0 && xi < latGrid[0].length
+        ) {
+          return [latGrid[yi][xi], lonGrid[yi][xi]];
+        } else {
+          return null;
+        }
+      }).filter(pt => pt !== null);
+    }
+
+
+    // Prüfen, ob eine Linie geschlossen ist
+    function isClosed(coords) {
+      if (coords.length < 3) return false;
+      const [lat1, lon1] = coords[0];
+      const [lat2, lon2] = coords[coords.length - 1];
+      const dist = Math.hypot(lat1 - lat2, lon1 - lon2);
+      return dist < 0.0001; // kleiner Schwellenwert für "fast gleich"
+    }
+
+    // Funktion die benötigt wird um die randlinien zu entfernen
+    function isLargeOutline(line, width, height) {
+      const xs = line.map(([x, _]) => x);
+      const ys = line.map(([_, y]) => y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+
+      // Wenn die Linie fast das ganze Raster umspannt (>90% Breite/Höhe)
+      const spanX = maxX - minX;
+      const spanY = maxY - minY;
+      return spanX > 0.9 * width && spanY > 0.9 * height;
+    }
+
+
+
+    // Farbskala mit chroma.js (Beispiel)
+    const colorScale = chroma.scale(['#440154', '#31688e', '#35b779', '#fde725']).domain([0, 20]);
+
+    async function fetchAndProcessRadvor() {
+      const radolanFilename = getRadolanFilename();
+      const proxy = 'https://corsproxy.io/?';
+      const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
+
+      const phiUrl = 'phi_bottom.txt';
+      const lambdaUrl = 'lambda_bottom.txt';
+
+      try {
+        output.textContent += `Lade Radolan-Datei: ${radolanFilename}\n`;
+        
+        const phiCoords = await parseCoordinatesUrl(phiUrl);
+        const lambdaCoords = await parseCoordinatesUrl(lambdaUrl);
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Fehler beim Laden: ${response.statusText}`);
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = new Uint8Array(arrayBuffer);
+
+        const result = readGzRadvorFromBufferWithCoords(buffer, phiCoords, lambdaCoords);
+        const raster = result.data;
+        const latGrid = result.lat;
+        const lonGrid = result.lon;
+
+        const contourLevels = [ 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
+
+        window.contourLayers = [];
+
+        const nx = raster[0].length,
+              ny = raster.length;
+
+        contourLevels.forEach(level => {
+          const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+
+          lines.forEach(line => {
+            // Filtere große Umrandungen (egal ob exakt am Rand oder knapp daneben)
+            if (isLargeOutline(line, nx, ny)) return;
+
+            const geoLines = convertIndicesToLatLon(line, latGrid, lonGrid);
+
+            if (isClosed(geoLines)) {
+              // Geschlossene Linie als Fläche
+              const polygon = L.polygon(geoLines, {
+                color: colorScale(level).hex(),
+                fillColor: colorScale(level).hex(),  
+                fillOpacity: 0.6,
+                weight: 2
+              }).addTo(map);
+              window.contourLayers.push(polygon);
+            } else {
+              // Offene Linie als Pfad
+              const polyline = L.polyline(geoLines, {
+                color: colorScale(level).hex(),
+                weight: 2,
+                opacity: 0.75
+              }).addTo(map);
+              window.contourLayers.push(polyline);
+            }
+          });
+        });
+
+
+
+        // Legende anzeigen
+        document.getElementById('legend').style.display = 'block';
+        document.getElementById('minLabel').textContent = '1 mm/h';
+        document.getElementById('maxLabel').textContent = '20 mm/h';
+
+      } catch (err) {
+        output.textContent += `Fehler: ${err.message}\n`;
+        console.error(err);
+      }
+    }
+
+    document.getElementById('start').addEventListener('click', fetchAndProcessRadvor);
+
+  </script>
+
+</body>
+</html>

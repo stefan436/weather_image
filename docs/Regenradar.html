@@ -78,6 +78,12 @@
       maxZoom: 18,
     }).addTo(map);
 
+    // Eigenen Pane für die Konturen mit Blend-Mode
+    map.createPane('contourPane');
+    map.getPane('contourPane').style.zIndex = 450;
+    map.getPane('contourPane').style.mixBlendMode = 'multiply';
+
+
     const output = document.getElementById('output');
 
     // Hilfsfunktion: Erzeuge den Dateinamen nach dem Schema
@@ -251,20 +257,20 @@
             const geoLines = convertIndicesToLatLon(line, latGrid, lonGrid);
 
             if (isClosed(geoLines)) {
-              // Geschlossene Linie als Fläche
               const polygon = L.polygon(geoLines, {
+                pane: 'contourPane',
                 color: colorScale(level).hex(),
-                fillColor: colorScale(level).hex(),  
-                fillOpacity: 0.6,
-                weight: 2
+                fillColor: colorScale(level).hex(),
+                fillOpacity: 0.4,
+                weight: 1 // keine Linienkontur
               }).addTo(map);
               window.contourLayers.push(polygon);
             } else {
-              // Offene Linie als Pfad
               const polyline = L.polyline(geoLines, {
+                pane: 'contourPane',
                 color: colorScale(level).hex(),
                 weight: 2,
-                opacity: 0.75
+                opacity: 1
               }).addTo(map);
               window.contourLayers.push(polyline);
             }

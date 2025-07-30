@@ -221,8 +221,15 @@
 
 
     // Farbskala mit chroma.js (Beispiel)
-    const colorScale = chroma.scale(['#440154', '#31688e', '#35b779', '#fde725']).domain([0, 20]);
-
+    const colorScale = chroma.scale([
+      '#00007F', // dunkelblau
+      '#0000FF', // blau
+      '#007FFF', // cyan
+      '#00FF00', // grün
+      '#FFFF00', // gelb
+      '#FF7F00', // orange
+      '#FF0000'  // rot
+    ]).domain([0, 20]);
     async function fetchAndProcessRadvor() {
       const radolanFilename = getRadolanFilename();
       const proxy = 'https://corsproxy.io/?';

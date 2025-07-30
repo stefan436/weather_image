@@ -117,14 +117,17 @@
     function parseRVBuffer(buffer) {
         const u8 = new Uint8Array(buffer);
         const etxIndex = u8.indexOf(0x03);
-        if (etxIndex === -1) throw new Error("Kein ETX gefunden");
+        if (etxIndex === -1) return null; // kein valider Header
         const headerText = new TextDecoder('ascii').decode(u8.slice(0, etxIndex));
-        const bin = u8.slice(etxIndex + 1);
     
         const gpMatch = headerText.match(/GP\s+(\d+)x\s*(\d+)/);
-        if (!gpMatch) throw new Error("Keine GP-Angabe im Header");
+        if (!gpMatch) return null; // keine Rasterangabe → überspringen
         const nx = parseInt(gpMatch[1]);
         const ny = parseInt(gpMatch[2]);
+    
+        const expectedLen = nx * ny * 2;
+        const bin = u8.slice(etxIndex + 1);
+        if (bin.length !== expectedLen) return null; // inkonsistente Datei
     
         const prMatch = headerText.match(/PR\s+E-(\d+)/);
         const precision = prMatch ? Math.pow(10, -parseInt(prMatch[1])) : 0.01;
@@ -138,11 +141,11 @@
     
         const raster = [];
         for (let row = 0; row < ny; row++) {
-            const start = row * nx;
-            raster.push(data.slice(start, start + nx));
+            raster.push(data.slice(row * nx, (row + 1) * nx));
         }
         return { data: raster, nx, ny, header: headerText };
     }
+
     
     // Lat/Lon-Gitter generieren
     function generateLatLon(nx, ny) {
@@ -215,14 +218,17 @@
             entries.sort((a,b)=>a.name.localeCompare(b.name)); // sortieren
             output.textContent += `Gefundene Dateien: ${entries.length}\n`;
     
-            for (let i=0;i<entries.length;i++) {
-                const {data,nx:wx,ny:wy} = parseRVBuffer(entries[i].buffer);
+            for (let i = 0; i < entries.length; i++) {
+                const parsed = parseRVBuffer(entries[i].buffer);
+                if (!parsed) continue; // Überspringe ungültige Dateien
+                const { data, nx: wx, ny: wy } = parsed;
                 if (!latGrid || !lonGrid) {
                     nx = wx; ny = wy;
-                    ({lat:latGrid, lon:lonGrid} = generateLatLon(nx, ny));
+                    ({ lat: latGrid, lon: lonGrid } = generateLatLon(nx, ny));
                 }
                 frames.push(data);
             }
+
     
             output.textContent += "Frames geladen: "+frames.length+"\n";
             frameSlider.max = frames.length-1;

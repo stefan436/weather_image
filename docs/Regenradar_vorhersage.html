@@ -170,6 +170,7 @@ function renderFrame(idx) {
     contourLayers = [];
     const raster = frames[idx];
     const ny = raster.length, nx = raster[0].length;
+    console.log(Math.max(raster))
     contourLevels.forEach(level=>{
         const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
         lines.forEach(line=>{

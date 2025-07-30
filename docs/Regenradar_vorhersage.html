@@ -16,6 +16,11 @@
   <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
   <script src="MarchingSquares.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
+
+
+
+
 
   <style>
     body, html { margin: 0; padding: 0; height: 100%; display: flex; flex-direction: column; }
@@ -64,72 +69,80 @@ let latGrid, lonGrid;
 let contourLayers = [];
 let nx, ny;
 
-
-async function debugH5Structure(buffer) {
-    await h5wasm.ready;
-    const file = new h5wasm.File(buffer, "RV.h5");
-    function visit(path) {
-        try {
-            const keys = file.keys(path);
-            console.log(path, "→", keys);
-            keys.forEach(k => {
-                const sub = `${path === "/" ? "" : path}/${k}`;
-                if (file.is_group(sub)) visit(sub);
-            });
-        } catch(e) {
-            console.log("Fehler bei", path, e);
-        }
+// hilfsfunktion für projektion
+function cleanProjDef(attr) {
+    let s;
+    if (typeof attr === "string") {
+        s = attr;
+    } else if (attr instanceof Uint8Array) {
+        s = new TextDecoder().decode(attr);
+    } else {
+        s = String(attr);
     }
-    visit("/");
-    file.close();
+    // Entferne b'…' oder b"…"
+    s = s.replace(/^b['"]/, "").replace(/['"]$/, "");
+    // Entferne eckige Klammern, falls vorhanden
+    s = s.replace(/[\[\]]/g, "");
+    return s.trim();
 }
+
 
 
   
 // HDF5-Datei parsen
 async function parseH5File(buffer) {
     await h5wasm.ready;
-    const file = new h5wasm.File(buffer, "RV.h5");
+    const filename = "/tmp.h5";
+    h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
+    const file = new h5wasm.File(filename, "r");
 
-    // Dynamisch suchen
-    const dataGroups = file.keys("/dataset1/data1");
-    console.log("data1 keys:", dataGroups);
-    const datasetName = dataGroups.find(k => !file.is_group(`/dataset1/data1/${k}`));
-    if (!datasetName) throw new Error("Kein Datensatz in /dataset1/data1 gefunden");
-    const data = file.get(`/dataset1/data1/${datasetName}`).to_array();
+    // Rasterdaten
+    const dataSet = file.get("/dataset1/data1/data");
+    const shape = dataSet.shape;
+    const raw = dataSet.to_array();
+    const ny = shape[0];
+    const nx = shape[1];
 
-    // Gittergröße
-    const where = file.get('/dataset1/where');
-    const nx = where.attrs['Ni'];
-    const ny = where.attrs['Nj'];
-    const dx = where.attrs['Dx'];
-    const dy = where.attrs['Dy'];
-    const lon0 = where.attrs['Lo1'];
-    const lat0 = where.attrs['La1'];
+    // Skalierung
+    const what = file.get("/dataset1/data1/what");
+    const gain = what.attrs['gain'];
+    const offset = what.attrs['offset'];
+    const nodata = what.attrs['nodata'];
+
+    // Georeferenzierung
+    const where = file.get("/where");
+    const projDefRaw = where.attrs['projdef'].value;
+    const projDef = cleanProjDef(projDefRaw); 
+    const xsize = where.attrs['xsize'];
+    const ysize = where.attrs['ysize'];
+    const xscale = where.attrs['xscale'];
+    const yscale = where.attrs['yscale'];
 
     file.close();
 
-    // Gitter generieren
+    // Werte skalieren (mm/h)
+    const data = Array.from(raw, v => (v === nodata ? NaN : v));
+
+    // Koordinatenraster erzeugen
+    proj4.defs("DWDPROJ", projDef);
     const lat = [], lon = [];
-    for (let y = 0; y < ny; y++) {
+    for (let y = 0; y < ysize; y++) {
         const rowLat = [], rowLon = [];
-        for (let x = 0; x < nx; x++) {
-            rowLat.push(lat0 + y * dy);
-            rowLon.push(lon0 + x * dx);
+        for (let x = 0; x < xsize; x++) {
+            const X = x * xscale;
+            const Y = y * yscale;
+            const [lng, latVal] = proj4("DWDPROJ", "WGS84", [X, Y]);
+            rowLat.push(latVal);
+            rowLon.push(lng);
         }
         lat.push(rowLat);
         lon.push(rowLon);
     }
-    return { data, lat, lon };
+
+    return { data, lat, lon, nx, ny };
 }
 
 
-// Hilfsfunktion: 1D zu 2D
-function makeRaster(arr, cols) {
-    const out = [];
-    for (let i = 0; i < arr.length; i += cols) out.push(Array.from(arr.slice(i, i + cols)));
-    return out;
-}
 
 // Konvertiere Indices zu Lat/Lon
 function convertIndicesToLatLon(line, latGrid, lonGrid) {
@@ -185,18 +198,16 @@ async function fetchAndProcessComposite() {
         const entries = await untar(arrayBuffer);
         entries.sort((a,b)=>a.name.localeCompare(b.name)); // sortieren
         output.textContent += `Gefundene Dateien: ${entries.length}\n`;
-        await debugH5Structure(entries[0].buffer);
-        return
 
-        for (let i=0;i<entries.length;i++) {
+        for (let i = 0; i < entries.length; i++) {
             const parsed = await parseH5File(entries[i].buffer);
             if (!latGrid || !lonGrid) {
-                nx = parsed.lat.length;
-                ny = parsed.lon.length;
-                latGrid = makeRaster(parsed.lat, nx);
-                lonGrid = makeRaster(parsed.lon, nx);
+                latGrid = parsed.lat;
+                lonGrid = parsed.lon;
+                nx = parsed.nx;
+                ny = parsed.ny;
             }
-            frames.push(makeRaster(parsed.data, nx));
+            frames.push(parsed.data);
         }
 
         output.textContent += "Frames geladen: "+frames.length+"\n";

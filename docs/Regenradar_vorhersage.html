@@ -2,250 +2,166 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>RV komposit Karte</title>
+  <title>RV Komposit Karte</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Module untar.js und proj4.js importieren um daten zu lesen -->
-  <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js"></script>
-
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <!-- Externe Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
-
-  <!-- MarchingSquaresJS -->
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.9.0/dist/h5wasm.umd.min.js"></script>
   <script src="MarchingSquares.js"></script>
 
   <style>
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      display: flex; flex-direction: column;
-    }
-    #controls {
-      padding: 10px;
-      background: #f0f0f0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    #map {
-      flex: 1 1 auto; /* Füllt den restlichen Bildschirm */
-    }
-    .legend {
-      position: absolute;
-      bottom: 30px;
-      right: 20px;
-      padding: 10px;
-      background: white;
-      line-height: 1.2em;
-      font-size: 14px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.3);
-      z-index: 1000;
-    }
+    body, html { margin: 0; padding: 0; height: 100%; display: flex; flex-direction: column; }
+    #controls { padding: 10px; background: #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    #map { flex: 1 1 auto; }
+    .legend { position: absolute; bottom: 30px; right: 20px; padding: 10px; background: white;
+              line-height: 1.2em; font-size: 14px; box-shadow: 0 0 5px rgba(0,0,0,0.3); z-index: 1000; }
     .legend .scale {
-      width: 200px;
-      height: 12px;
-      background: linear-gradient(to right,
-        #00007F 0%,   /* dunkelblau */
-        #0000FF 15%,  /* blau */
-        #007FFF 30%,  /* cyan */
-        #00FF00 50%,  /* grün */
-        #FFFF00 70%,  /* gelb */
-        #FF7F00 85%,  /* orange */
-        #FF0000 100%  /* rot */
-      );
+      width: 200px; height: 12px;
+      background: linear-gradient(to right,#00007F 0%,#0000FF 15%,#007FFF 30%,#00FF00 50%,#FFFF00 70%,#FF7F00 85%,#FF0000 100%);
       margin-bottom: 5px;
     }
-    .legend .labels {
-      display: flex;
-      justify-content: space-between;
-    }
+    .legend .labels { display: flex; justify-content: space-between; }
   </style>
 </head>
 <body>
   <div id="controls">
     <button id="start">RV Daten laden & animieren</button>
-    <input id="frameSlider" type="range" min="0" max="23" value="0" style="width:300px;" disabled>
+    <input id="frameSlider" type="range" min="0" max="24" value="0" style="width:300px;" disabled>
     <span id="frameLabel">Frame: 0</span>
     <pre id="output" style="max-height:100px; overflow:auto;"></pre>
   </div>
- 
   <div id="map"></div>
-
   <div id="legend" class="legend" style="display:none;">
     <div class="scale"></div>
-    <div class="labels">
-      <span id="minLabel">min</span>
-      <span id="maxLabel">max</span>
-    </div>
+    <div class="labels"><span id="minLabel">1 mm/h</span><span id="maxLabel">20 mm/h</span></div>
   </div>
 
+<script>
+const DateTime = luxon.DateTime;
+const map = L.map('map').setView([51, 10], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+map.createPane('contourPane');
+map.getPane('contourPane').style.zIndex = 450;
+map.getPane('contourPane').style.mixBlendMode = 'multiply';
 
+const output = document.getElementById('output');
+const frameSlider = document.getElementById('frameSlider');
+const frameLabel = document.getElementById('frameLabel');
 
+const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,20]);
+const contourLevels = [0.5,1,2,3,4,5,6,8,10,12,15,20];
 
-  <script>
-    const DateTime = luxon.DateTime;
-    
-    // Leaflet-Karte initialisieren
-    const map = L.map('map').setView([51, 10], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
-    map.createPane('contourPane');
-    map.getPane('contourPane').style.zIndex = 450;
-    map.getPane('contourPane').style.mixBlendMode = 'multiply';
-    
-    const output = document.getElementById('output');
-    const frameSlider = document.getElementById('frameSlider');
-    const frameLabel = document.getElementById('frameLabel');
-    
-    // Farbskala & Kontur-Level
-    const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,20]);
-    const contourLevels = [0.5,1,2,3,4,5,6,8,10,12,15,20];
-    
-    let frames = [];
-    let latGrid, lonGrid;
-    let contourLayers = [];
-    let nx, ny;
-    
-    // Proj4-Definition für das RV-Produkt (WGS84)
-    proj4.defs("RV", "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6378137 +b=6356752.3142451802 +no_defs +x_0=543196.83521776402 +y_0=3622588.8619310018");
-    
-    // Parser für eine einzelne RV-Datei
-    function parseRVBuffer(buffer) {
-        const u8 = new Uint8Array(buffer);
-        const etxIndex = u8.indexOf(0x03);
-        if (etxIndex === -1) return null; // kein valider Header
-        const headerText = new TextDecoder('ascii').decode(u8.slice(0, etxIndex));
-    
-        const gpMatch = headerText.match(/GP\s+(\d+)x\s*(\d+)/);
-        if (!gpMatch) return null; // keine Rasterangabe → überspringen
-        const nx = parseInt(gpMatch[1]);
-        const ny = parseInt(gpMatch[2]);
-    
-        const expectedLen = nx * ny * 2;
-        const bin = u8.slice(etxIndex + 1);
-        if (bin.length !== expectedLen) return null; // inkonsistente Datei
-    
-        const prMatch = headerText.match(/PR\s+E-(\d+)/);
-        const precision = prMatch ? Math.pow(10, -parseInt(prMatch[1])) : 0.01;
-    
-        const dv = new DataView(bin.buffer);
-        const data = [];
-        for (let i = 0; i < bin.length; i += 2) {
-            const val = dv.getUint16(i, true);
-            data.push(val * precision * 12); // mm/h
-        }
-    
-        const raster = [];
-        for (let row = 0; row < ny; row++) {
-            raster.push(data.slice(row * nx, (row + 1) * nx));
-        }
-        return { data: raster, nx, ny, header: headerText };
-    }
+let frames = [];
+let latGrid, lonGrid;
+let contourLayers = [];
+let nx, ny;
 
-    
-    // Lat/Lon-Gitter generieren
-    function generateLatLon(nx, ny) {
-        const lat = [], lon = [];
-        const dx = 1000, dy = 1000;
-        for (let y = 0; y < ny; y++) {
-            const rowLat = [], rowLon = [];
-            for (let x = 0; x < nx; x++) {
-                const [lng, latVal] = proj4("RV", "WGS84", [x*dx, y*dy]);
-                rowLat.push(latVal);
-                rowLon.push(lng);
+// HDF5-Datei parsen
+async function parseH5File(buffer) {
+    await h5wasm.ready;
+    const file = new h5wasm.File(buffer, "RV.h5");
+    const data = file.get('image1/image_data').to_array();
+    const lat = file.get('geolocation/latitude').to_array();
+    const lon = file.get('geolocation/longitude').to_array();
+    file.close();
+    return { data, lat, lon };
+}
+
+// Hilfsfunktion: 1D zu 2D
+function makeRaster(arr, cols) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += cols) out.push(Array.from(arr.slice(i, i + cols)));
+    return out;
+}
+
+// Konvertiere Indices zu Lat/Lon
+function convertIndicesToLatLon(line, latGrid, lonGrid) {
+    return line.map(([x, y]) => {
+        const xi = Math.round(x), yi = Math.round(y);
+        if (yi>=0 && yi<latGrid.length && xi>=0 && xi<latGrid[0].length)
+            return [latGrid[yi][xi], lonGrid[yi][xi]];
+        return null;
+    }).filter(pt => pt !== null);
+}
+function isClosed(coords) {
+    if (coords.length < 3) return false;
+    const [lat1, lon1] = coords[0];
+    const [lat2, lon2] = coords[coords.length - 1];
+    return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
+}
+function isLargeOutline(line, width, height) {
+    const xs = line.map(([x,_])=>x), ys=line.map(([_,y])=>y);
+    return (Math.max(...xs)-Math.min(...xs) > 0.9*width && Math.max(...ys)-Math.min(...ys) > 0.9*height);
+}
+
+// Frame rendern
+function renderFrame(idx) {
+    contourLayers.forEach(l => map.removeLayer(l));
+    contourLayers = [];
+    const raster = frames[idx];
+    const ny = raster.length, nx = raster[0].length;
+    contourLevels.forEach(level=>{
+        const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+        lines.forEach(line=>{
+            if (isLargeOutline(line, nx, ny)) return;
+            const geoLines = convertIndicesToLatLon(line, latGrid, lonGrid);
+            if (isClosed(geoLines)) {
+                contourLayers.push(L.polygon(geoLines,{pane:'contourPane',color:colorScale(level).hex(),fillColor:colorScale(level).hex(),fillOpacity:0.4,weight:1}).addTo(map));
+            } else {
+                contourLayers.push(L.polyline(geoLines,{pane:'contourPane',color:colorScale(level).hex(),weight:2,opacity:1}).addTo(map));
             }
-            lat.push(rowLat);
-            lon.push(rowLon);
-        }
-        return {lat, lon};
-    }
-    
-    // Konvertiere Indices zu Lat/Lon
-    function convertIndicesToLatLon(line, latGrid, lonGrid) {
-        return line.map(([x, y]) => {
-            const xi = Math.round(x), yi = Math.round(y);
-            if (yi>=0 && yi<latGrid.length && xi>=0 && xi<latGrid[0].length)
-                return [latGrid[yi][xi], lonGrid[yi][xi]];
-            return null;
-        }).filter(pt => pt !== null);
-    }
-    function isClosed(coords) {
-        if (coords.length < 3) return false;
-        const [lat1, lon1] = coords[0];
-        const [lat2, lon2] = coords[coords.length - 1];
-        return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
-    }
-    function isLargeOutline(line, width, height) {
-        const xs = line.map(([x,_])=>x), ys=line.map(([_,y])=>y);
-        return (Math.max(...xs)-Math.min(...xs) > 0.9*width && Math.max(...ys)-Math.min(...ys) > 0.9*height);
-    }
-    
-    // Frame rendern
-    function renderFrame(idx) {
-        contourLayers.forEach(l => map.removeLayer(l));
-        contourLayers = [];
-        const raster = frames[idx];
-        contourLevels.forEach(level=>{
-            const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-            lines.forEach(line=>{
-                if (isLargeOutline(line, nx, ny)) return;
-                const geoLines = convertIndicesToLatLon(line, latGrid, lonGrid);
-                if (isClosed(geoLines)) {
-                    contourLayers.push(L.polygon(geoLines,{pane:'contourPane',color:colorScale(level).hex(),fillColor:colorScale(level).hex(),fillOpacity:0.4,weight:1}).addTo(map));
-                } else {
-                    contourLayers.push(L.polyline(geoLines,{pane:'contourPane',color:colorScale(level).hex(),weight:2,opacity:1}).addTo(map));
-                }
-            });
         });
-        frameLabel.textContent = `Frame ${idx+1}/${frames.length}`;
-    }
-    
-    // Hauptfunktion: Daten laden
-    async function fetchAndProcessComposite() {
-        try {
-            output.textContent = "Lade composite_rv_LATEST.tar ...\n";
-            const proxy = 'https://corsproxy.io/?';
-            const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
-            const resp = await fetch(tarUrl);
-            if(!resp.ok) throw new Error("Download fehlgeschlagen");
-            const arrayBuffer = await resp.arrayBuffer();
-    
-            const entries = await untar(arrayBuffer);
-            entries.sort((a,b)=>a.name.localeCompare(b.name)); // sortieren
-            output.textContent += `Gefundene Dateien: ${entries.length}\n`;
-    
-            for (let i = 0; i < entries.length; i++) {
-                const parsed = parseRVBuffer(entries[i].buffer);
-                if (!parsed) continue; // Überspringe ungültige Dateien
-                const { data, nx: wx, ny: wy } = parsed;
-                if (!latGrid || !lonGrid) {
-                    nx = wx; ny = wy;
-                    ({ lat: latGrid, lon: lonGrid } = generateLatLon(nx, ny));
-                }
-                frames.push(data);
+    });
+    frameLabel.textContent = `Frame ${idx+1}/${frames.length}`;
+}
+
+// Hauptfunktion: Laden & Verarbeiten
+async function fetchAndProcessComposite() {
+    try {
+        output.textContent = "Lade composite_rv_LATEST.tar ...\n";
+        const proxy = 'https://corsproxy.io/?';
+        const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
+        const resp = await fetch(tarUrl);
+        if(!resp.ok) throw new Error("Download fehlgeschlagen");
+        const arrayBuffer = await resp.arrayBuffer();
+
+        const entries = await untar(arrayBuffer);
+        entries.sort((a,b)=>a.name.localeCompare(b.name)); // sortieren
+        output.textContent += `Gefundene Dateien: ${entries.length}\n`;
+
+        for (let i=0;i<entries.length;i++) {
+            const parsed = await parseH5File(entries[i].buffer);
+            if (!latGrid || !lonGrid) {
+                nx = parsed.lat.length;
+                ny = parsed.lon.length;
+                latGrid = makeRaster(parsed.lat, nx);
+                lonGrid = makeRaster(parsed.lon, nx);
             }
-
-    
-            output.textContent += "Frames geladen: "+frames.length+"\n";
-            frameSlider.max = frames.length-1;
-            frameSlider.disabled = false;
-            document.getElementById('legend').style.display = 'block';
-            renderFrame(0);
-        } catch(e) {
-            output.textContent += "Fehler: "+e.message+"\n";
-            console.error(e);
+            frames.push(makeRaster(parsed.data, nx));
         }
+
+        output.textContent += "Frames geladen: "+frames.length+"\n";
+        frameSlider.max = frames.length-1;
+        frameSlider.disabled = false;
+        document.getElementById('legend').style.display = 'block';
+        renderFrame(0);
+    } catch(e) {
+        output.textContent += "Fehler: "+e.message+"\n";
+        console.error(e);
     }
-    
-    // Event Listener
-    document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
-    frameSlider.addEventListener('input', e => renderFrame(parseInt(e.target.value)));
-  </script>
+}
 
-
+// Event Listener
+document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
+frameSlider.addEventListener('input', e => renderFrame(parseInt(e.target.value)));
+</script>
 </body>
 </html>

@@ -69,33 +69,36 @@ let nx, ny;
 async function parseH5File(buffer) {
     await h5wasm.ready;
     const file = new h5wasm.File(buffer, "RV.h5");
-    
-    // Niederschlagsdaten laden
-    const data = file.get('/dataset1/data1/data').to_array();  // uint32
-    
-    // Metadaten laden
+
+    // Dynamisch suchen
+    const dataGroups = file.keys("/dataset1/data1");
+    console.log("data1 keys:", dataGroups);
+    const datasetName = dataGroups.find(k => !file.is_group(`/dataset1/data1/${k}`));
+    if (!datasetName) throw new Error("Kein Datensatz in /dataset1/data1 gefunden");
+    const data = file.get(`/dataset1/data1/${datasetName}`).to_array();
+
+    // Gittergröße
     const where = file.get('/dataset1/where');
-    const projLon0 = where.attrs['Lo1'];   // Start-Längengrad
-    const projLat0 = where.attrs['La1'];   // Start-Breitengrad
-    const dx = where.attrs['Dx'];          // Pixelbreite (m oder Grad)
-    const dy = where.attrs['Dy'];          // Pixelhöhe (m oder Grad)
-    const nx = where.attrs['Ni'];          // Breite
-    const ny = where.attrs['Nj'];          // Höhe
+    const nx = where.attrs['Ni'];
+    const ny = where.attrs['Nj'];
+    const dx = where.attrs['Dx'];
+    const dy = where.attrs['Dy'];
+    const lon0 = where.attrs['Lo1'];
+    const lat0 = where.attrs['La1'];
 
     file.close();
 
-    // Lat/Lon-Raster generieren (ähnlich wie bei Radolan)
+    // Gitter generieren
     const lat = [], lon = [];
     for (let y = 0; y < ny; y++) {
         const rowLat = [], rowLon = [];
         for (let x = 0; x < nx; x++) {
-            rowLat.push(projLat0 + y * dy);
-            rowLon.push(projLon0 + x * dx);
+            rowLat.push(lat0 + y * dy);
+            rowLon.push(lon0 + x * dx);
         }
         lat.push(rowLat);
         lon.push(rowLon);
     }
-
     return { data, lat, lon };
 }
 

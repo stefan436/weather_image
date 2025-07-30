@@ -122,7 +122,7 @@ async function parseH5File(buffer) {
 
     // Werte skalieren (mm/h)
     const data = Array.from(raw, v => (v === nodata ? NaN : v));
-
+    console.log(Math.max(data))
     // Koordinatenraster erzeugen
     proj4.defs("DWDPROJ", projDef);
     const lat = [], lon = [];
@@ -170,7 +170,6 @@ function renderFrame(idx) {
     contourLayers = [];
     const raster = frames[idx];
     const ny = raster.length, nx = raster[0].length;
-    console.log(Math.max(raster))
     contourLevels.forEach(level=>{
         const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
         lines.forEach(line=>{

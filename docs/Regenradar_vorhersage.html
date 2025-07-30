@@ -62,30 +62,13 @@ const frameSlider = document.getElementById('frameSlider');
 const frameLabel = document.getElementById('frameLabel');
 
 const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,20]);
-const contourLevels = [0.5,10,50,100,200,500,1000,2000,5000,7000,9000,12000];
+const contourLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
 
 let frames = [];
 let latGrid, lonGrid;
 let contourLayers = [];
 let nx, ny;
-
-// hilfsfunktion für projektion
-function cleanProjDef(attr) {
-    let s;
-    if (typeof attr === "string") {
-        s = attr;
-    } else if (attr instanceof Uint8Array) {
-        s = new TextDecoder().decode(attr);
-    } else {
-        s = String(attr);
-    }
-    // Entferne b'…' oder b"…"
-    s = s.replace(/^b['"]/, "").replace(/['"]$/, "");
-    // Entferne eckige Klammern, falls vorhanden
-    s = s.replace(/[\[\]]/g, "");
-    return s.trim();
-}
-
+let lat, lon;
 
 
   
@@ -100,29 +83,29 @@ async function parseH5File(buffer) {
     const dataSet = file.get("/dataset1/data1/data");
     const shape = dataSet.shape;
     const raw = dataSet.to_array();
-    const ny = shape[0];
-    const nx = shape[1];
 
-    // Skalierung
+    // Nodata
     const what = file.get("/dataset1/data1/what");
-    const gain = what.attrs['gain'];
-    const offset = what.attrs['offset'];
-    const nodata = what.attrs['nodata'];
-
-    // Georeferenzierung
-    const where = file.get("/where");
-    const projDefRaw = where.attrs['projdef'].value;
-    const projDef = cleanProjDef(projDefRaw); 
-    const xsize = where.attrs['xsize'];
-    const ysize = where.attrs['ysize'];
-    const xscale = where.attrs['xscale'];
-    const yscale = where.attrs['yscale'];
+    const nodata = what.attrs['nodata'].value;
 
     file.close();
 
     // Werte skalieren (mm/h)
-    const data = Array.from(raw, v => (v === nodata ? NaN : v));
-    console.log(Math.max(data))
+    const data = raw.map(row =>
+      row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
+    );
+    
+    return {data};
+}
+
+function createCoords() {
+    // Georeferenzierung
+    const projDef = "+proj=stere +lat_ts=60 +lat_0=90 +lon_0=10 +x_0=543196.83521776402 +y_0=3622588.8619310022 +units=m +a=6378137 +b=6356752.3142451802 +no_defs";
+    const xsize = 1100;
+    const ysize = 1200;
+    const xscale = 1000;
+    const yscale = 1000;
+
     // Koordinatenraster erzeugen
     proj4.defs("DWDPROJ", projDef);
     const lat = [], lon = [];
@@ -138,11 +121,11 @@ async function parseH5File(buffer) {
         lat.push(rowLat);
         lon.push(rowLon);
     }
-
-    return { data, lat, lon, nx, ny };
+    return {lon, lat}
 }
 
 
+    
 
 // Konvertiere Indices zu Lat/Lon
 function convertIndicesToLatLon(line, latGrid, lonGrid) {
@@ -169,12 +152,13 @@ function renderFrame(idx) {
     contourLayers.forEach(l => map.removeLayer(l));
     contourLayers = [];
     const raster = frames[idx];
-    const ny = raster.length, nx = raster[0].length;
+    const ny = lat.length;
+    const nx = lat[0].length;
     contourLevels.forEach(level=>{
         const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
         lines.forEach(line=>{
             if (isLargeOutline(line, nx, ny)) return;
-            const geoLines = convertIndicesToLatLon(line, latGrid, lonGrid);
+            const geoLines = convertIndicesToLatLon(line, lat, lon);
             if (isClosed(geoLines)) {
                 contourLayers.push(L.polygon(geoLines,{pane:'contourPane',color:colorScale(level).hex(),fillColor:colorScale(level).hex(),fillOpacity:0.4,weight:1}).addTo(map));
             } else {
@@ -184,6 +168,7 @@ function renderFrame(idx) {
     });
     frameLabel.textContent = `Frame ${idx+1}/${frames.length}`;
 }
+
 
 // Hauptfunktion: Laden & Verarbeiten
 async function fetchAndProcessComposite() {
@@ -201,14 +186,16 @@ async function fetchAndProcessComposite() {
 
         for (let i = 0; i < entries.length; i++) {
             const parsed = await parseH5File(entries[i].buffer);
-            if (!latGrid || !lonGrid) {
-                latGrid = parsed.lat;
-                lonGrid = parsed.lon;
-                nx = parsed.nx;
-                ny = parsed.ny;
-            }
+            parsed.data.reverse();
             frames.push(parsed.data);
-        }
+        } 
+
+        const coords = createCoords();
+        lat = coords.lat;
+        lon = coords.lon;
+
+
+
 
         output.textContent += "Frames geladen: "+frames.length+"\n";
         frameSlider.max = frames.length-1;

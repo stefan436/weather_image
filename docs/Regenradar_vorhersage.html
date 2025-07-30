@@ -65,6 +65,27 @@ let contourLayers = [];
 let nx, ny;
 
 
+async function debugH5Structure(buffer) {
+    await h5wasm.ready;
+    const file = new h5wasm.File(buffer, "RV.h5");
+    function visit(path) {
+        try {
+            const keys = file.keys(path);
+            console.log(path, "→", keys);
+            keys.forEach(k => {
+                const sub = `${path === "/" ? "" : path}/${k}`;
+                if (file.is_group(sub)) visit(sub);
+            });
+        } catch(e) {
+            console.log("Fehler bei", path, e);
+        }
+    }
+    visit("/");
+    file.close();
+}
+
+
+  
 // HDF5-Datei parsen
 async function parseH5File(buffer) {
     await h5wasm.ready;
@@ -164,6 +185,8 @@ async function fetchAndProcessComposite() {
         const entries = await untar(arrayBuffer);
         entries.sort((a,b)=>a.name.localeCompare(b.name)); // sortieren
         output.textContent += `Gefundene Dateien: ${entries.length}\n`;
+        await debugH5Structure(entries[0].buffer);
+        return
 
         for (let i=0;i<entries.length;i++) {
             const parsed = await parseH5File(entries[i].buffer);

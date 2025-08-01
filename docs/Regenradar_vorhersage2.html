@@ -156,36 +156,44 @@
         return [X, Y];
       }
 
-      function createCoords() {
-        const nx = 1100, ny = 1200;
-        const projString = "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6378137 +b=6356752.3142451802 +no_defs +x_0=543196.83521776402 +y_0=3622588.8619310018";
+      async function createCoords() {
+        const response = await fetch('coords_radarcomposite_rv.bin');
+        const buffer = await response.arrayBuffer();
+        const view = new DataView(buffer);
 
-        proj4.defs("CUSTOM", projString);
+        let offset = 0;
+        const height = view.getUint32(offset, true); // little-endian
+        offset += 4;
+        const width = view.getUint32(offset, true);
+        offset += 4;
 
-        const UL_lat = 55.862087108249824, UL_lon = 1.463301510256666;
-        const LR_lat = 45.68460578137082, LR_lon = 16.580869348598274;
+        const numValues = height * width;
 
-        const [UL_x, UL_y] = proj4("EPSG:4326", "CUSTOM", [UL_lon, UL_lat]);
-        const [LR_x, LR_y] = proj4("EPSG:4326", "CUSTOM", [LR_lon, LR_lat]);
+        const lat = new Float32Array(buffer, offset, numValues);
+        offset += numValues * 4;
 
-        const x_coords = linspace(UL_x, LR_x, nx);
-        const y_coords = linspace(UL_y, LR_y, ny);
-        const [X, Y] = meshgrid(x_coords, y_coords);
+        const lon = new Float32Array(buffer, offset, numValues);
 
-        const lat = [], lon = [];
-        for (let i = 0; i < ny; i++) {
-          const latRow = [], lonRow = [];
-          for (let j = 0; j < nx; j++) {
-            const [lo, la] = proj4("CUSTOM", "EPSG:4326", [X[i][j], Y[i][j]]);
-            latRow.push(la);
-            lonRow.push(lo);
+        // 1D → 2D zurückwandeln
+        const lat2D = [];
+        const lon2D = [];
+
+        for (let y = 0; y < height; y++) {
+          const latRow = [];
+          const lonRow = [];
+          for (let x = 0; x < width; x++) {
+            const idx = y * width + x;
+            latRow.push(lat[idx]);
+            lonRow.push(lon[idx]);
           }
-          lat.push(latRow);
-          lon.push(lonRow);
+          lat2D.push(latRow);
+          lon2D.push(lonRow);
         }
 
-        return { lat, lon };
+        return { lat: lat2D, lon: lon2D };
       }
+
+
 
       function convertIndicesToLatLon(line, latGrid, lonGrid) {
         return line.map(([x, y]) => {
@@ -212,40 +220,60 @@
       async function renderAllFrames() {
         const renderProgress = document.getElementById('renderProgress');
         const renderProgressText = document.getElementById('renderProgressText');
-        
+
         renderProgress.style.display = 'inline';
         renderProgressText.style.display = 'inline';
 
+        // Optional: Farben vorab berechnen
+        const colorMap = Object.fromEntries(
+          contourLevels.map(level => [level, colorScale(level).hex()])
+        );
+
         for (let idx = 0; idx < frames.length; idx++) {
-            const layers = [];
-            const raster = frames[idx];
+          const raster = frames[idx];
 
-            contourLevels.forEach(level => {
-            const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-            lines.forEach(line => {
-                if (isLargeOutline(line, 1100, 1200)) return;
-                const geoLines = convertIndicesToLatLon(line, lat, lon);
-                const layer = isClosed(geoLines)
-                ? L.polygon(geoLines, { pane: 'contourPane', color: colorScale(level).hex(), fillColor: colorScale(level).hex(), fillOpacity: 0.4, weight: 1 })
-                : L.polyline(geoLines, { pane: 'contourPane', color: colorScale(level).hex(), weight: 2, opacity: 1 });
-                layers.push(layer);
-            });
-            });
+          // 🧠 Alle contourLevels parallel verarbeiten
+          const levelLayers = await Promise.all(
+            contourLevels.map(async level => {
+              const colorHex = colorMap[level];
+              const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
 
-            preRenderedFrames.push(layers);
-            await new Promise(r => setTimeout(r, 0)); // UI entblocken
-            // Fortschritt berechnen & anzeigen
-            const percent = Math.round((idx + 1) / frames.length * 100);
-            renderProgress.value = percent;
-            renderProgressText.textContent = percent + "%";
+              return lines
+                .filter(line => !isLargeOutline(line, 1100, 1200))
+                .map(line => {
+                  const geoLines = convertIndicesToLatLon(line, lat, lon);
+                  return isClosed(geoLines)
+                    ? L.polygon(geoLines, {
+                        pane: 'contourPane',
+                        color: colorHex,
+                        fillColor: colorHex,
+                        fillOpacity: 0.4,
+                        weight: 1,
+                      })
+                    : L.polyline(geoLines, {
+                        pane: 'contourPane',
+                        color: colorHex,
+                        weight: 2,
+                        opacity: 1,
+                      });
+                });
+            })
+          );
+
+          // Flatten und speichern
+          const allLayers = levelLayers.flat();
+          preRenderedFrames.push(allLayers);
+
+          // Fortschritt anzeigen
+          const percent = Math.round(((idx + 1) / frames.length) * 100);
+          renderProgress.value = percent;
+          renderProgressText.textContent = percent + "%";
+
+          // UI nicht blockieren
+          await new Promise(resolve => requestIdleCallback(resolve));
         }
-
-        // Nach dem Rendern ausblenden
-        setTimeout(() => {
-            renderProgress.style.display = 'none';
-            renderProgressText.style.display = 'none';
-        }, 1000);
       }
+
 
 
       function renderFrame(idx) {
@@ -283,7 +311,7 @@
           }
 
 
-          const coords = createCoords();
+          const coords = await createCoords();
           lat = coords.lat;
           lon = coords.lon;
 

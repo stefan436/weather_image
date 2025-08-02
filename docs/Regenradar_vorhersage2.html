@@ -1,358 +1,241 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <title>RV Komposit Karte</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-    <!-- Externe Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-    <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
-    <script src="MarchingSquares.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
-
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      }
-      #controls {
-        padding: 10px;
-        background: #f0f0f0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-      #map {
-        flex: 1 1 auto;
-      }
-      .legend {
-        position: absolute;
-        bottom: 30px;
-        right: 20px;
-        padding: 10px;
-        background: white;
-        line-height: 1.2em;
-        font-size: 14px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-      }
-      .legend .scale {
-        width: 200px;
-        height: 12px;
-        background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
-        margin-bottom: 5px;
-      }
-      .legend .labels {
-        display: flex;
-        justify-content: space-between;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="controls">
-      <button id="start">RV Daten laden & animieren</button>
-      <label for="loadProgress">Dateien lesen:</label>
-      <progress id="loadProgress" value="0" max="100" style="width:300px;"></progress>
-      <span id="progressText">0%</span>
-      <label for="renderProgress">Kontouren berechnen:</label>
-      <progress id="renderProgress" value="0" max="100" style="width:300px;"></progress>
-      <span id="renderProgressText">0%</span>
-      <button id="playPause" disabled>▶️ Play</button>
-      <pre id="output" style="max-height:100px; overflow:auto;"></pre>
+<head>
+  <meta charset="UTF-8" />
+  <title>RV Komposit Karte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
+  <script src="MarchingSquares.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; display: flex; flex-direction: column; }
+    #controls { padding: 10px; background: #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    #map { flex: 1 1 auto; }
+    .legend { position: absolute; bottom: 30px; right: 20px; padding: 10px; background: white;
+              line-height: 1.2em; font-size: 14px; box-shadow: 0 0 5px rgba(0,0,0,0.3); z-index: 1000; }
+    .legend .scale { width: 200px; height: 12px;
+      background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
+      margin-bottom: 5px; }
+    .legend .labels { display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button id="start">RV Daten laden & animieren</button>
+    <label for="loadProgress">Dateien lesen:</label>
+    <progress id="loadProgress" value="0" max="100" style="width:300px;"></progress>
+    <span id="progressText">0%</span>
+    <label for="renderProgress">Kontouren berechnen:</label>
+    <progress id="renderProgress" value="0" max="100" style="width:300px;"></progress>
+    <span id="renderProgressText">0%</span>
+    <button id="playPause" disabled>▶️ Play</button>
+    <pre id="output" style="max-height:100px; overflow:auto;"></pre>
+  </div>
+  <div id="map"></div>
+  <div id="legend" class="legend" style="display:none;">
+    <div class="scale"></div>
+    <div class="labels">
+      <span id="minLabel">1 mm/h</span>
+      <span id="maxLabel">30 mm/h</span>
     </div>
+  </div>
 
+  <script>
+    const DateTime = luxon.DateTime;
+    const map = L.map('map').setView([51, 10], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+    map.createPane('contourPane');
+    map.getPane('contourPane').style.zIndex = 450;
+    map.getPane('contourPane').style.mixBlendMode = 'multiply';
 
-    <div id="map"></div>
-    <div id="legend" class="legend" style="display:none;">
-      <div class="scale"></div>
-      <div class="labels">
-        <span id="minLabel">1 mm/h</span>
-        <span id="maxLabel">30 mm/h</span>
-      </div>
-    </div>
+    const output = document.getElementById('output');
+    const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
+    const contourLevels = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
-    <script>
-      const DateTime = luxon.DateTime;
-      const map = L.map('map').setView([51, 10], 6);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
-      map.createPane('contourPane');
-      map.getPane('contourPane').style.zIndex = 450;
-      map.getPane('contourPane').style.mixBlendMode = 'multiply';
+    let frames = [];
+    let lat, lon;
+    let contourLayers = [];
+    let preRenderedFrames = [];
+    let animationTimer = null;
+    let isPlaying = false;
+    let currentFrame = 0;
 
-      const output = document.getElementById('output');
+    const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
 
-      const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
-      const contourLevels = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+    // HDF5-Datei parsen & nur unteren Teil extrahieren
+    async function parseH5File(buffer) {
+      await h5wasm.ready;
+      const filename = "/tmp.h5";
+      h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
+      const file = new h5wasm.File(filename, "r");
 
+      const dataSet = file.get("/dataset1/data1/data");
+      const shape = dataSet.shape;
+      const raw = dataSet.to_array();
+      const what = file.get("/dataset1/data1/what");
+      const nodata = what.attrs['nodata'].value;
+      file.close();
 
-      let frames = [];
-      let latGrid, lonGrid;
-      let contourLayers = [];
-      let nx, ny;
-      let lat, lon;
-      let animationTimer = null;
-      let isPlaying = false;
-      let currentFrame = 0;
-      let preRenderedFrames = [];
+      // Nur unteren Teil extrahieren
+      const startRow = shape[0] - ROWS_TO_KEEP;
+      const sliced = raw.slice(startRow).map(row =>
+        row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
+      );
 
+      return { data: sliced };
+    }
 
+    // Koordinaten einlesen und nur unteren Teil extrahieren
+    async function createCoords() {
+      const response = await fetch('coords_radarcomposite_rv.bin');
+      const buffer = await response.arrayBuffer();
+      const view = new DataView(buffer);
 
+      let offset = 0;
+      const height = view.getUint32(offset, true); offset += 4;
+      const width = view.getUint32(offset, true); offset += 4;
+      const numValues = height * width;
 
-      // HDF5-Datei parsen
-      async function parseH5File(buffer) {
-        await h5wasm.ready;
-        const filename = "/tmp.h5";
-        h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
-        const file = new h5wasm.File(filename, "r");
+      const lat1D = new Float32Array(buffer, offset, numValues); offset += numValues * 4;
+      const lon1D = new Float32Array(buffer, offset, numValues);
 
-        // Rasterdaten
-        const dataSet = file.get("/dataset1/data1/data");
-        const shape = dataSet.shape;
-        const raw = dataSet.to_array();
+      const startRow = height - ROWS_TO_KEEP;
+      const lat2D = [], lon2D = [];
+      for (let y = startRow; y < height; y++) {
+        const latRow = [], lonRow = [];
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          latRow.push(lat1D[idx]);
+          lonRow.push(lon1D[idx]);
+        }
+        lat2D.push(latRow);
+        lon2D.push(lonRow);
+      }
+      return { lat: lat2D, lon: lon2D };
+    }
 
-        // Nodata
-        const what = file.get("/dataset1/data1/what");
-        const nodata = what.attrs['nodata'].value;
+    function convertIndicesToLatLon(line, latGrid, lonGrid) {
+      return line.map(([x, y]) => {
+        const xi = Math.round(x), yi = Math.round(y);
+        if (yi >= 0 && yi < latGrid.length && xi >= 0 && xi < latGrid[0].length)
+          return [latGrid[yi][xi], lonGrid[yi][xi]];
+        return null;
+      }).filter(pt => pt !== null);
+    }
 
-        file.close();
+    function isClosed(coords) {
+      if (coords.length < 3) return false;
+      const [lat1, lon1] = coords[0];
+      const [lat2, lon2] = coords[coords.length - 1];
+      return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
+    }
 
-        // Werte skalieren (mm/h)
-        const data = raw.map(row =>
-          row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
+    function isLargeOutline(line, width, height) {
+      const xs = line.map(([x, _]) => x), ys = line.map(([_, y]) => y);
+      return (Math.max(...xs) - Math.min(...xs) > 0.9 * width &&
+              Math.max(...ys) - Math.min(...ys) > 0.9 * height);
+    }
+
+    async function renderAllFrames() {
+      const renderProgress = document.getElementById('renderProgress');
+      const renderProgressText = document.getElementById('renderProgressText');
+      renderProgress.style.display = 'inline';
+      renderProgressText.style.display = 'inline';
+
+      const requestIdle = window.requestIdleCallback || (cb => setTimeout(cb, 0));
+      const colorMap = Object.fromEntries(contourLevels.map(level => [level, colorScale(level).hex()]));
+
+      for (let idx = 0; idx < frames.length; idx++) {
+        const raster = frames[idx];
+        const levelLayers = await Promise.all(
+          contourLevels.map(async level => {
+            const colorHex = colorMap[level];
+            const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+            return lines
+              .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
+              .map(line => {
+                const geoLines = convertIndicesToLatLon(line, lat, lon);
+                return isClosed(geoLines)
+                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1 })
+                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1 });
+              });
+          })
         );
-
-        return { data };
+        preRenderedFrames.push(levelLayers.flat());
+        frames[idx] = null; // <-- Speicher freigeben
+        const percent = Math.round(((idx + 1) / (frames.length)) * 100);
+        renderProgress.value = percent;
+        renderProgressText.textContent = percent + "%";
+        await new Promise(resolve => requestIdle(resolve));
       }
+    }
 
-      function linspace(start, stop, num) {
-        const arr = [];
-        const step = (stop - start) / (num - 1);
-        for (let i = 0; i < num; i++) {
-          arr.push(start + step * i);
-        }
-        return arr;
-      }
+    function renderFrame(idx) {
+      contourLayers.forEach(l => map.removeLayer(l));
+      contourLayers = [];
+      preRenderedFrames[idx].forEach(layer => { layer.addTo(map); contourLayers.push(layer); });
+    }
 
-      function meshgrid(x, y) {
-        const X = [], Y = [];
-        for (let i = 0; i < y.length; i++) {
-          const xRow = [], yRow = [];
-          for (let j = 0; j < x.length; j++) {
-            xRow.push(x[j]);
-            yRow.push(y[i]);
-          }
-          X.push(xRow);
-          Y.push(yRow);
-        }
-        return [X, Y];
-      }
+    async function fetchAndProcessComposite() {
+      try {
+        const proxy = 'https://corsproxy.io/?';
+        const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
+        const resp = await fetch(tarUrl);
+        if (!resp.ok) throw new Error("Download fehlgeschlagen");
+        const arrayBuffer = await resp.arrayBuffer();
 
-      async function createCoords() {
-        const response = await fetch('coords_radarcomposite_rv.bin');
-        const buffer = await response.arrayBuffer();
-        const view = new DataView(buffer);
+        const entries = await untar(arrayBuffer);
+        entries.sort((a, b) => a.name.localeCompare(b.name));
 
-        let offset = 0;
-        const height = view.getUint32(offset, true); // little-endian
-        offset += 4;
-        const width = view.getUint32(offset, true);
-        offset += 4;
-
-        const numValues = height * width;
-
-        const lat = new Float32Array(buffer, offset, numValues);
-        offset += numValues * 4;
-
-        const lon = new Float32Array(buffer, offset, numValues);
-
-        // 1D → 2D zurückwandeln
-        const lat2D = [];
-        const lon2D = [];
-
-        for (let y = 0; y < height; y++) {
-          const latRow = [];
-          const lonRow = [];
-          for (let x = 0; x < width; x++) {
-            const idx = y * width + x;
-            latRow.push(lat[idx]);
-            lonRow.push(lon[idx]);
-          }
-          lat2D.push(latRow);
-          lon2D.push(lonRow);
+        for (let i = 0; i < entries.length; i++) {
+          await new Promise(requestAnimationFrame);
+          const parsed = await parseH5File(entries[i].buffer);
+          frames.push(parsed.data);
+          const percent = Math.round((i + 1) / entries.length * 100);
+          document.getElementById('loadProgress').value = percent;
+          document.getElementById('progressText').textContent = percent + "%";
         }
 
-        return { lat: lat2D, lon: lon2D };
-      }
+        const coords = await createCoords();
+        lat = coords.lat;
+        lon = coords.lon;
 
-
-
-      function convertIndicesToLatLon(line, latGrid, lonGrid) {
-        return line.map(([x, y]) => {
-          const xi = Math.round(x), yi = Math.round(y);
-          if (yi >= 0 && yi < latGrid.length && xi >= 0 && xi < latGrid[0].length)
-            return [latGrid[yi][xi], lonGrid[yi][xi]];
-          return null;
-        }).filter(pt => pt !== null);
-      }
-
-      function isClosed(coords) {
-        if (coords.length < 3) return false;
-        const [lat1, lon1] = coords[0];
-        const [lat2, lon2] = coords[coords.length - 1];
-        return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
-      }
-
-      function isLargeOutline(line, width, height) {
-        const xs = line.map(([x, _]) => x), ys = line.map(([_, y]) => y);
-        return (Math.max(...xs) - Math.min(...xs) > 0.9 * width &&
-                Math.max(...ys) - Math.min(...ys) > 0.9 * height);
-      }
-      
-      async function renderAllFrames() {
-          const renderProgress = document.getElementById('renderProgress');
-          const renderProgressText = document.getElementById('renderProgressText');
-      
-          renderProgress.style.display = 'inline';
-          renderProgressText.style.display = 'inline';
-      
-          // Fallback für Safari/ältere Browser
-          const requestIdle = window.requestIdleCallback || function (cb) { return setTimeout(cb, 0); };
-      
-          // Optional: Farben vorab berechnen
-          const colorMap = Object.fromEntries(
-              contourLevels.map(level => [level, colorScale(level).hex()])
-          );
-      
-          for (let idx = 0; idx < frames.length; idx++) {
-              const raster = frames[idx];
-      
-              // Alle contourLevels parallel verarbeiten
-              const levelLayers = await Promise.all(
-                  contourLevels.map(async level => {
-                      const colorHex = colorMap[level];
-                      const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-      
-                      return lines
-                          .filter(line => !isLargeOutline(line, 1100, 1200))
-                          .map(line => {
-                              const geoLines = convertIndicesToLatLon(line, lat, lon);
-                              return isClosed(geoLines)
-                                  ? L.polygon(geoLines, {
-                                      pane: 'contourPane',
-                                      color: colorHex,
-                                      fillColor: colorHex,
-                                      fillOpacity: 0.4,
-                                      weight: 1,
-                                  })
-                                  : L.polyline(geoLines, {
-                                      pane: 'contourPane',
-                                      color: colorHex,
-                                      weight: 2,
-                                      opacity: 1,
-                                  });
-                          });
-                  })
-              );
-      
-              // Flatten und speichern
-              const allLayers = levelLayers.flat();
-              preRenderedFrames.push(allLayers);
-      
-              // Fortschritt anzeigen
-              const percent = Math.round(((idx + 1) / frames.length) * 100);
-              renderProgress.value = percent;
-              renderProgressText.textContent = percent + "%";
-      
-              // UI nicht blockieren (Idle oder Fallback)
-              await new Promise(resolve => requestIdle(resolve));
-          }
-      }
-
-
-
-      function renderFrame(idx) {
-        contourLayers.forEach(l => map.removeLayer(l));
-        contourLayers = [];
-
-        preRenderedFrames[idx].forEach(layer => {
-            layer.addTo(map);
-            contourLayers.push(layer);
-        });
-        }
-
-
-      async function fetchAndProcessComposite() {
-        try {
-          const proxy = 'https://corsproxy.io/?';
-          const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
-          const resp = await fetch(tarUrl);
-          if (!resp.ok) throw new Error("Download fehlgeschlagen");
-          const arrayBuffer = await resp.arrayBuffer();
-
-          const entries = await untar(arrayBuffer);
-          entries.sort((a, b) => a.name.localeCompare(b.name));
-
-          for (let i = 0; i < entries.length; i++) {
-            // Warte einen Frame, damit das UI sich aktualisieren kann
-            await new Promise(requestAnimationFrame);
-
-            const parsed = await parseH5File(entries[i].buffer);
-            frames.push(parsed.data);
-
-            const percent = Math.round((i + 1) / entries.length * 100);
-            document.getElementById('loadProgress').value = percent;
-            document.getElementById('progressText').textContent = percent + "%";
-          }
-
-
-          const coords = await createCoords();
-          lat = coords.lat;
-          lon = coords.lon;
-
-          output.textContent += "Uhrzeit der Vorhersage: " + DateTime.now().toFormat('dd.MM.yyyy HH:mm') + "\n";
-          document.getElementById('playPause').disabled = false;
-          document.getElementById('legend').style.display = 'block';
-          await renderAllFrames();
-          renderFrame(0);
-          setTimeout(() => {
+        output.textContent += "Uhrzeit der Vorhersage: " + DateTime.now().toFormat('dd.MM.yyyy HH:mm') + "\n";
+        document.getElementById('playPause').disabled = false;
+        document.getElementById('legend').style.display = 'block';
+        await renderAllFrames();
+        renderFrame(0);
+        setTimeout(() => {
           document.getElementById('loadProgress').style.display = 'none';
           document.getElementById('progressText').style.display = 'none';
-          }, 1000); // 1 Sekunde sichtbar lassen
-
-          
-        } catch (e) {
-          output.textContent += "Fehler: " + e.message + "\n";
-          console.error(e);
-        }
+        }, 1000);
+      } catch (e) {
+        output.textContent += "Fehler: " + e.message + "\n";
+        console.error(e);
       }
+    }
 
-
-      document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
-      document.getElementById('playPause').addEventListener('click', () => {
+    document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
+    document.getElementById('playPause').addEventListener('click', () => {
       if (!isPlaying) {
-          isPlaying = true;
-          document.getElementById('playPause').textContent = '⏸️ Pause';
-
-          animationTimer = setInterval(() => {
-          currentFrame = (currentFrame + 1) % frames.length;
+        isPlaying = true;
+        document.getElementById('playPause').textContent = '⏸️ Pause';
+        animationTimer = setInterval(() => {
+          currentFrame = (currentFrame + 1) % preRenderedFrames.length;
           renderFrame(currentFrame);
-          }, 500); // 500ms pro Frame
+        }, 500);
       } else {
-          isPlaying = false;
-          document.getElementById('playPause').textContent = '▶️ Play';
-          clearInterval(animationTimer);
+        isPlaying = false;
+        document.getElementById('playPause').textContent = '▶️ Play';
+        clearInterval(animationTimer);
       }
-      });
-
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>

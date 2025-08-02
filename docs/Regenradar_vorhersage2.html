@@ -216,62 +216,65 @@
         return (Math.max(...xs) - Math.min(...xs) > 0.9 * width &&
                 Math.max(...ys) - Math.min(...ys) > 0.9 * height);
       }
-
+      
       async function renderAllFrames() {
-        const renderProgress = document.getElementById('renderProgress');
-        const renderProgressText = document.getElementById('renderProgressText');
-
-        renderProgress.style.display = 'inline';
-        renderProgressText.style.display = 'inline';
-
-        // Optional: Farben vorab berechnen
-        const colorMap = Object.fromEntries(
-          contourLevels.map(level => [level, colorScale(level).hex()])
-        );
-
-        for (let idx = 0; idx < frames.length; idx++) {
-          const raster = frames[idx];
-
-          // 🧠 Alle contourLevels parallel verarbeiten
-          const levelLayers = await Promise.all(
-            contourLevels.map(async level => {
-              const colorHex = colorMap[level];
-              const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-
-              return lines
-                .filter(line => !isLargeOutline(line, 1100, 1200))
-                .map(line => {
-                  const geoLines = convertIndicesToLatLon(line, lat, lon);
-                  return isClosed(geoLines)
-                    ? L.polygon(geoLines, {
-                        pane: 'contourPane',
-                        color: colorHex,
-                        fillColor: colorHex,
-                        fillOpacity: 0.4,
-                        weight: 1,
-                      })
-                    : L.polyline(geoLines, {
-                        pane: 'contourPane',
-                        color: colorHex,
-                        weight: 2,
-                        opacity: 1,
-                      });
-                });
-            })
+          const renderProgress = document.getElementById('renderProgress');
+          const renderProgressText = document.getElementById('renderProgressText');
+      
+          renderProgress.style.display = 'inline';
+          renderProgressText.style.display = 'inline';
+      
+          // Fallback für Safari/ältere Browser
+          const requestIdle = window.requestIdleCallback || function (cb) { return setTimeout(cb, 0); };
+      
+          // Optional: Farben vorab berechnen
+          const colorMap = Object.fromEntries(
+              contourLevels.map(level => [level, colorScale(level).hex()])
           );
-
-          // Flatten und speichern
-          const allLayers = levelLayers.flat();
-          preRenderedFrames.push(allLayers);
-
-          // Fortschritt anzeigen
-          const percent = Math.round(((idx + 1) / frames.length) * 100);
-          renderProgress.value = percent;
-          renderProgressText.textContent = percent + "%";
-
-          // UI nicht blockieren
-          await new Promise(resolve => requestIdleCallback(resolve));
-        }
+      
+          for (let idx = 0; idx < frames.length; idx++) {
+              const raster = frames[idx];
+      
+              // Alle contourLevels parallel verarbeiten
+              const levelLayers = await Promise.all(
+                  contourLevels.map(async level => {
+                      const colorHex = colorMap[level];
+                      const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+      
+                      return lines
+                          .filter(line => !isLargeOutline(line, 1100, 1200))
+                          .map(line => {
+                              const geoLines = convertIndicesToLatLon(line, lat, lon);
+                              return isClosed(geoLines)
+                                  ? L.polygon(geoLines, {
+                                      pane: 'contourPane',
+                                      color: colorHex,
+                                      fillColor: colorHex,
+                                      fillOpacity: 0.4,
+                                      weight: 1,
+                                  })
+                                  : L.polyline(geoLines, {
+                                      pane: 'contourPane',
+                                      color: colorHex,
+                                      weight: 2,
+                                      opacity: 1,
+                                  });
+                          });
+                  })
+              );
+      
+              // Flatten und speichern
+              const allLayers = levelLayers.flat();
+              preRenderedFrames.push(allLayers);
+      
+              // Fortschritt anzeigen
+              const percent = Math.round(((idx + 1) / frames.length) * 100);
+              renderProgress.value = percent;
+              renderProgressText.textContent = percent + "%";
+      
+              // UI nicht blockieren (Idle oder Fallback)
+              await new Promise(resolve => requestIdle(resolve));
+          }
       }
 
 

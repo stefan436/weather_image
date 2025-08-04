@@ -1,302 +1,266 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <title>RV Komposit Karte</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <title>RV Komposit Karte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
+  <script src="MarchingSquares.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; display: flex; flex-direction: column; }
+    #controls { padding: 10px; background: #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    #map { flex: 1 1 auto; }
+    .legend { position: absolute; bottom: 30px; right: 20px; padding: 10px; background: white;
+              line-height: 1.2em; font-size: 14px; box-shadow: 0 0 5px rgba(0,0,0,0.3); z-index: 1000; }
+    .legend .scale { width: 200px; height: 12px;
+      background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
+      margin-bottom: 5px; }
+    .legend .labels { display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button id="start">RV Daten laden & animieren</button>
 
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <label id="loadProgressLabel" for="loadProgress">Dateien lesen:</label>
+    <progress id="loadProgress" value="0" max="100" style="width:300px;"></progress>
+    <span id="loadProgressText">0%</span>
 
-    <!-- Externe Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-    <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
-    <script src="MarchingSquares.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
+    <label id="renderProgressLabel" for="renderProgress">Kontouren berechnen:</label>
+    <progress id="renderProgress" value="0" max="100" style="width:300px;"></progress>
+    <span id="renderProgressText">0%</span>
 
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      }
-      #controls {
-        padding: 10px;
-        background: #f0f0f0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-      #map {
-        flex: 1 1 auto;
-      }
-      .legend {
-        position: absolute;
-        bottom: 30px;
-        right: 20px;
-        padding: 10px;
-        background: white;
-        line-height: 1.2em;
-        font-size: 14px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-      }
-      .legend .scale {
-        width: 200px;
-        height: 12px;
-        background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
-        margin-bottom: 5px;
-      }
-      .legend .labels {
-        display: flex;
-        justify-content: space-between;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="controls">
-      <button id="start">RV Daten laden & animieren</button>
-      <input id="frameSlider" type="range" min="0" max="24" value="0" style="width:300px;" disabled />
-      <span id="frameLabel">Frame: 0</span>
-      <button id="playPause" disabled>▶️ Play</button>
-      <pre id="output" style="max-height:100px; overflow:auto;"></pre>
+
+    <input id="frameSlider" type="range" min="0" max="24" value="0" style="width:300px;" disabled />
+    <span id="frameLabel">Frame: 0</span>
+    <button id="playPause" disabled>▶️ Play</button>
+
+    <pre id="output" style="max-height:100px; overflow:auto;"></pre>
+  </div>
+  <div id="map"></div>
+  <div id="legend" class="legend" style="display:none;">
+    <div class="scale"></div>
+    <div class="labels">
+      <span id="minLabel">1 mm/h</span>
+      <span id="maxLabel">30 mm/h</span>
     </div>
-    <div id="map"></div>
-    <div id="legend" class="legend" style="display:none;">
-      <div class="scale"></div>
-      <div class="labels">
-        <span id="minLabel">1 mm/h</span>
-        <span id="maxLabel">30 mm/h</span>
-      </div>
-    </div>
+  </div>
 
-    <script>
-      const DateTime = luxon.DateTime;
-      const map = L.map('map').setView([51, 10], 6);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
-      map.createPane('contourPane');
-      map.getPane('contourPane').style.zIndex = 450;
-      map.getPane('contourPane').style.mixBlendMode = 'multiply';
+  <script>
+    const DateTime = luxon.DateTime;
+    const map = L.map('map').setView([48.1373, 11.57577], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+    map.createPane('contourPane');
+    map.getPane('contourPane').style.zIndex = 450;
+    map.getPane('contourPane').style.mixBlendMode = 'multiply';
 
-      const output = document.getElementById('output');
-      const frameSlider = document.getElementById('frameSlider');
-      const frameLabel = document.getElementById('frameLabel');
+    const output = document.getElementById('output');
+    const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
+    const contourLevels = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
-      const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
-      const contourLevels = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+    let frames = [];
+    let lat, lon;
+    let contourLayers = [];
+    let preRenderedFrames = [];
+    let animationTimer = null;
+    let isPlaying = false;
+    let currentFrame = 0;
 
-      let frames = [];
-      let latGrid, lonGrid;
-      let contourLayers = [];
-      let nx, ny;
-      let lat, lon;
-      let animationTimer = null;
-      let isPlaying = false;
-      let currentFrame = 0;
+    const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
 
+    // HDF5-Datei parsen & nur unteren Teil extrahieren
+    async function parseH5File(buffer) {
+      await h5wasm.ready;
+      const filename = "/tmp.h5";
+      h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
+      const file = new h5wasm.File(filename, "r");
 
-      // HDF5-Datei parsen
-      async function parseH5File(buffer) {
-        await h5wasm.ready;
-        const filename = "/tmp.h5";
-        h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
-        const file = new h5wasm.File(filename, "r");
+      const dataSet = file.get("/dataset1/data1/data");
+      const shape = dataSet.shape;
+      const raw = dataSet.to_array();
+      const what = file.get("/dataset1/data1/what");
+      const nodata = what.attrs['nodata'].value;
+      file.close();
 
-        // Rasterdaten
-        const dataSet = file.get("/dataset1/data1/data");
-        const shape = dataSet.shape;
-        const raw = dataSet.to_array();
+      // Nur unteren Teil extrahieren
+      const startRow = shape[0] - ROWS_TO_KEEP;
+      const sliced = raw.slice(startRow).map(row =>
+        row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
+      );
 
-        // Nodata
-        const what = file.get("/dataset1/data1/what");
-        const nodata = what.attrs['nodata'].value;
+      return { data: sliced };
+    }
 
-        file.close();
+    // Koordinaten einlesen und nur unteren Teil extrahieren
+    async function createCoords() {
+      const response = await fetch('coords_radarcomposite_rv.bin');
+      const buffer = await response.arrayBuffer();
+      const view = new DataView(buffer);
 
-        // Werte skalieren (mm/h)
-        const data = raw.map(row =>
-          row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
-        );
+      let offset = 0;
+      const height = view.getUint32(offset, true); offset += 4;
+      const width = view.getUint32(offset, true); offset += 4;
+      const numValues = height * width;
 
-        return { data };
-      }
+      const lat1D = new Float32Array(buffer, offset, numValues); offset += numValues * 4;
+      const lon1D = new Float32Array(buffer, offset, numValues);
 
-      function linspace(start, stop, num) {
-        const arr = [];
-        const step = (stop - start) / (num - 1);
-        for (let i = 0; i < num; i++) {
-          arr.push(start + step * i);
+      const startRow = height - ROWS_TO_KEEP;
+      const lat2D = [], lon2D = [];
+      for (let y = startRow; y < height; y++) {
+        const latRow = [], lonRow = [];
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          latRow.push(lat1D[idx]);
+          lonRow.push(lon1D[idx]);
         }
-        return arr;
+        lat2D.push(latRow);
+        lon2D.push(lonRow);
       }
+      return { lat: lat2D, lon: lon2D };
+    }
 
-      function meshgrid(x, y) {
-        const X = [], Y = [];
-        for (let i = 0; i < y.length; i++) {
-          const xRow = [], yRow = [];
-          for (let j = 0; j < x.length; j++) {
-            xRow.push(x[j]);
-            yRow.push(y[i]);
-          }
-          X.push(xRow);
-          Y.push(yRow);
-        }
-        return [X, Y];
-      }
+    function convertIndicesToLatLon(line, latGrid, lonGrid) {
+      return line.map(([x, y]) => {
+        const xi = Math.round(x), yi = Math.round(y);
+        if (yi >= 0 && yi < latGrid.length && xi >= 0 && xi < latGrid[0].length)
+          return [latGrid[yi][xi], lonGrid[yi][xi]];
+        return null;
+      }).filter(pt => pt !== null);
+    }
 
-      function createCoords() {
-        const nx = 1100, ny = 1200;
-        const projString = "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6378137 +b=6356752.3142451802 +no_defs +x_0=543196.83521776402 +y_0=3622588.8619310018";
+    function isClosed(coords) {
+      if (coords.length < 3) return false;
+      const [lat1, lon1] = coords[0];
+      const [lat2, lon2] = coords[coords.length - 1];
+      return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
+    }
 
-        proj4.defs("CUSTOM", projString);
+    function isLargeOutline(line, width, height) {
+      const xs = line.map(([x, _]) => x), ys = line.map(([_, y]) => y);
+      return (Math.max(...xs) - Math.min(...xs) > 0.9 * width &&
+              Math.max(...ys) - Math.min(...ys) > 0.9 * height);
+    }
 
-        const UL_lat = 55.862087108249824, UL_lon = 1.463301510256666;
-        const LR_lat = 45.68460578137082, LR_lon = 16.580869348598274;
+    async function renderAllFrames() {
+      const renderProgress = document.getElementById('renderProgress');
+      const renderProgressText = document.getElementById('renderProgressText');
+      renderProgress.style.display = 'inline';
+      renderProgressText.style.display = 'inline';
 
-        const [UL_x, UL_y] = proj4("EPSG:4326", "CUSTOM", [UL_lon, UL_lat]);
-        const [LR_x, LR_y] = proj4("EPSG:4326", "CUSTOM", [LR_lon, LR_lat]);
+      const requestIdle = window.requestIdleCallback || (cb => setTimeout(cb, 0));
+      const colorMap = Object.fromEntries(contourLevels.map(level => [level, colorScale(level).hex()]));
 
-        const x_coords = linspace(UL_x, LR_x, nx);
-        const y_coords = linspace(UL_y, LR_y, ny);
-        const [X, Y] = meshgrid(x_coords, y_coords);
-
-        const lat = [], lon = [];
-        for (let i = 0; i < ny; i++) {
-          const latRow = [], lonRow = [];
-          for (let j = 0; j < nx; j++) {
-            const [lo, la] = proj4("CUSTOM", "EPSG:4326", [X[i][j], Y[i][j]]);
-            latRow.push(la);
-            lonRow.push(lo);
-          }
-          lat.push(latRow);
-          lon.push(lonRow);
-        }
-
-        return { lat, lon };
-      }
-
-      function convertIndicesToLatLon(line, latGrid, lonGrid) {
-        return line.map(([x, y]) => {
-          const xi = Math.round(x), yi = Math.round(y);
-          if (yi >= 0 && yi < latGrid.length && xi >= 0 && xi < latGrid[0].length)
-            return [latGrid[yi][xi], lonGrid[yi][xi]];
-          return null;
-        }).filter(pt => pt !== null);
-      }
-
-      function isClosed(coords) {
-        if (coords.length < 3) return false;
-        const [lat1, lon1] = coords[0];
-        const [lat2, lon2] = coords[coords.length - 1];
-        return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
-      }
-
-      function isLargeOutline(line, width, height) {
-        const xs = line.map(([x, _]) => x), ys = line.map(([_, y]) => y);
-        return (Math.max(...xs) - Math.min(...xs) > 0.9 * width &&
-                Math.max(...ys) - Math.min(...ys) > 0.9 * height);
-      }
-
-      function renderFrame(idx) {
-        contourLayers.forEach(l => map.removeLayer(l));
-        contourLayers = [];
+      for (let idx = 0; idx < frames.length; idx++) {
         const raster = frames[idx];
-        const ny = lat.length;
-        const nx = lat[0].length;
-        contourLevels.forEach(level => {
-          const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-          lines.forEach(line => {
-            if (isLargeOutline(line, nx, ny)) return;
-            const geoLines = convertIndicesToLatLon(line, lat, lon);
-            if (isClosed(geoLines)) {
-              contourLayers.push(L.polygon(geoLines, {
-                pane: 'contourPane',
-                color: colorScale(level).hex(),
-                fillColor: colorScale(level).hex(),
-                fillOpacity: 0.4,
-                weight: 1
-              }).addTo(map));
-            } else {
-              contourLayers.push(L.polyline(geoLines, {
-                pane: 'contourPane',
-                color: colorScale(level).hex(),
-                weight: 2,
-                opacity: 1
-              }).addTo(map));
-            }
-          });
-        });
-        frameLabel.textContent = `Frame ${idx + 1}/${frames.length}`;
+        const levelLayers = await Promise.all(
+          contourLevels.map(async level => {
+            const colorHex = colorMap[level];
+            const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+            return lines
+              .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
+              .map(line => {
+                const geoLines = convertIndicesToLatLon(line, lat, lon);
+                return isClosed(geoLines)
+                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1 })
+                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1 });
+              });
+          })
+        );
+        preRenderedFrames.push(levelLayers.flat());
+        frames[idx] = null; // <-- Speicher freigeben
+        const percent = Math.round(((idx + 1) / (frames.length)) * 100);
+        renderProgress.value = percent;
+        renderProgressText.textContent = percent + "%";
+        await new Promise(resolve => requestIdle(resolve));
       }
+    }
 
-      async function fetchAndProcessComposite() {
-        try {
-          output.textContent = "Lade composite_rv_LATEST.tar ...\n";
-          const proxy = 'https://corsproxy.io/?';
-          const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
-          const resp = await fetch(tarUrl);
-          if (!resp.ok) throw new Error("Download fehlgeschlagen");
-          const arrayBuffer = await resp.arrayBuffer();
+    function renderFrame(idx) {
+      contourLayers.forEach(l => map.removeLayer(l));
+      contourLayers = [];
+      preRenderedFrames[idx].forEach(layer => { layer.addTo(map); contourLayers.push(layer); });
+    }
 
-          const entries = await untar(arrayBuffer);
-          entries.sort((a, b) => a.name.localeCompare(b.name));
+    async function fetchAndProcessComposite() {
+      try {
+        const proxy = 'https://corsproxy.io/?';
+        const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
+        const resp = await fetch(tarUrl);
+        if (!resp.ok) throw new Error("Download fehlgeschlagen");
+        const arrayBuffer = await resp.arrayBuffer();
 
-          for (let i = 0; i < entries.length; i++) {
-            const parsed = await parseH5File(entries[i].buffer);
-            frames.push(parsed.data);
-          }
+        const entries = await untar(arrayBuffer);
+        entries.sort((a, b) => a.name.localeCompare(b.name));
 
-          const coords = createCoords();
-          lat = coords.lat;
-          lon = coords.lon;
-
-          output.textContent += "Uhrzeit der Vorhersage: " + DateTime.now().toFormat('dd.MM.yyyy HH:mm') + "\n";
-          frameSlider.max = frames.length - 1;
-          frameSlider.disabled = false;
-          document.getElementById('playPause').disabled = false;
-          document.getElementById('legend').style.display = 'block';
-          renderFrame(0);
-        } catch (e) {
-          output.textContent += "Fehler: " + e.message + "\n";
-          console.error(e);
+        for (let i = 0; i < entries.length; i++) {
+          await new Promise(requestAnimationFrame);
+          const parsed = await parseH5File(entries[i].buffer);
+          frames.push(parsed.data);
+          const percent = Math.round((i + 1) / entries.length * 100);
+          document.getElementById('loadProgress').value = percent;
+          document.getElementById('loadProgressText').textContent = percent + "%";
         }
+
+        const coords = await createCoords();
+        lat = coords.lat;
+        lon = coords.lon;
+
+        output.textContent += "Uhrzeit der Vorhersage: " + DateTime.now().toFormat('dd.MM.yyyy HH:mm') + "\n";
+        document.getElementById('frameSlider').max = frames.length - 1;
+        document.getElementById('frameSlider').disabled = false;
+        document.getElementById('playPause').disabled = false;
+        document.getElementById('legend').style.display = 'block';
+        await renderAllFrames();
+        renderFrame(0);
+        setTimeout(() => {
+          document.getElementById('loadProgressLabel').style.display = 'none';
+          document.getElementById('loadProgress').style.display = 'none';
+          document.getElementById('loadProgressText').style.display = 'none';
+          document.getElementById('renderProgressLabel').style.display = 'none';
+          document.getElementById('renderProgress').style.display = 'none';
+          document.getElementById('renderProgressText').style.display = 'none';
+          
+        }, 1000);
+      } catch (e) {
+        output.textContent += "Fehler: " + e.message + "\n";
+        console.error(e);
       }
+    }
 
-
-      document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
-      document.getElementById('playPause').addEventListener('click', () => {
+    document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
+    document.getElementById('playPause').addEventListener('click', () => {
       if (!isPlaying) {
-          isPlaying = true;
-          document.getElementById('playPause').textContent = '⏸️ Pause';
-
-          animationTimer = setInterval(() => {
-          currentFrame = (currentFrame + 1) % frames.length;
-          frameSlider.value = currentFrame;
+        isPlaying = true;
+        document.getElementById('playPause').textContent = '⏸️ Pause';
+        animationTimer = setInterval(() => {
+          currentFrame = (currentFrame + 1) % preRenderedFrames.length;
           renderFrame(currentFrame);
-          }, 500); // 500ms pro Frame
+          document.getElementById('frameSlider').value = currentFrame;
+          document.getElementById('frameLabel').textContent = `Frame: ${currentFrame}`;
+        }, 500);
       } else {
-          isPlaying = false;
-          document.getElementById('playPause').textContent = '▶️ Play';
-          clearInterval(animationTimer);
+        isPlaying = false;
+        document.getElementById('playPause').textContent = '▶️ Play';
+        clearInterval(animationTimer);
       }
-      });
+    });
 
-
-      frameSlider.addEventListener('input', e => {
-      currentFrame = parseInt(e.target.value);
+    // Slider-Event: Frame wechseln
+    document.getElementById('frameSlider').addEventListener('input', (e) => {
+      const idx = parseInt(e.target.value);
+      currentFrame = idx;
       renderFrame(currentFrame);
+      document.getElementById('frameLabel').textContent = `Frame: ${currentFrame}`;
+    });
 
-      // Animation anhalten beim manuellen Bewegen
-      if (isPlaying) {
-          isPlaying = false;
-          document.getElementById('playPause').textContent = '▶️ Play';
-          clearInterval(animationTimer);
-      }
-      });
-    </script>
-  </body>
+  </script>
+</body>
 </html>

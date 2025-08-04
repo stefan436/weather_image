@@ -48,7 +48,7 @@
 
   <script>
     const DateTime = luxon.DateTime;
-    const map = L.map('map').setView([48.1373, 11.57577], 12);
+    const map = L.map('map').setView([48.1373, 11.57577], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
     map.createPane('contourPane');
     map.getPane('contourPane').style.zIndex = 450;

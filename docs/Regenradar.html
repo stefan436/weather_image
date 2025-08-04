@@ -298,6 +298,7 @@
         document.getElementById('legend').style.display = 'block';
         document.getElementById('minLabel').textContent = '1 mm/h';
         document.getElementById('maxLabel').textContent = '20 mm/h';
+        document.getElementById('start').style.display = 'none';
 
       } catch (err) {
         output.textContent += `Fehler: ${err.message}\n`;
@@ -306,7 +307,7 @@
     }
 
     document.getElementById('start').addEventListener('click', fetchAndProcessRadvor);
-    document.getElementById('start').display.style = 'none'
+    
 
   </script>
 

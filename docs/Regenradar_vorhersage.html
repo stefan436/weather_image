@@ -17,7 +17,7 @@
     body, html { margin: 0; padding: 0; height: 100%; display: flex; flex-direction: column; }
     #controls { padding: 10px; background: #f0f0f0; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); order:2;}
     #map { flex: 1 1 auto; }
-    .legend { position: absolute; bottom: 30px; right: 20px; padding: 10px; background: white;
+    .legend { position: absolute; top: 30px; right: 20px; padding: 10px; background: white;
               line-height: 1.2em; font-size: 14px; box-shadow: 0 0 5px rgba(0,0,0,0.3); z-index: 1000; }
     .legend .scale { width: 200px; height: 12px;
       background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
@@ -221,6 +221,7 @@
         await renderAllFrames();
         renderFrame(0);
         setTimeout(() => {
+          document.getElementById('start').style.display = 'none';
           document.getElementById('loadProgressLabel').style.display = 'none';
           document.getElementById('loadProgress').style.display = 'none';
           document.getElementById('loadProgressText').style.display = 'none';

@@ -54,7 +54,6 @@
   </div>
 
   <script>
-    const DateTime = luxon.DateTime;
     const map = L.map('map').setView([48.1373, 11.57577], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
     map.createPane('contourPane');
@@ -72,6 +71,7 @@
     let animationTimer = null;
     let isPlaying = false;
     let currentFrame = 0;
+    let forecastTime = 0;
 
     const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
 
@@ -87,6 +87,8 @@
       const raw = dataSet.to_array();
       const what = file.get("/dataset1/data1/what");
       const nodata = what.attrs['nodata'].value;
+      forecastTime = file.get("what").attrs['time'].value;
+      
       file.close();
 
       // Nur unteren Teil extrahieren
@@ -187,7 +189,25 @@
       contourLayers.forEach(l => map.removeLayer(l));
       contourLayers = [];
       preRenderedFrames[idx].forEach(layer => { layer.addTo(map); contourLayers.push(layer); });
+      updateForecastTimeDisplay(idx)
     }
+
+    function updateForecastTimeDisplay(frameIdx) {
+      const baseTime = luxon.DateTime
+        .utc()
+        .set({
+          hour: Math.floor(forecastTime / 10000),
+          minute: Math.floor(forecastTime / 100) % 100,
+          second: forecastTime % 100
+        })
+        .plus({ minutes: frameIdx * 5 })
+        .setZone('Europe/Berlin');
+
+      const formatted = baseTime.toFormat('HH:mm') + ' Uhr';
+      document.getElementById('frameLabel').textContent = `${formatted}`;
+    }
+
+
 
     async function fetchAndProcessComposite() {
       try {
@@ -212,8 +232,7 @@
         const coords = await createCoords();
         lat = coords.lat;
         lon = coords.lon;
-
-        output.textContent += "Uhrzeit der Vorhersage: " + DateTime.now().toFormat('dd.MM.yyyy HH:mm') + "\n";
+        
         document.getElementById('frameSlider').max = frames.length - 1;
         document.getElementById('frameSlider').disabled = false;
         document.getElementById('playPause').disabled = false;
@@ -245,7 +264,7 @@
           currentFrame = (currentFrame + 1) % preRenderedFrames.length;
           renderFrame(currentFrame);
           document.getElementById('frameSlider').value = currentFrame;
-          document.getElementById('frameLabel').textContent = `Frame: ${currentFrame}`;
+          updateForecastTimeDisplay(currentFrame);
         }, 500);
       } else {
         isPlaying = false;
@@ -259,7 +278,7 @@
       const idx = parseInt(e.target.value);
       currentFrame = idx;
       renderFrame(currentFrame);
-      document.getElementById('frameLabel').textContent = `Frame: ${currentFrame}`;
+      updateForecastTimeDisplay(currentFrame);
     });
 
   </script>

@@ -18,6 +18,19 @@
   <img id="icon" alt="Wettersymbol">
   <div class="temp" id="temperature">--°C</div>
   <div class="desc" id="description">Lade …</div>
+  <p id="time_data"></p>
+  <p id="temp"></p>
+  <p id="percipitation"></p>
+  <p id="sunshine_duration"></p>
+  <p id="cloud_cover"></p>
+  <p id="relative_humidity"></p>
+  <p id="visibility"></p>
+  <p id="perc_prob"></p>
+  <p id="perc_prob_6h"></p>
+  <p id="station_name"></p>
+  <p id="distance_to_station"></p>
+  
+
 
   <script>
     let lat = 0
@@ -62,22 +75,48 @@
       try {
         const response = await fetch(url);
         const data = await response.json();
-
-        const now = DateTime.now();
+        console.log(data)
+        const now = DateTime.now().setZone('auto'); // oder 'Europe/Berlin'
         const currentHourData = data.weather.find(entry => {
-          return DateTime.fromISO(entry.timestamp).hour === now.hour;
+          const entryTime = DateTime.fromISO(entry.timestamp).setZone('auto');
+          return entryTime.hasSame(now, 'hour'); // vergleicht Jahr, Monat, Tag und Stunde
         });
-
+ 
         if (currentHourData) {
+          const source_id = currentHourData.source_id
+          const time_data = currentHourData.timestamp
+          const percipitation = currentHourData.percipitation
+          const sunshine_duration = currentHourData.sunshine
           const temp = currentHourData.temperature;
-          const condition = currentHourData.condition;
+          const cloud_cover = currentHourData.cloud_cover
+          const relative_humidity = currentHourData.relative_humidity
+          const visibility = currentHourData.visibility
+          const perc_prob = currentHourData.precipitation_probability
+          const perc_prob_6h = currentHourData.precipitation_probability_6h
           const icon = currentHourData.icon;
 
-          document.getElementById('temperature').textContent = `${temp.toFixed(1)}°C`;
-          document.getElementById('description').textContent = condition;
+          document.getElementById('temp').textContent = `${temp.toFixed(1)}°C`;
+          document.getElementById('time_data').textContent = time_data
+          document.getElementById('percipitation').textContent = percipitation
+          document.getElementById('sunshine_duration').textContent = sunshine_duration
+          document.getElementById('cloud_cover').textContent = cloud_cover
+          document.getElementById('relative_humidity').textContent = relative_humidity
+          document.getElementById('visibility').textContent = visibility
+          document.getElementById('perc_prob').textContent = perc_prob
+          document.getElementById('perc_prob_6h').textContent = perc_prob_6h
           document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
         } else {
           document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
+        }
+
+
+        const sourceData = data.sources.find(entry => entry.id === source_id);
+
+        if (sourceData) {
+          const station_name = sourceData.station_name
+          const distance_to_station = sourceData.distance
+          document.getElementById('station_name').textContent = station_name
+          document.getElementById('distance_to_station').textContent = distance_to_station
         }
 
       } catch (err) {

@@ -35,6 +35,7 @@
   <script>
     let lat = 0
     let lon = 0
+    let source_id = null
     let DateTime = luxon.DateTime;
 
     function getLocation(callback) {
@@ -81,7 +82,7 @@
         });
  
         if (currentHourData) {
-          const source_id = currentHourData.source_id
+          source_id = currentHourData.source_id
           const time_data = currentHourData.timestamp
           const percipitation = currentHourData.percipitation
           const sunshine_duration = currentHourData.sunshine
@@ -102,7 +103,7 @@
           document.getElementById('visibility').textContent = visibility
           document.getElementById('perc_prob').textContent = perc_prob
           document.getElementById('perc_prob_6h').textContent = perc_prob_6h
-          document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
+          // document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
         } else {
           document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
         }

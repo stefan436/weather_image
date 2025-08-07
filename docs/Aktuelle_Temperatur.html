@@ -75,11 +75,9 @@
       try {
         const response = await fetch(url);
         const data = await response.json();
-        console.log(data)
-        const now = DateTime.now().setZone('auto'); // oder 'Europe/Berlin'
+        const now = DateTime.now()
         const currentHourData = data.weather.find(entry => {
-          const entryTime = DateTime.fromISO(entry.timestamp).setZone('auto');
-          return entryTime.hasSame(now, 'hour'); // vergleicht Jahr, Monat, Tag und Stunde
+          return DateTime.fromISO(entry.timestamp).hour === now.hour;
         });
  
         if (currentHourData) {

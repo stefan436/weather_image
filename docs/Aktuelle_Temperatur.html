@@ -13,8 +13,7 @@
 </head>
 <body>
   <h1>Aktuelle Temperatur</h1>
-  <button onclick="getLocation()">Standort abrufen</button>
-  <button onclick="fetchWeather()">Daten Laden </button>
+  <button onclick="getLocation(fetchWeather)">Daten Laden </button>
   <p id="location_output"></p>
   <img id="icon" alt="Wettersymbol">
   <div class="temp" id="temperature">--°C</div>
@@ -25,9 +24,17 @@
     let lon = 0
     let DateTime = luxon.DateTime;
 
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
+    function getLocation(callback) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          document.getElementById("location_output").innerText = `Breite: ${lat}, Länge: ${lon}`;
+          callback(lat, lon); // Jetzt erst fetchWeather aufrufen!
+        },
+        showError
+      );
       } else {
         document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
       }
@@ -42,23 +49,15 @@
     function showError(error) {
       let msg = "";
       switch(error.code) {
-        case error.PERMISSION_DENIED:
-          msg = "Zugriff auf Standort verweigert.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          msg = "Standortinformationen nicht verfügbar.";
-          break;
-        case error.TIMEOUT:
-          msg = "Anfrage dauerte zu lange.";
-          break;
-        case error.UNKNOWN_ERROR:
-          msg = "Unbekannter Fehler.";
-          break;
+        case error.PERMISSION_DENIED: msg = "Zugriff auf Standort verweigert."; break;
+        case error.POSITION_UNAVAILABLE: msg = "Standortinformationen nicht verfügbar."; break;
+        case error.TIMEOUT: msg = "Anfrage dauerte zu lange."; break;
+        case error.UNKNOWN_ERROR: msg = "Unbekannter Fehler."; break;
       }
       document.getElementById("location_output").innerText = msg;
     }
 
-    async function fetchWeather() {
+    async function fetchWeather(lat, lon) {
       const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
       try {
         const response = await fetch(url);
@@ -66,18 +65,19 @@
 
         const now = DateTime.now();
         const currentHourData = data.weather.find(entry => {
-            return DateTime.fromISO(entry.timestamp).hour === now.hour;
+          return DateTime.fromISO(entry.timestamp).hour === now.hour;
         });
-        if (currentHourData) {
-        const temp = currentHourData.temperature;
-        const condition = currentHourData.condition;
-        const icon = currentHourData.icon;
 
-        document.getElementById('temperature').textContent = `${temp.toFixed(1)}°C`;
-        document.getElementById('description').textContent = condition;
-        document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
+        if (currentHourData) {
+          const temp = currentHourData.temperature;
+          const condition = currentHourData.condition;
+          const icon = currentHourData.icon;
+
+          document.getElementById('temperature').textContent = `${temp.toFixed(1)}°C`;
+          document.getElementById('description').textContent = condition;
+          document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
         } else {
-        document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
+          document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
         }
 
       } catch (err) {
@@ -85,7 +85,6 @@
         document.getElementById('description').textContent = 'Fehler beim Laden der Daten';
       }
     }
-
   </script>
 </body>
 </html>

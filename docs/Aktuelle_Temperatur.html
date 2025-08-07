@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Aktuelle Temperatur in München</title>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f0f8ff; }
     .temp { font-size: 5em; margin: 0.2em; color: #d9534f; }
@@ -11,40 +12,80 @@
   </style>
 </head>
 <body>
-  <h1>Aktuelle Temperatur – München</h1>
+  <h1>Aktuelle Temperatur</h1>
+  <button onclick="getLocation()">Standort abrufen</button>
+  <button onclick="fetchWeather()">Daten Laden </button>
+  <p id="location_output"></p>
   <img id="icon" alt="Wettersymbol">
   <div class="temp" id="temperature">--°C</div>
   <div class="desc" id="description">Lade …</div>
 
   <script>
-    // Beispiel: Station München-Stadt — bitte passende station_id ermitteln!
-    const stationId = 03379;
-    const url = `https://brightsky.dev/weather?station_id=${stationId}`;
+    let lat = 0
+    let lon = 0
+    let DateTime = luxon.DateTime;
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
+      }
+    }
+
+    function showPosition(position) {
+      lat = position.coords.latitude;
+      lon = position.coords.longitude;
+      document.getElementById("location_output").innerText = `Breite: ${lat}, Länge: ${lon}`;
+    }
+
+    function showError(error) {
+      let msg = "";
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          msg = "Zugriff auf Standort verweigert.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          msg = "Standortinformationen nicht verfügbar.";
+          break;
+        case error.TIMEOUT:
+          msg = "Anfrage dauerte zu lange.";
+          break;
+        case error.UNKNOWN_ERROR:
+          msg = "Unbekannter Fehler.";
+          break;
+      }
+      document.getElementById("location_output").innerText = msg;
+    }
 
     async function fetchWeather() {
+      const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
       try {
         const response = await fetch(url);
         const data = await response.json();
-        const w = data.weather && data.weather[0];
-        if (w) {
-          document.getElementById('temperature').textContent = w.temperature.toFixed(1) + '°C';
-          document.getElementById('description').textContent = w.condition;
-          // Optional: Icon (falls verfügbar)
-          if (w.icon) {
-            document.getElementById('icon').src = `https://brightsky.dev/icons/${w.icon}.svg`;
-          }
+
+        const now = DateTime.now();
+        const currentHourData = data.weather.find(entry => {
+            return DateTime.fromISO(entry.timestamp).hour === now.hour;
+        });
+        if (currentHourData) {
+        const temp = currentHourData.temperature;
+        const condition = currentHourData.condition;
+        const icon = currentHourData.icon;
+
+        document.getElementById('temperature').textContent = `${temp.toFixed(1)}°C`;
+        document.getElementById('description').textContent = condition;
+        document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
         } else {
-          document.getElementById('description').textContent = 'Keine Daten verfügbar';
+        document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
         }
+
       } catch (err) {
         console.error(err);
         document.getElementById('description').textContent = 'Fehler beim Laden der Daten';
       }
     }
 
-    fetchWeather();
-    // Aktualisierung alle 10 Minuten
-    setInterval(fetchWeather, 10 * 60 * 1000);
   </script>
 </body>
 </html>

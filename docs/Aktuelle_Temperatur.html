@@ -5,30 +5,52 @@
   <title>Aktuelle Temperatur in München</title>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f0f8ff; }
+    body { font-family: Arial, sans-serif; text-align: flex-start; padding: 50px; background: #f0f8ff; }
     .temp { font-size: 5em; margin: 0.2em; color: #d9534f; }
     .desc { font-size: 1.2em; color: #555; }
+    .data { font-size : 1; color: #545454}
     #icon { width: 100px; height: 100px; }
+    .weather-data {
+      display: flex;
+      flex-direction: column; /* zwingt jede <div>-Zeile untereinander */
+      align-items: flex-start; /* linksbündig, falls gewünscht */
+    }
+
+    .weather-data > div {
+      display: flex; /* innerhalb: h3 und p nebeneinander */
+      gap: 0.5em;    /* Abstand zwischen Überschrift und Wert */
+    }
+
+    .weather-data h3,
+    .weather-data p {
+      margin: 0;
+    }
+
+
   </style>
 </head>
 <body>
   <h1>Aktuelle Temperatur</h1>
   <button onclick="getLocation(fetchWeather)">Daten Laden </button>
   <p id="location_output"></p>
-  <img id="icon" alt="Wettersymbol">
-  <div class="temp" id="temperature">--°C</div>
-  <div class="desc" id="description">Lade …</div>
-  <p id="time_data"></p>
-  <p id="temp"></p>
-  <p id="percipitation"></p>
-  <p id="sunshine_duration"></p>
-  <p id="cloud_cover"></p>
-  <p id="relative_humidity"></p>
-  <p id="visibility"></p>
-  <p id="perc_prob"></p>
-  <p id="perc_prob_6h"></p>
-  <p id="station_name"></p>
-  <p id="distance_to_station"></p>
+  <div class="weather-data">
+    <div><h3>Zeitpunkt:</h3><p id="time_data"></p></div>
+    <div><h3>Temperatur:</h3><p id="temp"></p></div>
+    <div><h3>Niederschlag:</h3><p id="percipitation"></p></div>
+    <div><h3>Sonnenscheindauer:</h3><p id="sunshine_duration"></p></div>
+    <div><h3>Bewölkung:</h3><p id="cloud_cover"></p></div>
+    <div><h3>Relative Luftfeuchtigkeit:</h3><p id="relative_humidity"></p></div>
+    <div><h3>Sichtweite:</h3><p id="visibility"></p></div>
+    <div><h3>Niederschlagswahrscheinlichkeit:</h3><p id="perc_prob"></p></div>
+    <div><h3>Niederschlagswahrscheinlichkeit (6h):</h3><p id="perc_prob_6h"></p></div>
+    <div><h3>Stationsname:</h3><p id="station_name"></p></div>
+    <div><h3>Entfernung zur Station:</h3><p id="distance_to_station"></p></div>
+  </div>
+
+
+
+
+  
   
 
 
@@ -44,7 +66,6 @@
         position => {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
-          document.getElementById("location_output").innerText = `Breite: ${lat}, Länge: ${lon}`;
           callback(lat, lon); // Jetzt erst fetchWeather aufrufen!
         },
         showError
@@ -52,12 +73,6 @@
       } else {
         document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
       }
-    }
-
-    function showPosition(position) {
-      lat = position.coords.latitude;
-      lon = position.coords.longitude;
-      document.getElementById("location_output").innerText = `Breite: ${lat}, Länge: ${lon}`;
     }
 
     function showError(error) {
@@ -82,27 +97,29 @@
         });
  
         if (currentHourData) {
-          source_id = currentHourData.source_id
-          const time_data = currentHourData.timestamp
-          const percipitation = currentHourData.percipitation
-          const sunshine_duration = currentHourData.sunshine
+          source_id = currentHourData.source_id;
+          const time_data = currentHourData.timestamp;
+          const percipitation = currentHourData.percipitation;
+          const sunshine_duration = currentHourData.sunshine;
           const temp = currentHourData.temperature;
-          const cloud_cover = currentHourData.cloud_cover
-          const relative_humidity = currentHourData.relative_humidity
-          const visibility = currentHourData.visibility
-          const perc_prob = currentHourData.precipitation_probability
-          const perc_prob_6h = currentHourData.precipitation_probability_6h
+          const cloud_cover = currentHourData.cloud_cover;
+          const relative_humidity = currentHourData.relative_humidity;
+          const visibility = currentHourData.visibility;
+          const perc_prob = currentHourData.precipitation_probability;
+          const perc_prob_6h = currentHourData.precipitation_probability_6h;
           const icon = currentHourData.icon;
+          console.log(data)
+
 
           document.getElementById('temp').textContent = `${temp.toFixed(1)}°C`;
-          document.getElementById('time_data').textContent = time_data
-          document.getElementById('percipitation').textContent = percipitation
-          document.getElementById('sunshine_duration').textContent = sunshine_duration
-          document.getElementById('cloud_cover').textContent = cloud_cover
-          document.getElementById('relative_humidity').textContent = relative_humidity
-          document.getElementById('visibility').textContent = visibility
-          document.getElementById('perc_prob').textContent = perc_prob
-          document.getElementById('perc_prob_6h').textContent = perc_prob_6h
+          document.getElementById('time_data').textContent = time_data;
+          document.getElementById('percipitation').textContent = percipitation;
+          document.getElementById('sunshine_duration').textContent = sunshine_duration;
+          document.getElementById('cloud_cover').textContent = cloud_cover;
+          document.getElementById('relative_humidity').textContent = relative_humidity;
+          document.getElementById('visibility').textContent = visibility;
+          document.getElementById('perc_prob').textContent = perc_prob;
+          document.getElementById('perc_prob_6h').textContent = perc_prob_6h;
           // document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
         } else {
           document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
@@ -112,10 +129,10 @@
         const sourceData = data.sources.find(entry => entry.id === source_id);
 
         if (sourceData) {
-          const station_name = sourceData.station_name
-          const distance_to_station = sourceData.distance
-          document.getElementById('station_name').textContent = station_name
-          document.getElementById('distance_to_station').textContent = distance_to_station
+          const station_name = sourceData.station_name;
+          const distance_to_station = sourceData.distance;
+          document.getElementById('station_name').textContent = station_name;
+          document.getElementById('distance_to_station').textContent = distance_to_station;
         }
 
       } catch (err) {

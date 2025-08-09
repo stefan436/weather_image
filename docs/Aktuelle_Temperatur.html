@@ -45,6 +45,7 @@
     <div><h3>Niederschlagswahrscheinlichkeit (6h):</h3><p id="perc_prob_6h"></p></div>
     <div><h3>Stationsname:</h3><p id="station_name"></p></div>
     <div><h3>Entfernung zur Station:</h3><p id="distance_to_station"></p></div>
+    <div><h3>Höhe der Station:</h3><p id="station_heigh"></p></div>
   </div>
 
 
@@ -131,8 +132,10 @@
         if (sourceData) {
           const station_name = sourceData.station_name;
           const distance_to_station = sourceData.distance;
+          const station_height = sourceData.height;
           document.getElementById('station_name').textContent = station_name;
           document.getElementById('distance_to_station').textContent = distance_to_station;
+          document.getElementById('station_height').textContent = station_height;
         }
 
       } catch (err) {

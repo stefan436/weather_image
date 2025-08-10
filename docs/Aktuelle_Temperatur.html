@@ -2,145 +2,164 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Aktuelle Wetterdaten</title>
+  <title>Aktuelle Temperatur</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: flex-start; padding: 50px; background: #f0f8ff; }
-    .temp { font-size: 5em; margin: 0.2em; color: #d9534f; }
-    .desc { font-size: 1.2em; color: #555; }
-    .data { font-size : 1; color: #545454}
-    #icon { width: 100px; height: 100px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #dfdfdf, #dadada);
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #545454;
+    }
+
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 6px;
+      background-color: #545454;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #404040;
+    }
+
+    #location_output {
+      text-align: center;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .weather-card {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
     .weather-data {
       display: flex;
-      flex-direction: column; /* zwingt jede <div>-Zeile untereinander */
-      align-items: flex-start; /* linksbündig, falls gewünscht */
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .weather-data > div {
-      display: flex; /* innerhalb: h3 und p nebeneinander */
-      gap: 0.5em;    /* Abstand zwischen Überschrift und Wert */
+    .weather-data div {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f9f9f9;
+      border-radius: 6px;
     }
 
-    .weather-data h3,
-    .weather-data p {
-      margin: 0;
+    .label {
+      font-weight: bold;
+      color: #555;
     }
 
-
+    .value {
+      color: #222;
+    }
   </style>
 </head>
 <body>
-  <h1>Aktuelle Wetterdaten der nähsten station</h1>
-  <button onclick="getLocation(fetchWeather)">Daten Laden </button>
+  <h1>Aktuelle Temperatur</h1>
+  <button onclick="getLocation(fetchWeather)">Daten laden</button>
   <p id="location_output"></p>
-  <div class="weather-data">
-    <div><h3>Zeitpunkt:</h3><p id="time_data"></p></div>
-    <div><h3>Temperatur:</h3><p id="temp"></p></div>
-    <div><h3>Niederschlag:</h3><p id="percipitation"></p></div>
-    <div><h3>Sonnenscheindauer:</h3><p id="sunshine_duration"></p></div>
-    <div><h3>Bewölkung:</h3><p id="cloud_cover"></p></div>
-    <div><h3>Relative Luftfeuchtigkeit:</h3><p id="relative_humidity"></p></div>
-    <div><h3>Sichtweite:</h3><p id="visibility"></p></div>
-    <div><h3>Niederschlagswahrscheinlichkeit:</h3><p id="perc_prob"></p></div>
-    <div><h3>Niederschlagswahrscheinlichkeit (6h):</h3><p id="perc_prob_6h"></p></div>
-    <div><h3>Stationsname:</h3><p id="station_name"></p></div>
-    <div><h3>Entfernung zur Station:</h3><p id="distance_to_station"></p></div>
-    <div><h3>Höhe der Station:</h3><p id="station_heigh"></p></div>
+
+  <div class="weather-card">
+    <div class="weather-data" id="weather_data"></div>
   </div>
 
-
-
-
-  
-  
-
-
   <script>
-    let lat = 0
-    let lon = 0
-    let source_id = null
-    let DateTime = luxon.DateTime;
+    const DateTime = luxon.DateTime;
+    let source_id = null;
 
     function getLocation(callback) {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          callback(lat, lon); // Jetzt erst fetchWeather aufrufen!
-        },
-        showError
-      );
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => callback(pos.coords.latitude, pos.coords.longitude),
+          showError
+        );
       } else {
         document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
       }
     }
 
     function showError(error) {
-      let msg = "";
-      switch(error.code) {
-        case error.PERMISSION_DENIED: msg = "Zugriff auf Standort verweigert."; break;
-        case error.POSITION_UNAVAILABLE: msg = "Standortinformationen nicht verfügbar."; break;
-        case error.TIMEOUT: msg = "Anfrage dauerte zu lange."; break;
-        case error.UNKNOWN_ERROR: msg = "Unbekannter Fehler."; break;
-      }
-      document.getElementById("location_output").innerText = msg;
+      const messages = {
+        1: "Zugriff auf Standort verweigert.",
+        2: "Standortinformationen nicht verfügbar.",
+        3: "Anfrage dauerte zu lange.",
+        default: "Unbekannter Fehler."
+      };
+      document.getElementById("location_output").innerText = messages[error.code] || messages.default;
     }
 
     async function fetchWeather(lat, lon) {
       const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
+
       try {
-        const response = await fetch(url);
-        const data = await response.json();
-        const now = DateTime.now()
-        const currentHourData = data.weather.find(entry => {
-          return DateTime.fromISO(entry.timestamp).hour === now.hour;
-        });
- 
-        if (currentHourData) {
-          source_id = currentHourData.source_id;
-          const time_data = currentHourData.timestamp;
-          const percipitation = currentHourData.percipitation;
-          const sunshine_duration = currentHourData.sunshine;
-          const temp = currentHourData.temperature;
-          const cloud_cover = currentHourData.cloud_cover;
-          const relative_humidity = currentHourData.relative_humidity;
-          const visibility = currentHourData.visibility;
-          const perc_prob = currentHourData.precipitation_probability;
-          const perc_prob_6h = currentHourData.precipitation_probability_6h;
-          const icon = currentHourData.icon;
-          console.log(data)
+        const res = await fetch(url);
+        const data = await res.json();
+        const now = DateTime.now();
 
+        const currentHourData = data.weather.find(entry =>
+          DateTime.fromISO(entry.timestamp).hour === now.hour
+        );
 
-          document.getElementById('temp').textContent = `${temp.toFixed(1)}°C`;
-          document.getElementById('time_data').textContent = time_data;
-          document.getElementById('percipitation').textContent = percipitation;
-          document.getElementById('sunshine_duration').textContent = sunshine_duration;
-          document.getElementById('cloud_cover').textContent = cloud_cover;
-          document.getElementById('relative_humidity').textContent = relative_humidity;
-          document.getElementById('visibility').textContent = visibility;
-          document.getElementById('perc_prob').textContent = perc_prob;
-          document.getElementById('perc_prob_6h').textContent = perc_prob_6h;
-          // document.getElementById('icon').src = `https://cdn.brightsky.dev/icons/${icon}.svg`;
-        } else {
-          document.getElementById('description').textContent = 'Keine Wetterdaten gefunden';
+        if (!currentHourData) {
+          document.getElementById("location_output").innerText = "Keine Wetterdaten gefunden.";
+          return;
         }
 
+        source_id = currentHourData.source_id;
 
-        const sourceData = data.sources.find(entry => entry.id === source_id);
+        const fields = {
+          "Zeitpunkt": currentHourData.timestamp,
+          "Temperatur": `${currentHourData.temperature.toFixed(1)}°C`,
+          "Niederschlag": `${currentHourData.precipitation ?? 0} mm`,
+          "Sonnenscheindauer": `${currentHourData.sunshine ?? 0} min`,
+          "Bewölkung": `${currentHourData.cloud_cover ?? 0}%`,
+          "Relative Luftfeuchtigkeit": `${currentHourData.relative_humidity ?? 0}%`,
+          "Sichtweite": `${currentHourData.visibility ?? 0} m`,
+          "Niederschlagswahrscheinlichkeit": `${currentHourData.precipitation_probability ?? 0}%`,
+          "Niederschlagswahrscheinlichkeit (6h)": `${currentHourData.precipitation_probability_6h ?? 0}%`
+        };
 
+        const sourceData = data.sources.find(s => s.id === source_id);
         if (sourceData) {
-          const station_name = sourceData.station_name;
-          const distance_to_station = sourceData.distance;
-          const station_height = sourceData.height;
-          document.getElementById('station_name').textContent = station_name;
-          document.getElementById('distance_to_station').textContent = distance_to_station;
-          document.getElementById('station_height').textContent = station_height;
+          fields["Stationsname"] = sourceData.station_name;
+          fields["Entfernung zur Station"] = `${sourceData.distance} km`;
         }
+
+        renderWeather(fields);
 
       } catch (err) {
         console.error(err);
-        document.getElementById('description').textContent = 'Fehler beim Laden der Daten';
+        document.getElementById("location_output").innerText = "Fehler beim Laden der Daten.";
+      }
+    }
+
+    function renderWeather(fields) {
+      const container = document.getElementById("weather_data");
+      container.innerHTML = "";
+      for (const [label, value] of Object.entries(fields)) {
+        const row = document.createElement("div");
+        row.innerHTML = `<span class="label">${label}:</span><span class="value">${value}</span>`;
+        container.appendChild(row);
       }
     }
   </script>

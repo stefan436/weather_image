@@ -142,7 +142,7 @@
         const sourceData = data.sources.find(s => s.id === source_id);
         if (sourceData) {
           fields["Stationsname"] = sourceData.station_name;
-          fields["Entfernung zur Station"] = `${sourceData.distance} km`;
+          fields["Entfernung zur Station"] = `${sourceData.distance} m`;
         }
 
         renderWeather(fields);

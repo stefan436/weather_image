@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -108,6 +109,14 @@
       document.getElementById("location_output").innerText = messages[error.code] || messages.default;
     }
 
+    function formatValue(value, unit = "") {
+      if (value === null || value === undefined || value === "") {
+        return "Keine Daten";
+      }
+      return `${value}${unit}`;
+    }
+
+
     async function fetchWeather(lat, lon) {
       const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
 
@@ -128,22 +137,26 @@
         source_id = currentHourData.source_id;
 
         const fields = {
-          "Zeitpunkt": currentHourData.timestamp,
-          "Temperatur": `${currentHourData.temperature.toFixed(1)}°C`,
-          "Niederschlag": `${currentHourData.precipitation ?? 0} mm`,
-          "Sonnenscheindauer": `${currentHourData.sunshine ?? 0} min`,
-          "Bewölkung": `${currentHourData.cloud_cover ?? 0}%`,
-          "Relative Luftfeuchtigkeit": `${currentHourData.relative_humidity ?? 0}%`,
-          "Sichtweite": `${currentHourData.visibility ?? 0} m`,
-          "Niederschlagswahrscheinlichkeit": `${currentHourData.precipitation_probability ?? 0}%`,
-          "Niederschlagswahrscheinlichkeit (6h)": `${currentHourData.precipitation_probability_6h ?? 0}%`
+          "Zeitpunkt": formatValue(currentHourData.timestamp),
+          "Temperatur": formatValue(currentHourData.temperature?.toFixed(1), "°C"),
+          "Niederschlag": formatValue(currentHourData.precipitation, " mm"),
+          "Sonnenscheindauer": formatValue(currentHourData.sunshine, " min"),
+          "Bewölkung": formatValue(currentHourData.cloud_cover, "%"),
+          "Relative Luftfeuchtigkeit": formatValue(currentHourData.relative_humidity, "%"),
+          "Sichtweite": formatValue(currentHourData.visibility, " m"),
+          "Niederschlagswahrscheinlichkeit": formatValue(currentHourData.precipitation_probability, "%"),
+          "Niederschlagswahrscheinlichkeit (6h)": formatValue(currentHourData.precipitation_probability_6h, "%")
         };
 
+
         const sourceData = data.sources.find(s => s.id === source_id);
+        
         if (sourceData) {
-          fields["Stationsname"] = sourceData.station_name;
-          fields["Entfernung zur Station"] = `${sourceData.distance} m`;
+          fields["Stationsname"] = formatValue(sourceData.station_name);
+          fields["Entfernung zur Station"] = formatValue(sourceData.distance, " m");
+          fields["Höhe der Station"] = formatValue(sourceData.height, " m");
         }
+
 
         renderWeather(fields);
 

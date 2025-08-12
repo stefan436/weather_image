@@ -65,6 +65,7 @@
 <body>
   <div id="controls">
     <button id="start">Radolan Daten laden und verarbeiten</button>
+    <p id="location_output"></p>
     <pre id="output" style="max-height:100px; overflow:auto;"></pre>
   </div>
 
@@ -94,6 +95,28 @@
 
 
     const output = document.getElementById('output');
+
+
+    function getLocation(callback) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => callback(pos.coords.latitude, pos.coords.longitude),
+          showError
+        );
+      } else {
+        document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
+      }
+    }
+
+    function showError(error) {
+      const messages = {
+        1: "Zugriff auf Standort verweigert.",
+        2: "Standortinformationen nicht verfügbar.",
+        3: "Anfrage dauerte zu lange.",
+        default: "Unbekannter Fehler."
+      };
+      document.getElementById("location_output").innerText = messages[error.code] || messages.default;
+    }
 
     // Hilfsfunktion: Erzeuge den Dateinamen nach dem Schema
     function getRadolanFilename() {
@@ -231,7 +254,8 @@
       '#FF7F00', // orange
       '#FF0000'  // rot
     ]).domain([0, 20]);
-    async function fetchAndProcessRadvor() {
+    async function fetchAndProcessRadvor(lat,lon) {
+      map.setView([lat, lon], 10);
       const radolanFilename = getRadolanFilename();
       const proxy = 'https://corsproxy.io/?';
       const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
@@ -307,11 +331,12 @@
       }
     }
 
-    document.getElementById('start').addEventListener('click', fetchAndProcessRadvor);
+    document.getElementById('start').addEventListener('click', () => {
+      getLocation(fetchAndProcessRadvor);
+    });
     
 
   </script>
 
 </body>
 </html>
-

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Nächste Station finden</title>
+</head>
+<body>
+  <h1>Nächstgelegene Station</h1>
+  <button onclick="findNearestStation()">Standort analysieren</button>
+  <p id="output">Bitte auf den Button klicken.</p>
+
+  <script>
+    let closest_station_id = null
+
+    function parseCSV(csvText) {
+      const lines = csvText.trim().split('\n');
+      const headers = lines[0].split(',');
+      return lines.slice(1).map(line => {
+        const values = line.split(',');
+        let obj = {};
+        headers.forEach((header, i) => {
+          obj[header.trim()] = values[i].trim();
+        });
+        return obj;
+      });
+    }
+
+    function toRadians(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = toRadians(lat1);
+      const φ2 = toRadians(lat2);
+      const Δφ = toRadians(lat2 - lat1);
+      const Δλ = toRadians(lon2 - lon1);
+
+      const a = Math.sin(Δφ / 2) ** 2 +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    async function findNearestStation() {
+      const output = document.getElementById('output');
+      output.textContent = 'Lade CSV und ermittle Standort...';
+
+      try {
+        const response = await fetch('mosmix_stationen_coords.csv');
+        if (!response.ok) throw new Error('CSV konnte nicht geladen werden.');
+        const csvText = await response.text();
+        const data = parseCSV(csvText);
+
+        if (!navigator.geolocation) {
+          output.textContent = 'Geolocation wird nicht unterstützt.';
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLat = position.coords.latitude;
+          const userLon = position.coords.longitude;
+
+          let nearest = null;
+          let minDistance = Infinity;
+
+          for (const row of data) {
+            const lat = parseFloat(row.lat);
+            const lon = parseFloat(row.lon);
+
+            if (isNaN(lat) || isNaN(lon)) continue;
+
+            const distance = haversineDistance(userLat, userLon, lat, lon);
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearest = row;
+            }
+          }
+
+          closest_station_id = nearest.station_id
+
+
+          if (nearest) {
+            output.textContent = `Nächstgelegene Station: ${nearest.station_id}`;
+          } else {
+            output.textContent = 'Keine gültigen Koordinaten gefunden.';
+          }
+
+        }, error => {
+          output.textContent = 'Fehler beim Standortzugriff: ' + error.message;
+        });
+
+      } catch (err) {
+        output.textContent = 'Fehler: ' + err.message;
+      }
+    }
+
+    
+  </script>
+</body>
+</html>

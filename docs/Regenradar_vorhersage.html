@@ -231,8 +231,8 @@
 
 
 
-    async function fetchAndProcessComposite(lat, lon) {
-      map.setView([lat, lon], 10);
+    async function fetchAndProcessComposite(lat_pos, lon_pos) {
+      map.setView([lat_pos, lon_pos], 10);
       try {
         const proxy = 'https://corsproxy.io/?';
         const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;

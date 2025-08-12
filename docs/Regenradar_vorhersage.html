@@ -28,6 +28,7 @@
 <body>
   <div id="controls">
     <button id="start">RV Daten laden & animieren</button>
+    <p id="location_output"></p>
 
     <label id="loadProgressLabel" for="loadProgress">Dateien lesen:</label>
     <progress id="loadProgress" value="0" max="100" style="width:300px;"></progress>
@@ -74,6 +75,27 @@
     let forecastTime = 0;
 
     const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
+
+    function getLocation(callback) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => callback(pos.coords.latitude, pos.coords.longitude),
+          showError
+        );
+      } else {
+        document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
+      }
+    }
+
+    function showError(error) {
+      const messages = {
+        1: "Zugriff auf Standort verweigert.",
+        2: "Standortinformationen nicht verfügbar.",
+        3: "Anfrage dauerte zu lange.",
+        default: "Unbekannter Fehler."
+      };
+      document.getElementById("location_output").innerText = messages[error.code] || messages.default;
+    }
 
     // HDF5-Datei parsen & nur unteren Teil extrahieren
     async function parseH5File(buffer) {
@@ -209,7 +231,8 @@
 
 
 
-    async function fetchAndProcessComposite() {
+    async function fetchAndProcessComposite(lat, lon) {
+      map.setView([lat, lon], 10);
       try {
         const proxy = 'https://corsproxy.io/?';
         const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
@@ -255,7 +278,10 @@
       }
     }
 
-    document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
+    document.getElementById('start').addEventListener('click', () => {
+      getLocation(fetchAndProcessComposite);
+    });
+
     document.getElementById('playPause').addEventListener('click', () => {
       if (!isPlaying) {
         isPlaying = true;

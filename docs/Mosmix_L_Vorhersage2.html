@@ -6,18 +6,108 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <style>
-  :root { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
-  body { margin: 16px; }
-  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-  th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; }
-  th { position: sticky; top: 0; background: #f6f6f6; z-index: 1; }
-  .meta { margin: 10px 0; color: #444; }
-  .badge { display: inline-block; padding: 2px 8px; border: 1px solid #ccc; border-radius: 999px; font-size: 12px; }
-  .btn { padding: 6px 10px; border: 1px solid #bbb; border-radius: 10px; background: #fff; cursor: pointer; }
-  .btn:active { transform: translateY(1px); }
-  .scroll { overflow: auto; max-height: 70vh; }
-  #plot { margin-top: 20px; }
+  :root {
+    --bg: #f9fafb;
+    --fg: #111827;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --border: #e5e7eb;
+    --badge-bg: #e0e7ff;
+    --badge-text: #1e3a8a;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    margin: 16px;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  input[type="file"] {
+    padding: 4px;
+  }
+  select, .btn {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 14px;
+    background: white;
+  }
+  .btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    transition: background 0.2s ease;
+  }
+  .btn:hover {
+    background: var(--primary-hover);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .badge {
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .meta {
+    margin: 10px 0;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .scroll {
+    overflow: auto;
+    max-height: 70vh;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 8px;
+    font-size: 14px;
+    text-align: left;
+  }
+  th {
+    position: sticky;
+    top: 0;
+    background: #f3f4f6;
+    font-weight: 600;
+    z-index: 1;
+  }
+  #plot {
+    margin-top: 20px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
 </style>
 </head>
 <body>
@@ -35,6 +125,7 @@
 <div id="station" class="meta"></div>
 <div class="scroll"><table id="table"></table></div>
 <div id="plot"></div>
+
 
 <script>
 (function () {

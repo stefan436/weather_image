@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>MOSMIX KML ➜ DataFrame & Plot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+  :root { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+  body { margin: 16px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; }
+  th { position: sticky; top: 0; background: #f6f6f6; z-index: 1; }
+  .meta { margin: 10px 0; color: #444; }
+  .badge { display: inline-block; padding: 2px 8px; border: 1px solid #ccc; border-radius: 999px; font-size: 12px; }
+  .btn { padding: 6px 10px; border: 1px solid #bbb; border-radius: 10px; background: #fff; cursor: pointer; }
+  .btn:active { transform: translateY(1px); }
+  .scroll { overflow: auto; max-height: 70vh; }
+  #plot { margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h1>MOSMIX KML ➜ tabellarisch & Plot</h1>
+
+<div class="row">
+  <input type="file" id="fileInput" accept=".kml,application/vnd.google-earth.kml+xml" />
+  <button id="downloadCsvBtn" class="btn" disabled>CSV herunterladen</button>
+  <label for="plotSelect">Plot-Parameter:</label>
+  <select id="plotSelect" disabled></select>
+  <span id="status" class="badge">Bereit</span>
+</div>
+
+<div id="station" class="meta"></div>
+<div class="scroll"><table id="table"></table></div>
+<div id="plot"></div>
+
+<script>
+(function () {
+  const KMLNS = "http://www.opengis.net/kml/2.2";
+  const DWDNS = "https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd";
+  const statusEl = document.getElementById("status");
+  const tableEl  = document.getElementById("table");
+  const stationEl= document.getElementById("station");
+  const btnCsv   = document.getElementById("downloadCsvBtn");
+  const plotSel  = document.getElementById("plotSelect");
+  const plotDiv  = document.getElementById("plot");
+
+  let lastWide = null; 
+  let seriesMap = {};
+  let timeSteps = [];
+
+  function setStatus(txt) { statusEl.textContent = txt; }
+  function parseNumberOrNull(s) {
+    if (s === "-" || s === "" || s == null) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : s;
+  }
+  function parseValues(text) {
+    return text.trim().split(/\s+/).map(parseNumberOrNull);
+  }
+  function fmtLocal(iso) {
+    try {
+      return new Date(iso).toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
+    } catch {
+      return iso;
+    }
+  }
+  function toCSV(rows) {
+    const headers = Object.keys(rows[0] || {});
+    const escape = v => {
+      if (v == null) return "";
+      const s = String(v);
+      return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [headers.join(";")];
+    for (const r of rows) lines.push(headers.map(h => escape(r[h])).join(";"));
+    return lines.join("\n");
+  }
+  function renderTable(rows) {
+    if (!rows.length) { tableEl.innerHTML = "<tbody><tr><td>Keine Daten</td></tr></tbody>"; return; }
+    const headers = Object.keys(rows[0]);
+    const thead = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+    const tbody = `<tbody>${rows.map(r => {
+      return `<tr>${headers.map(h => `<td>${r[h] ?? ""}</td>`).join("")}</tr>`;
+    }).join("")}</tbody>`;
+    tableEl.innerHTML = thead + tbody;
+  }
+  function renderPlot(param) {
+    if (!seriesMap[param]) {
+      plotDiv.innerHTML = "<em>Keine Daten für diesen Parameter</em>";
+      return;
+    }
+    let yData = seriesMap[param];
+    if (param === "TTT") yData = yData.map(v => v != null ? (v - 273.15).toFixed(1) : null); // Kelvin → °C
+    Plotly.newPlot(plotDiv, [{
+      x: timeSteps.map(fmtLocal),
+      y: yData,
+      mode: "lines+markers",
+      line: { shape: "linear" },
+      marker: { size: 6 },
+      name: param
+    }], {
+      title: `Verlauf von ${param}`,
+      margin: { t: 40 },
+      xaxis: { title: "Zeit" },
+      yaxis: { title: param }
+    }, { responsive: true });
+  }
+
+  document.getElementById("fileInput").addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setStatus("Lese Datei …");
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        setStatus("Parse XML …");
+        const text = ev.target.result;
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "application/xml");
+        if (xml.getElementsByTagName("parsererror")[0]) throw new Error("XML-Parsing-Fehler");
+
+        timeSteps = Array.from(xml.getElementsByTagNameNS(DWDNS, "TimeStep")).map(n => n.textContent.trim());
+        if (timeSteps.length === 0) throw new Error("Keine dwd:TimeStep gefunden.");
+        const placemark = xml.getElementsByTagNameNS(KMLNS, "Placemark")[0];
+        if (!placemark) throw new Error("Kein kml:Placemark gefunden.");
+        const stationName = placemark.getElementsByTagNameNS(KMLNS, "name")[0]?.textContent ?? "";
+        const stationDesc = placemark.getElementsByTagNameNS(KMLNS, "description")[0]?.textContent ?? "";
+        const coords = placemark.getElementsByTagNameNS(KMLNS, "coordinates")[0]?.textContent?.trim() ?? "";
+        stationEl.innerHTML = `<b>Station:</b> ${stationName} — ${stationDesc} &nbsp; <b>Koordinaten:</b> ${coords}`;
+
+        const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
+        seriesMap = {};
+        for (const fc of forecasts) {
+          const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
+          const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
+          if (!elName || !valueNode) continue;
+          const values = parseValues(valueNode.textContent);
+          seriesMap[elName] = values.slice(0, timeSteps.length);
+        }
+
+        const cols = Object.keys(seriesMap).sort();
+        const wide = [];
+        for (let i = 0; i < timeSteps.length; i++) {
+          const row = { Zeit: fmtLocal(timeSteps[i]) };
+          for (const c of cols) row[c] = seriesMap[c]?.[i] ?? null;
+          wide.push(row);
+        }
+        lastWide = wide;
+        renderTable(wide);
+        btnCsv.disabled = wide.length === 0;
+        plotSel.innerHTML = cols.map(c => `<option value="${c}">${c}</option>`).join("");
+        plotSel.disabled = false;
+        renderPlot(cols[0]);
+        setStatus(`OK · ${wide.length} Zeilen × ${1 + cols.length} Spalten`);
+        window.mosmix = { timeSteps, seriesMap, table: wide };
+      } catch (err) {
+        console.error(err);
+        setStatus("Fehler: " + err.message);
+        tableEl.innerHTML = "";
+        stationEl.textContent = "";
+      }
+    };
+    try { reader.readAsText(file, "iso-8859-1"); }
+    catch { reader.readAsText(file); }
+  });
+
+  btnCsv.addEventListener("click", () => {
+    if (!lastWide || !lastWide.length) return;
+    const csv = toCSV(lastWide);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "mosmix.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  plotSel.addEventListener("change", () => {
+    renderPlot(plotSel.value);
+  });
+})();
+</script>
+</body>
+</html>

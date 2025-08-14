@@ -127,17 +127,21 @@ async function findNearestStation() {
     setStatus('Fehler: ' + err.message);
   }
 }
-
 async function loadMosmixData(stationId) {
   try {
-    const url = `https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/${stationId}/kml/MOSMIX_L_LATEST_${stationId}.kmz`;
+    const proxy = 'https://corsproxy.io/?';
+    const baseUrl = `https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/${stationId}/kml/MOSMIX_L_LATEST_${stationId}.kmz`;
+    const url = proxy + encodeURIComponent(baseUrl);
+
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`KMZ konnte nicht geladen werden (${resp.status})`);
     const blob = await resp.blob();
+
     const zip = await JSZip.loadAsync(blob);
     const kmlFile = Object.keys(zip.files).find(f => f.endsWith(".kml"));
     if (!kmlFile) throw new Error("Keine KML in KMZ gefunden.");
     const kmlText = await zip.files[kmlFile].async("string");
+
     parseKML(kmlText);
   } catch (err) {
     setStatus("Fehler: " + err.message);

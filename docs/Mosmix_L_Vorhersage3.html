@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>Nächste MOSMIX-Station ➜ Tabelle & Plot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* Styling aus zweitem HTML beibehalten */
+:root {
+  --bg: #f9fafb; --fg: #111827; --primary: #2563eb; --primary-hover: #1d4ed8;
+  --border: #e5e7eb; --badge-bg: #e0e7ff; --badge-text: #1e3a8a;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+}
+body { background: var(--bg); color: var(--fg); margin: 16px; line-height: 1.5; }
+h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 12px; }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 10px;
+  background: white; border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.btn { background: var(--primary); color: white; border: none;
+  border-radius: 8px; padding: 6px 10px; font-size: 14px; transition: background 0.2s ease; }
+.btn:hover { background: var(--primary-hover); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.badge { background: var(--badge-bg); color: var(--badge-text);
+  padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.meta { margin: 10px 0; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border); }
+.scroll { overflow: auto; max-height: 70vh; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); background: white; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border-bottom: 1px solid var(--border); padding: 8px; font-size: 14px; text-align: left; }
+th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1; }
+#plot { margin-top: 20px; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<h1>Nächste MOSMIX-Station ➜ Tabelle & Plot</h1>
+<div class="row">
+  <button class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
+  <button id="downloadCsvBtn" class="btn" disabled>CSV herunterladen</button>
+  <label for="plotSelect">Plot-Parameter:</label>
+  <select id="plotSelect" disabled></select>
+  <span id="status" class="badge">Bereit</span>
+</div>
+
+<div id="station" class="meta"></div>
+<div class="scroll"><table id="table"></table></div>
+<div id="plot"></div>
+
+<script>
+let closest_station_id = null;
+const statusEl = document.getElementById("status");
+const tableEl  = document.getElementById("table");
+const stationEl= document.getElementById("station");
+const btnCsv   = document.getElementById("downloadCsvBtn");
+const plotSel  = document.getElementById("plotSelect");
+const plotDiv  = document.getElementById("plot");
+
+let lastWide = null; 
+let seriesMap = {};
+let timeSteps = [];
+
+function setStatus(txt) { statusEl.textContent = txt; }
+
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  const headers = lines[0].split(',');
+  return lines.slice(1).map(line => {
+    const values = line.split(',');
+    let obj = {};
+    headers.forEach((header, i) => {
+      obj[header.trim()] = values[i].trim();
+    });
+    return obj;
+  });
+}
+function toRadians(deg) { return deg * Math.PI / 180; }
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3;
+  const φ1 = toRadians(lat1), φ2 = toRadians(lat2);
+  const Δφ = toRadians(lat2 - lat1), Δλ = toRadians(lon2 - lon1);
+  const a = Math.sin(Δφ / 2) ** 2 +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function findNearestStation() {
+  setStatus("Lade Stationsliste …");
+  try {
+    const response = await fetch('mosmix_stationen_coords.csv');
+    if (!response.ok) throw new Error('CSV konnte nicht geladen werden.');
+    const csvText = await response.text();
+    const data = parseCSV(csvText);
+
+    if (!navigator.geolocation) {
+      setStatus('Geolocation wird nicht unterstützt.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async position => {
+      const userLat = position.coords.latitude;
+      const userLon = position.coords.longitude;
+      let nearest = null;
+      let minDistance = Infinity;
+
+      for (const row of data) {
+        const lat = parseFloat(row.lat);
+        const lon = parseFloat(row.lon);
+        if (isNaN(lat) || isNaN(lon)) continue;
+        const distance = haversineDistance(userLat, userLon, lat, lon);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearest = row;
+        }
+      }
+
+      if (!nearest) { setStatus('Keine gültigen Koordinaten gefunden.'); return; }
+      closest_station_id = nearest.station_id;
+      setStatus(`Station gefunden: ${closest_station_id} – lade KMZ …`);
+      await loadMosmixData(closest_station_id);
+    }, error => {
+      setStatus('Fehler beim Standortzugriff: ' + error.message);
+    });
+
+  } catch (err) {
+    setStatus('Fehler: ' + err.message);
+  }
+}
+
+async function loadMosmixData(stationId) {
+  try {
+    const url = `https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/${stationId}/kml/MOSMIX_L_LATEST_${stationId}.kmz`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`KMZ konnte nicht geladen werden (${resp.status})`);
+    const blob = await resp.blob();
+    const zip = await JSZip.loadAsync(blob);
+    const kmlFile = Object.keys(zip.files).find(f => f.endsWith(".kml"));
+    if (!kmlFile) throw new Error("Keine KML in KMZ gefunden.");
+    const kmlText = await zip.files[kmlFile].async("string");
+    parseKML(kmlText);
+  } catch (err) {
+    setStatus("Fehler: " + err.message);
+  }
+}
+
+function parseKML(text) {
+  const KMLNS = "http://www.opengis.net/kml/2.2";
+  const DWDNS = "https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd";
+  try {
+    setStatus("Parse XML …");
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, "application/xml");
+    if (xml.getElementsByTagName("parsererror")[0]) throw new Error("XML-Parsing-Fehler");
+
+    timeSteps = Array.from(xml.getElementsByTagNameNS(DWDNS, "TimeStep")).map(n => n.textContent.trim());
+    if (timeSteps.length === 0) throw new Error("Keine dwd:TimeStep gefunden.");
+    const placemark = xml.getElementsByTagNameNS(KMLNS, "Placemark")[0];
+    if (!placemark) throw new Error("Kein kml:Placemark gefunden.");
+    const stationName = placemark.getElementsByTagNameNS(KMLNS, "name")[0]?.textContent ?? "";
+    const stationDesc = placemark.getElementsByTagNameNS(KMLNS, "description")[0]?.textContent ?? "";
+    const coords = placemark.getElementsByTagNameNS(KMLNS, "coordinates")[0]?.textContent?.trim() ?? "";
+    stationEl.innerHTML = `<b>Station:</b> ${stationName} — ${stationDesc} &nbsp; <b>Koordinaten:</b> ${coords}`;
+
+    const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
+    seriesMap = {};
+    for (const fc of forecasts) {
+      const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
+      const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
+      if (!elName || !valueNode) continue;
+      const values = valueNode.textContent.trim().split(/\s+/).map(v => {
+        if (v === "-" || v === "") return null;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : v;
+      });
+      seriesMap[elName] = values.slice(0, timeSteps.length);
+    }
+
+    const cols = Object.keys(seriesMap).sort();
+    const wide = [];
+    for (let i = 0; i < timeSteps.length; i++) {
+      const row = { Zeit: fmtLocal(timeSteps[i]) };
+      for (const c of cols) row[c] = seriesMap[c]?.[i] ?? null;
+      wide.push(row);
+    }
+    lastWide = wide;
+    renderTable(wide);
+    btnCsv.disabled = wide.length === 0;
+    plotSel.innerHTML = cols.map(c => `<option value="${c}">${c}</option>`).join("");
+    plotSel.disabled = false;
+    renderPlot(cols[0]);
+    setStatus(`OK · ${wide.length} Zeilen × ${1 + cols.length} Spalten`);
+  } catch (err) {
+    console.error(err);
+    setStatus("Fehler: " + err.message);
+    tableEl.innerHTML = "";
+    stationEl.textContent = "";
+  }
+}
+
+function fmtLocal(iso) {
+  try { return new Date(iso).toLocaleString("de-DE", { timeZone: "Europe/Berlin" }); }
+  catch { return iso; }
+}
+function renderTable(rows) {
+  if (!rows.length) { tableEl.innerHTML = "<tbody><tr><td>Keine Daten</td></tr></tbody>"; return; }
+  const headers = Object.keys(rows[0]);
+  const thead = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+  const tbody = `<tbody>${rows.map(r => {
+    return `<tr>${headers.map(h => `<td>${r[h] ?? ""}</td>`).join("")}</tr>`;
+  }).join("")}</tbody>`;
+  tableEl.innerHTML = thead + tbody;
+}
+function renderPlot(param) {
+  if (!seriesMap[param]) {
+    plotDiv.innerHTML = "<em>Keine Daten für diesen Parameter</em>";
+    return;
+  }
+  let yData = seriesMap[param];
+  if (param === "TTT") yData = yData.map(v => v != null ? (v - 273.15).toFixed(1) : null);
+  Plotly.newPlot(plotDiv, [{
+    x: timeSteps.map(fmtLocal),
+    y: yData,
+    mode: "lines+markers",
+    marker: { size: 6 },
+    name: param
+  }], { title: `Verlauf von ${param}`, xaxis: { title: "Zeit" }, yaxis: { title: param } }, { responsive: true });
+}
+
+btnCsv.addEventListener("click", () => {
+  if (!lastWide || !lastWide.length) return;
+  const headers = Object.keys(lastWide[0]);
+  const csv = [headers.join(";")].concat(lastWide.map(r => headers.map(h => r[h] ?? "").join(";"))).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "mosmix.csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+plotSel.addEventListener("change", () => renderPlot(plotSel.value));
+</script>
+</body>
+</html>

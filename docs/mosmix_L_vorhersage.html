@@ -2,13 +2,12 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8" />
-<title>Nächste MOSMIX-Station ➜ Tabelle & D3-Plot</title>
+<title>Nächste MOSMIX-Station ➜ Tabelle & D3-Plot (mobilfreundlich)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="elementNamesMap.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <style>
-/* Styling aus zweitem HTML beibehalten, leicht erweitert für D3 */
 :root {
   --bg: #f9fafb; --fg: #111827; --primary: #2563eb; --primary-hover: #1d4ed8;
   --border: #e5e7eb; --badge-bg: #e0e7ff; --badge-text: #1e3a8a;
@@ -30,12 +29,12 @@ h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 12px; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border-bottom: 1px solid var(--border); padding: 8px; font-size: 14px; text-align: left; white-space: nowrap; }
 th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1; }
-#plot { margin-top: 20px; margin-bottom: 30px; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border);
+#plot { margin-top: 20px; margin-bottom: 10px; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border);
   height: 440px; position: relative; }
 .plot-title { font-weight: 600; margin-bottom: 6px; }
 .tooltip {
-  position: absolute; pointer-events: none; background: #111827; color: #fff; font-size: 12px;
-  padding: 6px 8px; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.12); opacity: 0; transition: opacity .12s;
+  position: absolute; pointer-events: none; background: rgba(17, 24, 39, 0.9); color: #fff; font-size: 13px;
+  padding: 8px; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.12); opacity: 0; transition: opacity .12s;
   white-space: nowrap;
 }
 .legend {
@@ -49,11 +48,24 @@ th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1
 .zoom-hint {
   position: absolute; bottom: 10px; right: 14px; font-size: 12px; color: #6b7280;
 }
+.value-readout {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #374151;
+  text-align: center;
+}
+/* Mobile Anpassungen */
+@media (max-width: 600px) {
+  h1 { font-size: 1.4rem; }
+  .row { flex-direction: column; align-items: stretch; }
+  .btn, select { width: 100%; }
+  #plot { height: 300px; }
+}
 </style>
 </head>
 <body>
 
-<h1>Nächste MOSMIX-Station ➜ Tabelle & Plot (D3)</h1>
+<h1>Nächste MOSMIX-Station ➜ Tabelle & Plot (mobilfreundlich)</h1>
 <div class="row">
   <button class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
   <label for="plotSelect">Plot-Parameter:</label>
@@ -67,9 +79,9 @@ th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1
   <div id="legend" class="legend">Linie: Wert</div>
   <div id="tooltip" class="tooltip"></div>
   <div class="zoom-hint">Scroll/Pinch: Zoom • Ziehen: Pan • Doppelklick: Reset</div>
+  <div class="value-readout"></div>
 </div>
 <div class="scroll"><table id="table"></table></div>
-
 
 <script>
 let closest_station_id = null;
@@ -82,14 +94,13 @@ const plotDiv  = document.getElementById("plot");
 const plotTitle= document.getElementById("plotTitle");
 const tooltip  = document.getElementById("tooltip");
 const legendEl = document.getElementById("legend");
+const readoutEl= document.querySelector(".value-readout");
 
 let lastWide = null; 
 let seriesMap = {};
 let timeSteps = [];
 
 function setStatus(txt) { statusEl.textContent = txt; }
-
-
 function toRadians(deg) { return deg * Math.PI / 180; }
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3;
@@ -108,7 +119,6 @@ async function findNearestStation() {
     if (!response.ok) throw new Error('JSON konnte nicht geladen werden.');
     const data = await response.json();
 
-
     if (!navigator.geolocation) {
       setStatus('Geolocation wird nicht unterstützt.');
       return;
@@ -119,7 +129,6 @@ async function findNearestStation() {
       const userLon = position.coords.longitude;
       let nearest = null;
       
-
       for (const row of data) {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.lon);
@@ -143,6 +152,7 @@ async function findNearestStation() {
     setStatus('Fehler: ' + err.message);
   }
 }
+
 async function loadMosmixData(stationId) {
   try {
     const proxy = 'https://corsproxy.io/?';
@@ -165,18 +175,9 @@ async function loadMosmixData(stationId) {
 }
 
 const unitConversionMap = {
-  K: v => v - 273.15, // Kelvin → Celsius
-  "m/s": v => v * 3.6, // m/s → km/h
-  Pa: v => v / 100, // Pa → hPa
-  "kg/m2": v => v, // bleibt gleich (mm Niederschlag)
-  "s": v => v / 60, // Sekunden → Minuten
-  "1std kJ/m2": v => v/3.6, // Energiedichte in Leistungsdichte [W/m^2] 1 stdunde
-  "3std kJ/m2": v => v/10.8, // Energiedichte in Leistungsdichte [W/m^2] 3 stdunden
-  "m": v => v, // keine Umrechnung
-  "Sichtweite m": v => v/1000, // Meter → kilometer
-  "%": v => v, // bleibt gleich
-  "-": v => v, // bleibt gleich
-  "0°..360°": v => v // Windrichtung bleibt gleich
+  K: v => v - 273.15, "m/s": v => v * 3.6, Pa: v => v / 100, "kg/m2": v => v,
+  "s": v => v / 60, "1std kJ/m2": v => v/3.6, "3std kJ/m2": v => v/10.8,
+  "m": v => v, "Sichtweite m": v => v/1000, "%": v => v, "-": v => v, "0°..360°": v => v
 };
 
 const elementUnitsMap = {
@@ -187,10 +188,8 @@ const elementUnitsMap = {
   RR1: "kg/m2", RR3: "kg/m2", RR6: "kg/m2", RR6c: "kg/m2", RR1c: "kg/m2", RR3c: "kg/m2", RRh: "kg/m2", RRhc: "kg/m2", RRd: "kg/m2", RRdc: "kg/m2",
   Rad1h: "1std kJ/m2", RadS3: "3std kJ/m2", RadL3: "3std kJ/m2",
   VV: "Sichtweite m", H_BsC: "m",
-  SunD1: "s", SunD3: "s", SunD: "s", DRR1: "s",
-  // usw. – bei Bedarf erweitern
+  SunD1: "s", SunD3: "s", SunD: "s", DRR1: "s"
 };
-
 
 function parseKML(text) {
   const KMLNS = "http://www.opengis.net/kml/2.2";
@@ -220,22 +219,16 @@ function parseKML(text) {
       const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
       if (!elName || !valueNode) continue;
 
-      // Kürzel → Einheit bestimmen
       const unit = elementUnitsMap[elName];
-
-      // Umrechnung nur für numerische Werte anwenden
       const converter = unitConversionMap[unit];
-
       const values = valueNode.textContent.trim().split(/\s+/).map(v => {
         if (v === "-" || v === "") return null;
         const num = Number(v);
         if (!Number.isFinite(num)) return v;
         const converted = converter ? converter(num) : num;
-        return Math.round(converted * 100) / 100; // ➜ auf 2 Nachkommastellen runden
+        return Math.round(converted * 100) / 100;
       });
 
-
-      // Ersetze Kürzel durch Bedeutung, wenn vorhanden
       const readableName = elementNamesMap[elName] || elName;
       seriesMap[readableName] = values.slice(0, timeSteps.length);
     }
@@ -250,7 +243,6 @@ function parseKML(text) {
     lastWide = wide;
     renderTable(wide);
 
-    // Dropdown mit übersetzten Parametern
     plotSel.innerHTML = cols.map(c => `<option value="${c}">${c}</option>`).join("");
     plotSel.disabled = false;
     renderPlot(cols[0]);
@@ -264,11 +256,11 @@ function parseKML(text) {
   }
 }
 
-
 function fmtLocal(iso) {
   try { return new Date(iso).toLocaleString("de-DE", { timeZone: "Europe/Berlin" }); }
   catch { return iso; }
 }
+
 function renderTable(rows) {
   if (!rows.length) { tableEl.innerHTML = "<tbody><tr><td>Keine Daten</td></tr></tbody>"; return; }
   const headers = Object.keys(rows[0]);
@@ -279,7 +271,6 @@ function renderTable(rows) {
   tableEl.innerHTML = thead + tbody;
 }
 
-/* ===== D3 Plot ===== */
 let currentParam = null;
 let resizeObserver = null;
 
@@ -287,8 +278,8 @@ function renderPlot(param) {
   currentParam = param;
   plotTitle.textContent = `Verlauf von ${param}`;
   legendEl.textContent = `Linie: ${param}`;
+  readoutEl.textContent = "";
 
-  // Clear old SVG
   d3.select(plotDiv).select("svg").remove();
 
   if (!seriesMap[param]) {
@@ -296,17 +287,13 @@ function renderPlot(param) {
     return;
   }
 
-  // Data prep
   const xData = timeSteps.map(ts => new Date(ts));
   let yData = seriesMap[param].map(v => v == null ? null : v);
-  let yLabel = param;
-
   const data = xData.map((x, i) => ({ x, y: yData[i] })).filter(d => d.y != null);
 
-  // Dimensions
   const margin = { top: 16, right: 24, bottom: 36, left: 48 };
   const width  = plotDiv.clientWidth - margin.left - margin.right;
-  const height = plotDiv.clientHeight - margin.top - margin.bottom;
+  const height = plotDiv.clientHeight - margin.top - margin.bottom - 20;
 
   const svg = d3.select(plotDiv)
     .append("svg")
@@ -315,147 +302,56 @@ function renderPlot(param) {
 
   const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  // Scales
   const x = d3.scaleTime().domain(d3.extent(data, d => d.x)).range([0, width]);
-  const y = d3.scaleLinear()
-    .domain(d3.extent(data, d => d.y)).nice()
-    .range([height, 0]);
+  const y = d3.scaleLinear().domain(d3.extent(data, d => d.y)).nice().range([height, 0]);
 
-  // Grid
-  const xGrid = d3.axisBottom(x).ticks(Math.min(10, data.length)).tickSize(-height).tickFormat("");
-  const yGrid = d3.axisLeft(y).ticks(6).tickSize(-width).tickFormat("");
   g.append("g").attr("class", "grid")
-    .attr("transform", `translate(0,${height})`).call(xGrid);
-  g.append("g").attr("class", "grid").call(yGrid);
+    .attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).ticks(10).tickSize(-height).tickFormat(""));
+  g.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(6).tickSize(-width).tickFormat(""));
 
-  // Axes
-  const xAxis = d3.axisBottom(x).ticks(Math.min(10, data.length))
-    .tickFormat(d3.timeFormat("%d.%m %H:%M"));
-  const yAxis = d3.axisLeft(y).ticks(6);
+  g.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).ticks(10).tickFormat(d3.timeFormat("%d.%m %H:%M")));
+  g.append("g").call(d3.axisLeft(y));
 
-  g.append("g").attr("transform", `translate(0,${height})`).call(xAxis);
-  g.append("g").call(yAxis);
+  g.append("text").attr("x", width/2).attr("y", height + 30).attr("class", "axis-label").attr("text-anchor", "middle").text("Zeit");
+  g.append("text").attr("transform", "rotate(-90)").attr("y", -42).attr("x", -height/2).attr("dy", "0.71em").attr("class", "axis-label").attr("text-anchor", "middle").text(param);
 
-  // Axis labels
-  g.append("text").attr("class", "axis-label")
-    .attr("x", width).attr("y", height + 28).attr("text-anchor", "end").text("Zeit");
-  g.append("text").attr("class", "axis-label")
-    .attr("x", 0).attr("y", -6).attr("text-anchor", "start").text(yLabel);
+  const line = d3.line().x(d => x(d.x)).y(d => y(d.y));
+  g.append("path").datum(data).attr("fill", "none").attr("stroke", "#2563eb").attr("stroke-width", 2).attr("d", line);
 
-  // Line
-  const line = d3.line()
-    .defined(d => d.y != null)
-    .x(d => x(d.x))
-    .y(d => y(d.y))
-    .curve(d3.curveMonotoneX);
+  const focus = g.append("g").style("display", "none");
+  focus.append("circle").attr("class", "focus-dot").attr("r", 5).attr("fill", "#2563eb");
 
-  const path = g.append("path")
-    .datum(data)
-    .attr("fill", "none")
-    .attr("stroke-width", 2)
-    .attr("stroke-linejoin", "round")
-    .attr("stroke-linecap", "round")
-    .attr("d", line);
-
-  // let browser pick a color (no explicit colors)
-  path.attr("stroke", getComputedStyle(svg.node()).color || "#111827");
-
-  // Points for better hover targeting
-  const points = g.append("g")
-    .selectAll("circle").data(data)
-    .join("circle")
-    .attr("r", 3)
-    .attr("cx", d => x(d.x))
-    .attr("cy", d => y(d.y))
-    .attr("fill", getComputedStyle(svg.node()).color || "#111827")
-    .attr("opacity", 0.8);
-
-  // Focus circle & overlay for interactions
-  const focus = g.append("circle").attr("class", "focus-dot").attr("r", 5).style("display", "none").attr("fill", "currentColor");
-  const overlay = g.append("rect").attr("fill", "transparent").attr("pointer-events", "all").attr("width", width).attr("height", height);
-
-  const bisect = d3.bisector(d => d.x).center;
+  const bisect = d3.bisector(d => d.x).left;
 
   function showTooltip(event) {
-    const [mx, my] = d3.pointer(event);
+    const [mx] = d3.pointer(event);
     const x0 = x.invert(mx);
-    const i = Math.max(0, Math.min(data.length - 1, bisect(data, x0)));
-    const d = data[i];
-    focus.style("display", null).attr("cx", x(d.x)).attr("cy", y(d.y));
-    tooltip.style.opacity = 1;
-    tooltip.textContent = `${d3.timeFormat("%d.%m.%Y %H:%M")(d.x)} — ${formatValue(d.y, param)}`;
-    const ttRect = tooltip.getBoundingClientRect();
-    const parentRect = plotDiv.getBoundingClientRect();
-    let left = margin.left + x(d.x) - ttRect.width / 2;
-    let top  = margin.top + y(d.y) - ttRect.height - 10;
-    left = Math.max(8, Math.min(parentRect.width - ttRect.width - 8, left));
-    top  = Math.max(8, Math.min(parentRect.height - ttRect.height - 8, top));
-    tooltip.style.left = left + "px";
-    tooltip.style.top  = top + "px";
+    const i = bisect(data, x0, 1);
+    const d0 = data[i - 1], d1 = data[i];
+    const d = !d1 ? d0 : (x0 - d0.x > d1.x - x0 ? d1 : d0);
+
+    focus.attr("transform", `translate(${x(d.x)},${y(d.y)})`);
+    tooltip.style.opacity = 1
+      .html(`<b>${d3.timeFormat("%d.%m %H:%M")(d.x)}</b><br>${param}: ${d.y}`);
+
+    tooltip.style.left = (x(d.x) + margin.left + 10) + "px";
+    tooltip.style.top  = (y(d.y) + margin.top - 28) + "px";
+    readoutEl.textContent = `${d3.timeFormat("%d.%m %H:%M")(d.x)} → ${d.y}`;
   }
-  function hideTooltip() {
-    focus.style("display", "none");
-    tooltip.style.opacity = 0;
+
+  svg.append("rect").attr("transform", `translate(${margin.left},${margin.top})`)
+    .attr("width", width).attr("height", height).attr("fill", "none").attr("pointer-events", "all")
+    .on("mouseover touchstart", () => { focus.style("display", null); tooltip.style.opacity = 1; })
+    .on("mouseout touchend", () => { focus.style("display", "none"); tooltip.style.opacity = 0; })
+    .on("mousemove touchmove", showTooltip);
+
+  if (!resizeObserver) {
+    resizeObserver = new ResizeObserver(() => { if (currentParam) renderPlot(currentParam); });
+    resizeObserver.observe(plotDiv);
   }
-  overlay.on("mousemove", showTooltip).on("mouseleave", hideTooltip);
-
-  // Zoom & Pan
-  const zoom = d3.zoom()
-    .scaleExtent([1, 24])
-    .translateExtent([[0,0],[width, height]])
-    .extent([[0,0],[width, height]])
-    .on("zoom", (event) => {
-      const zx = event.transform.rescaleX(x);
-      g.selectAll(".grid").remove();
-      g.append("g").attr("class", "grid")
-        .attr("transform", `translate(0,${height})`).call(d3.axisBottom(zx).ticks(10).tickSize(-height).tickFormat(""));
-      g.select("g:nth-of-type(2)").call(d3.axisBottom(zx).ticks(10).tickFormat(d3.timeFormat("%d.%m %H:%M")));
-      g.select("path").attr("d", d3.line()
-        .defined(d => d.y != null)
-        .x(d => zx(d.x))
-        .y(d => y(d.y))
-        .curve(d3.curveMonotoneX)(data));
-      points.attr("cx", d => zx(d.x));
-      overlay.on("mousemove", (ev) => {
-        const [mx] = d3.pointer(ev);
-        const x0 = zx.invert(mx);
-        const i = Math.max(0, Math.min(data.length - 1, bisect(data, x0)));
-        const d = data[i];
-        focus.style("display", null).attr("cx", zx(d.x)).attr("cy", y(d.y));
-        tooltip.style.opacity = 1;
-        tooltip.textContent = `${d3.timeFormat("%d.%m.%Y %H:%M")(d.x)} — ${formatValue(d.y, param)}`;
-        const ttRect = tooltip.getBoundingClientRect();
-        const parentRect = plotDiv.getBoundingClientRect();
-        let left = margin.left + zx(d.x) - ttRect.width / 2;
-        let top  = margin.top + y(d.y) - ttRect.height - 10;
-        left = Math.max(8, Math.min(parentRect.width - ttRect.width - 8, left));
-        top  = Math.max(8, Math.min(parentRect.height - ttRect.height - 8, top));
-        tooltip.style.left = left + "px";
-        tooltip.style.top  = top + "px";
-      });
-    });
-
-  svg.call(zoom).on("dblclick.zoom", null); // vermeiden: d3 default dblclick-zoom
-  svg.on("dblclick", () => {
-    svg.transition().duration(250).call(zoom.transform, d3.zoomIdentity);
-  });
-
-  // Responsive: redraw on resize
-  if (resizeObserver) resizeObserver.disconnect();
-  resizeObserver = new ResizeObserver(() => {
-    if (currentParam) renderPlot(currentParam);
-  });
-  resizeObserver.observe(plotDiv);
 }
 
-// hübsche Werte je nach Parameter
-function formatValue(v, param) {
-  if (v == null || Number.isNaN(v)) return "—";
-  return (Math.abs(v) < 10 ? v.toFixed(2) : v.toFixed(1));
-}
-
-
-plotSel.addEventListener("change", () => renderPlot(plotSel.value));
+plotSel.addEventListener("change", e => renderPlot(e.target.value));
 </script>
 </body>
 </html>

@@ -312,14 +312,14 @@
         const yUpper = yData.map((v, i) => (v != null && errorData[i] != null) ? v + errorData[i] : null);
         const yLower = yData.map((v, i) => (v != null && errorData[i] != null) ? v - errorData[i] : null);
 
-        // Fläche zwischen upper und lower
+        // Fläche zwischen upper und lower in hellem Blau
         traces.push({
           x: [...xData, ...xData.slice().reverse()],
           y: [...yUpper, ...yLower.slice().reverse()],
           type: "scatter",
           mode: "lines",
           fill: "toself",
-          fillcolor: "rgba(37, 99, 235, 0.2)",
+          fillcolor: "rgba(0, 123, 255, 0.2)", // Hellblau transparent
           line: { color: "transparent" },
           hoverinfo: "skip",
           showlegend: false,
@@ -328,28 +328,31 @@
         });
       }
 
-      // Alle Plots immer mit Spline + Marker
+      // Linie in mittlerem Blau
       traces.push({
         x: xData,
         y: yData,
         type: "scatter",
         mode: "lines",
-        line: { width: 2, shape: "spline" },
+        line: { width: 2, shape: "spline", color: "rgb(0, 82, 204)" }, // kräftiges Blau
         connectgaps: true,
         name: param,
         showlegend: false
       });
+
+      // Marker in dunklerem Blau
       traces.push({
         x: xData,
         y: yData,
         type: "scatter",
         mode: "markers",
-        marker: { size: 6 },
+        marker: { size: 6, color: "rgb(0, 51, 153)" }, // dunkleres Blau
         name: param
       });
 
       Plotly.newPlot(plotlyDiv, traces, getLayout(param), getConfig());
     }
+
 
 
     // Hilfsfunktionen für Layout und Config
@@ -359,7 +362,8 @@
         xaxis: { title: "Zeit", automargin: true },
         yaxis: { title: param, automargin: true },
         hovermode: "x unified",
-        autosize: true
+        autosize: true,
+        showlegend: false
       };
     }
 

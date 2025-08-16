@@ -29,18 +29,20 @@
   </div>
 
   <script>
+  
+
     // Kürzel, die nicht im Dropdown auftauchen sollen
     const excludedElements = [
       "E_PPP", "E_Td", "FX3", "FX625", "FX640", "FX655", "FXh", "FXh25", "FXh40",
       "PSd00", "PSd30", "PSd60", "R101", "R102", "R103", "R105", "R107", "R110",
-      "R120", "R130", "R150", "R600", "R602", "R610", "R650", "Rad1h", "Rd00",
+      "R120", "R130", "R150", "R600", "R602", "R610", "R650", "RRad1", "Rd00",
       "Rd02", "Rd10", "Rd50", "Rh00", "Rh02", "Rh10", "Rh50", "RR1o1", "RR1u1",
       "RR1w1", "RR3c", "RR6c", "RRdc", "RRhc", "RRL1c", "RRS1c", "RRS3c", "RSunD",
       "SunD", "SunD3", "T5cm", "Td", "TG", "TM", "W1W2", "WPc11", "WPc31", "WPc61",
       "WPcd1", "WPch1", "ww", "ww3", "wwC", "wwC6", "wwCh", "wwD", "wwD6", "wwDh",
       "wwF", "wwF6", "wwFh", "wwL", "wwL6", "wwLh", "wwM6", "wwMd", "wwMh", "wwP6",
       "wwPd", "wwPh", "wwS", "wwS6", "wwSh", "wwT", "wwT6", "wwTd", "wwTh", "wwZ",
-      "wwZ6", "wwZh", "FXh55", "N05", "Nh", "Nl", "Nlm", "Nm", "PEvap"
+      "wwZ6", "wwZh", "FXh55", "N05", "Nh", "Nl", "Nlm", "Nm", "PEvap", "TX", "TN", "N"
     ];
 
     // Kombinationen von Werten + ihren Fehlern
@@ -49,18 +51,6 @@
       { value: "Wind speed", error: "Absolute error wind speed 10m above surface" },
       { value: "Wind direction", error: "Absolute error wind direction" }
     ];
-
-    // Parameter, die mit Spline + Punkten dargestellt werden sollen
-    const paramToBeSplined = [
-      "Maximum temperature - within the last 12 hours",
-    ];
-    // Vergleich robust machen (Case/Whitespace)
-    const _norm = s => (s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
-    const _splineSet = new Set(paramToBeSplined.map(_norm));
-    const isSplinedParam = p => _splineSet.has(_norm(p));
-
-
-
 
     let closest_station_id = null;
     let minDistance = Infinity;

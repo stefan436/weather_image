@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -7,39 +8,10 @@
 <script src="elementNamesMap.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-<style>
-:root {
-  --bg: #f9fafb; --fg: #111827; --primary: #2563eb; --primary-hover: #1d4ed8;
-  --border: #e5e7eb; --badge-bg: #e0e7ff; --badge-text: #1e3a8a;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-}
-body { background: var(--bg); color: var(--fg); margin: 16px; line-height: 1.5; }
-h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 12px; }
-.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 10px;
-  background: white; border: 1px solid var(--border); border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-.btn { background: var(--primary); color: white; border: none;
-  border-radius: 8px; padding: 6px 10px; font-size: 14px; transition: background 0.2s ease; }
-.btn:hover { background: var(--primary-hover); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.badge { background: var(--badge-bg); color: var(--badge-text);
-  padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
-.meta { margin: 10px 0; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border); }
-.scroll { overflow: auto; max-height: 70vh; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); background: white; }
-table { border-collapse: collapse; width: 100%; }
-th, td { border-bottom: 1px solid var(--border); padding: 8px; font-size: 14px; text-align: left; white-space: nowrap; }
-th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1; }
-#plot { margin-top: 20px; margin-bottom: 10px; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border);
-  height: 440px; position: relative; }
-.plot-title { font-weight: 600; margin-bottom: 6px; }
-/* Mobile Anpassungen */
-@media (max-width: 600px) {
-  h1 { font-size: 1.4rem; }
-  .row { flex-direction: column; align-items: stretch; }
-  .btn, select { width: 100%; }
-  #plot { height: 300px; }
-}
-</style>
+<link rel="stylesheet" href="style_mosmix_L_vorhersage.css">
+
+
+
 </head>
 <body>
 
@@ -54,7 +26,7 @@ th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1
 <div id="station" class="meta"></div>
 <div id="plot">
   <div id="plotTitle" class="plot-title"></div>
-  <div id="plotlyDiv" style="width:100%;height:100%;"></div>
+  <div id="plotlyDiv"></div>
 </div>
 <div class="scroll"><table id="table"></table></div>
 
@@ -274,7 +246,20 @@ function renderPlot(param) {
     autosize: true
   };
 
-  Plotly.newPlot(plotlyDiv, [trace], layout, {responsive: true, displaylogo: false});
+  Plotly.newPlot(plotlyDiv, [trace], layout, {
+    responsive: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: [
+      "toImage",          // Png downloaden
+      "select2d",         // Box Select
+      "lasso2d",          // Lasso Select
+      "zoomIn2d",         // Zoom In
+      "zoomOut2d",        // Zoom Out
+      "autoScale2d",      // Autoscale
+      "resetScale2d"      // Reset Axes
+    ]
+  });
+
 }
 
 plotSel.addEventListener("change", e => renderPlot(e.target.value));

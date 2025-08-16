@@ -101,9 +101,15 @@ th {
   background: white;
   border-radius: 8px;
   border: 1px solid var(--border);
-  height: 440px;
+  height: auto; /* Ändern von 440px auf auto */
   position: relative;
 }
+
+#plotlyDiv {
+  width: 100%;
+  height: 360px; /* feste Höhe damit Plotly korrekt rechnen kann */
+}
+
 
 .plot-title {
   font-weight: 600;
@@ -133,9 +139,14 @@ select {
     width: 100%;
   }
   #plot {
-    height: 300px;
+    height: auto; /* statt 300px */
     padding: 12px;
   }
+
+  #plotlyDiv {
+    height: 300px; /* kleinere Höhe für Handy */
+  }
+
   .meta, .scroll {
     font-size: 14px;
   }
@@ -145,7 +156,3 @@ select {
   display: none;
 }
 
-#plotlyDiv {
-  width: 100%;
-  height: 380px; /* oder 100% bei besserem Layout */
-}

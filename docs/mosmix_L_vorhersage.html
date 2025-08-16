@@ -2,11 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8" />
-<title>Nächste MOSMIX-Station ➜ Tabelle & D3-Plot (mobilfreundlich)</title>
+<title>Nächste MOSMIX-Station ➜ Tabelle & Plot (mobilfreundlich)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="elementNamesMap.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
 <style>
 :root {
   --bg: #f9fafb; --fg: #111827; --primary: #2563eb; --primary-hover: #1d4ed8;
@@ -32,28 +32,6 @@ th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1
 #plot { margin-top: 20px; margin-bottom: 10px; padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--border);
   height: 440px; position: relative; }
 .plot-title { font-weight: 600; margin-bottom: 6px; }
-.tooltip {
-  position: absolute; pointer-events: none; background: rgba(17, 24, 39, 0.9); color: #fff; font-size: 13px;
-  padding: 8px; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.12); opacity: 0; transition: opacity .12s;
-  white-space: nowrap;
-}
-.legend {
-  position: absolute; right: 14px; top: 10px; background: rgba(255,255,255,.9);
-  border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 12px;
-}
-.axis-label { font-size: 12px; fill: #374151; }
-.grid line { stroke: #e5e7eb; stroke-opacity: 1; shape-rendering: crispEdges; }
-.grid path { stroke-width: 0; }
-.focus-dot { stroke: white; stroke-width: 2px; }
-.zoom-hint {
-  position: absolute; bottom: 10px; right: 14px; font-size: 12px; color: #6b7280;
-}
-.value-readout {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #374151;
-  text-align: center;
-}
 /* Mobile Anpassungen */
 @media (max-width: 600px) {
   h1 { font-size: 1.4rem; }
@@ -76,10 +54,7 @@ th { position: sticky; top: 0; background: #f3f4f6; font-weight: 600; z-index: 1
 <div id="station" class="meta"></div>
 <div id="plot">
   <div id="plotTitle" class="plot-title"></div>
-  <div id="legend" class="legend">Linie: Wert</div>
-  <div id="tooltip" class="tooltip"></div>
-  <div class="zoom-hint">Scroll/Pinch: Zoom • Ziehen: Pan • Doppelklick: Reset</div>
-  <div class="value-readout"></div>
+  <div id="plotlyDiv" style="width:100%;height:100%;"></div>
 </div>
 <div class="scroll"><table id="table"></table></div>
 
@@ -90,11 +65,8 @@ const statusEl = document.getElementById("status");
 const tableEl  = document.getElementById("table");
 const stationEl= document.getElementById("station");
 const plotSel  = document.getElementById("plotSelect");
-const plotDiv  = document.getElementById("plot");
 const plotTitle= document.getElementById("plotTitle");
-const tooltip  = document.getElementById("tooltip");
-const legendEl = document.getElementById("legend");
-const readoutEl= document.querySelector(".value-readout");
+const plotlyDiv= document.getElementById("plotlyDiv");
 
 let lastWide = null; 
 let seriesMap = {};
@@ -272,83 +244,37 @@ function renderTable(rows) {
 }
 
 let currentParam = null;
-let resizeObserver = null;
 
 function renderPlot(param) {
   currentParam = param;
   plotTitle.textContent = `Verlauf von ${param}`;
-  legendEl.textContent = `Linie: ${param}`;
-  readoutEl.textContent = "";
-
-  d3.select(plotDiv).select("svg").remove();
 
   if (!seriesMap[param]) {
-    plotDiv.insertAdjacentHTML("beforeend", "<em>Keine Daten für diesen Parameter</em>");
+    plotlyDiv.innerHTML = "<em>Keine Daten für diesen Parameter</em>";
     return;
   }
 
   const xData = timeSteps.map(ts => new Date(ts));
-  let yData = seriesMap[param].map(v => v == null ? null : v);
-  const data = xData.map((x, i) => ({ x, y: yData[i] })).filter(d => d.y != null);
+  const yData = seriesMap[param].map(v => v == null ? null : v);
 
-  const margin = { top: 16, right: 24, bottom: 36, left: 48 };
-  const width  = plotDiv.clientWidth - margin.left - margin.right;
-  const height = plotDiv.clientHeight - margin.top - margin.bottom - 20;
+  const trace = {
+    x: xData,
+    y: yData,
+    mode: 'lines+markers',
+    name: param,
+    line: { color: '#2563eb', width: 2 },
+    marker: { size: 6 }
+  };
 
-  const svg = d3.select(plotDiv)
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom);
+  const layout = {
+    margin: { l: 50, r: 20, t: 30, b: 50 },
+    xaxis: { title: "Zeit" },
+    yaxis: { title: param, automargin: true },
+    hovermode: "x unified",
+    autosize: true
+  };
 
-  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-  const x = d3.scaleTime().domain(d3.extent(data, d => d.x)).range([0, width]);
-  const y = d3.scaleLinear().domain(d3.extent(data, d => d.y)).nice().range([height, 0]);
-
-  g.append("g").attr("class", "grid")
-    .attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).ticks(10).tickSize(-height).tickFormat(""));
-  g.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(6).tickSize(-width).tickFormat(""));
-
-  g.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).ticks(10).tickFormat(d3.timeFormat("%d.%m %H:%M")));
-  g.append("g").call(d3.axisLeft(y));
-
-  g.append("text").attr("x", width/2).attr("y", height + 30).attr("class", "axis-label").attr("text-anchor", "middle").text("Zeit");
-  g.append("text").attr("transform", "rotate(-90)").attr("y", -42).attr("x", -height/2).attr("dy", "0.71em").attr("class", "axis-label").attr("text-anchor", "middle").text(param);
-
-  const line = d3.line().x(d => x(d.x)).y(d => y(d.y));
-  g.append("path").datum(data).attr("fill", "none").attr("stroke", "#2563eb").attr("stroke-width", 2).attr("d", line);
-
-  const focus = g.append("g").style("display", "none");
-  focus.append("circle").attr("class", "focus-dot").attr("r", 5).attr("fill", "#2563eb");
-
-  const bisect = d3.bisector(d => d.x).left;
-
-  function showTooltip(event) {
-    const [mx] = d3.pointer(event);
-    const x0 = x.invert(mx);
-    const i = bisect(data, x0, 1);
-    const d0 = data[i - 1], d1 = data[i];
-    const d = !d1 ? d0 : (x0 - d0.x > d1.x - x0 ? d1 : d0);
-
-    focus.attr("transform", `translate(${x(d.x)},${y(d.y)})`);
-    tooltip.style.opacity = 1
-      .html(`<b>${d3.timeFormat("%d.%m %H:%M")(d.x)}</b><br>${param}: ${d.y}`);
-
-    tooltip.style.left = (x(d.x) + margin.left + 10) + "px";
-    tooltip.style.top  = (y(d.y) + margin.top - 28) + "px";
-    readoutEl.textContent = `${d3.timeFormat("%d.%m %H:%M")(d.x)} → ${d.y}`;
-  }
-
-  svg.append("rect").attr("transform", `translate(${margin.left},${margin.top})`)
-    .attr("width", width).attr("height", height).attr("fill", "none").attr("pointer-events", "all")
-    .on("mouseover touchstart", () => { focus.style("display", null); tooltip.style.opacity = 1; })
-    .on("mouseout touchend", () => { focus.style("display", "none"); tooltip.style.opacity = 0; })
-    .on("mousemove touchmove", showTooltip);
-
-  if (!resizeObserver) {
-    resizeObserver = new ResizeObserver(() => { if (currentParam) renderPlot(currentParam); });
-    resizeObserver.observe(plotDiv);
-  }
+  Plotly.newPlot(plotlyDiv, [trace], layout, {responsive: true, displaylogo: false});
 }
 
 plotSel.addEventListener("change", e => renderPlot(e.target.value));

@@ -1,0 +1,151 @@
+:root {
+  --bg: #f9fafb; --fg: #111827; --primary: #2563eb; --primary-hover: #1d4ed8;
+  --border: #e5e7eb; --badge-bg: #e0e7ff; --badge-text: #1e3a8a;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+  padding: 24px;
+  line-height: 1.6;
+}
+
+h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn:hover {
+  background: var(--primary-hover);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.badge {
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.meta {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.scroll {
+  overflow: auto;
+  max-height: 70vh;
+  margin-top: 20px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th, td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+th {
+  position: sticky;
+  top: 0;
+  background: #f3f4f6;
+  font-weight: 600;
+  z-index: 1;
+}
+
+#plot {
+  margin-top: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  height: 440px;
+  position: relative;
+}
+
+.plot-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+/* Mobile Anpassungen */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+  }
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+  .btn, select {
+    width: 100%;
+  }
+  #plot {
+    height: 300px;
+    padding: 12px;
+  }
+  .meta, .scroll {
+    font-size: 14px;
+  }
+}
+
+#table {
+  display: none;
+}
+
+#plotlyDiv {
+  width: 100%;
+  height: 380px; /* oder 100% bei besserem Layout */
+}

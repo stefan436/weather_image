@@ -239,12 +239,13 @@ function renderPlot(param) {
   };
 
   const layout = {
-    margin: { l: 50, r: 20, t: 30, b: 50 },
-    xaxis: { title: "Zeit" },
+    margin: { l: 50, r: 20, t: 30, b: 70 }, // vorher b: 50
+    xaxis: { title: "Zeit", automargin: true }, // automargin wichtig
     yaxis: { title: param, automargin: true },
     hovermode: "x unified",
     autosize: true
   };
+
 
   Plotly.newPlot(plotlyDiv, [trace], layout, {
     responsive: true,

@@ -28,7 +28,6 @@
 <body>
   <div id="controls">
     <button id="start">RV Daten laden & animieren</button>
-    <p id="location_output"></p>
 
     <label id="loadProgressLabel" for="loadProgress">Dateien lesen:</label>
     <progress id="loadProgress" value="0" max="100" style="width:300px;"></progress>
@@ -54,6 +53,7 @@
     </div>
   </div>
 
+  <!-- ANFANG: in <script> Tag einfügen -->
   <script>
     const map = L.map('map').setView([48.1373, 11.57577], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
@@ -63,7 +63,6 @@
 
     const output = document.getElementById('output');
     const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
-    const contourLevels = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
     let frames = [];
     let lat, lon;
@@ -74,30 +73,14 @@
     let currentFrame = 0;
     let forecastTime = 0;
 
-    const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
+    const ROWS_TO_KEEP = 450;
 
-    function getLocation(callback) {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => callback(pos.coords.latitude, pos.coords.longitude),
-          showError
-        );
-      } else {
-        document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
-      }
+    function getLODContourLevels(zoom) {
+      if (zoom < 9) return [5, 10, 20, 30];
+      if (zoom < 12) return [2, 4, 6, 10, 15, 20, 25, 30];
+      return [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
     }
 
-    function showError(error) {
-      const messages = {
-        1: "Zugriff auf Standort verweigert.",
-        2: "Standortinformationen nicht verfügbar.",
-        3: "Anfrage dauerte zu lange.",
-        default: "Unbekannter Fehler."
-      };
-      document.getElementById("location_output").innerText = messages[error.code] || messages.default;
-    }
-
-    // HDF5-Datei parsen & nur unteren Teil extrahieren
     async function parseH5File(buffer) {
       await h5wasm.ready;
       const filename = "/tmp.h5";
@@ -110,10 +93,9 @@
       const what = file.get("/dataset1/data1/what");
       const nodata = what.attrs['nodata'].value;
       forecastTime = file.get("what").attrs['time'].value;
-      
+
       file.close();
 
-      // Nur unteren Teil extrahieren
       const startRow = shape[0] - ROWS_TO_KEEP;
       const sliced = raw.slice(startRow).map(row =>
         row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
@@ -122,7 +104,6 @@
       return { data: sliced };
     }
 
-    // Koordinaten einlesen und nur unteren Teil extrahieren
     async function createCoords() {
       const response = await fetch('coords_radarcomposite_rv.bin');
       const buffer = await response.arrayBuffer();
@@ -180,12 +161,13 @@
       renderProgressText.style.display = 'inline';
 
       const requestIdle = window.requestIdleCallback || (cb => setTimeout(cb, 0));
-      const colorMap = Object.fromEntries(contourLevels.map(level => [level, colorScale(level).hex()]));
+      const levels = getLODContourLevels(map.getZoom());
+      const colorMap = Object.fromEntries(levels.map(level => [level, colorScale(level).hex()]));
 
       for (let idx = 0; idx < frames.length; idx++) {
         const raster = frames[idx];
         const levelLayers = await Promise.all(
-          contourLevels.map(async level => {
+          levels.map(async level => {
             const colorHex = colorMap[level];
             const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
             return lines
@@ -199,7 +181,7 @@
           })
         );
         preRenderedFrames.push(levelLayers.flat());
-        frames[idx] = null; // <-- Speicher freigeben
+        frames[idx] = null;
         const percent = Math.round(((idx + 1) / (frames.length)) * 100);
         renderProgress.value = percent;
         renderProgressText.textContent = percent + "%";
@@ -211,7 +193,7 @@
       contourLayers.forEach(l => map.removeLayer(l));
       contourLayers = [];
       preRenderedFrames[idx].forEach(layer => { layer.addTo(map); contourLayers.push(layer); });
-      updateForecastTimeDisplay(idx)
+      updateForecastTimeDisplay(idx);
     }
 
     function updateForecastTimeDisplay(frameIdx) {
@@ -229,10 +211,7 @@
       document.getElementById('frameLabel').textContent = `${formatted}`;
     }
 
-
-
-    async function fetchAndProcessComposite(lat_pos, lon_pos) {
-      map.setView([lat_pos, lon_pos], 10);
+    async function fetchAndProcessComposite() {
       try {
         const proxy = 'https://corsproxy.io/?';
         const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar`;
@@ -255,13 +234,15 @@
         const coords = await createCoords();
         lat = coords.lat;
         lon = coords.lon;
-        
+
         document.getElementById('frameSlider').max = frames.length - 1;
         document.getElementById('frameSlider').disabled = false;
         document.getElementById('playPause').disabled = false;
         document.getElementById('legend').style.display = 'block';
+
         await renderAllFrames();
         renderFrame(0);
+
         setTimeout(() => {
           document.getElementById('start').style.display = 'none';
           document.getElementById('loadProgressLabel').style.display = 'none';
@@ -270,7 +251,6 @@
           document.getElementById('renderProgressLabel').style.display = 'none';
           document.getElementById('renderProgress').style.display = 'none';
           document.getElementById('renderProgressText').style.display = 'none';
-          
         }, 1000);
       } catch (e) {
         output.textContent += "Fehler: " + e.message + "\n";
@@ -278,10 +258,7 @@
       }
     }
 
-    document.getElementById('start').addEventListener('click', () => {
-      getLocation(fetchAndProcessComposite);
-    });
-
+    document.getElementById('start').addEventListener('click', fetchAndProcessComposite);
     document.getElementById('playPause').addEventListener('click', () => {
       if (!isPlaying) {
         isPlaying = true;
@@ -290,7 +267,6 @@
           currentFrame = (currentFrame + 1) % preRenderedFrames.length;
           renderFrame(currentFrame);
           document.getElementById('frameSlider').value = currentFrame;
-          updateForecastTimeDisplay(currentFrame);
         }, 500);
       } else {
         isPlaying = false;
@@ -299,14 +275,19 @@
       }
     });
 
-    // Slider-Event: Frame wechseln
     document.getElementById('frameSlider').addEventListener('input', (e) => {
       const idx = parseInt(e.target.value);
       currentFrame = idx;
       renderFrame(currentFrame);
-      updateForecastTimeDisplay(currentFrame);
+    });
+
+    // Neu: Wenn Zoom geändert wird → Frame neu rendern mit angepasstem LOD
+    map.on('zoomend', () => {
+      renderFrame(currentFrame);
     });
 
   </script>
+<!-- ENDE -->
+
 </body>
 </html>

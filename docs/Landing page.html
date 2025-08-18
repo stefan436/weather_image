@@ -18,7 +18,7 @@
   <!-- Navigation -->
   <header>
     <nav class="navbar">
-      <a href="#" class="logo">Wetterinfo</a>
+      <a href="#" class="logo">Wetterprodukte des Deutschen Wetter Dienstes</a>
       <div class="hamburger-menu" id="hamburger-icon">
         <span></span>
         <span></span>
@@ -38,7 +38,7 @@
     <h1>Aktuelle Mosmix Vorhersage</h1>
 
     <div class="row">
-      <button class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
+      <button id="loadButton" class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
       <label for="plotSelect">Plot-Parameter:</label>
       <select id="plotSelect" disabled></select>
       <span id="status" class="badge">Bereit</span>
@@ -94,7 +94,9 @@
 
     function setStatus(txt) {
       statusEl.textContent = txt;
+      statusEl.style.display = txt ? "inline-block" : "none";
     }
+
 
     function toRadians(deg) {
       return deg * Math.PI / 180;
@@ -221,7 +223,8 @@
         const stationName = placemark.getElementsByTagNameNS(KMLNS, "name")[0]?.textContent ?? "";
         const stationDesc = placemark.getElementsByTagNameNS(KMLNS, "description")[0]?.textContent ?? "";
         const coords = placemark.getElementsByTagNameNS(KMLNS, "coordinates")[0]?.textContent?.trim() ?? "";
-        stationEl.innerHTML = `<b>Station:</b> ${stationName} — ${stationDesc} &nbsp; <b>Koordinaten:</b> ${coords} &nbsp; <b>Entfernung:</b> ${Math.round(minDistance)}`;
+        const coordsFormatted = coords.replace(/,/g, ', ');
+        stationEl.innerHTML = `<b>Station:</b> ${stationName} — ${stationDesc} &nbsp; <b>Koordinaten:</b> ${coordsFormatted} &nbsp; <b>Entfernung:</b> ${Math.round(minDistance)}`;
 
         const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
         seriesMap = {};
@@ -293,8 +296,12 @@
         renderPlot(defaultParam);
         }
 
+        setStatus("Fertig!");
+        setTimeout(() => {
+          setStatus("");  // Versteckt das Status-Element
+          document.getElementById("loadButton").style.display = "none";  // Versteckt den Button
+        }, 1000);
 
-        setStatus(`Fertig!`);
       } catch (err) {
         console.error(err);
         setStatus("Fehler: " + err.message);
@@ -410,4 +417,3 @@
   </script>
 </body>
 </html>
-

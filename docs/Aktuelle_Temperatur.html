@@ -129,6 +129,27 @@
           DateTime.fromISO(entry.timestamp).hour === now.hour
         );
 
+        const dailyData = data.weather.find(entry =>
+          DateTime.fromISO(entry.timestamp).hour === 0
+        );
+
+        let sunriseTime = null;
+        let sunsetTime = null;
+
+        if (dailyData) {
+          if (dailyData.sunrise) {
+            sunriseTime = DateTime.fromISO(dailyData.sunrise, { zone: "utc" })
+              .setZone("Europe/Berlin")
+              .toFormat("HH:mm 'Uhr'");
+          }
+          if (dailyData.sunset) {
+            sunsetTime = DateTime.fromISO(dailyData.sunset, { zone: "utc" })
+              .setZone("Europe/Berlin")
+              .toFormat("HH:mm 'Uhr'");
+          }
+        }
+
+
         if (!currentHourData) {
           document.getElementById("location_output").innerText = "Keine Wetterdaten gefunden.";
           return;
@@ -137,9 +158,15 @@
         source_id = currentHourData.source_id;
 
         const fields = {
-          "Zeitpunkt": formatValue(currentHourData.timestamp),
+          "Zeitpunkt": formatValue(
+            DateTime.fromISO(currentHourData.timestamp, { zone: "utc" })
+              .setZone("Europe/Berlin")
+              .toFormat("d. LLLL HH:mm 'Uhr'")
+          ),
           "Temperatur": formatValue(currentHourData.temperature?.toFixed(1), "°C"),
           "Niederschlag": formatValue(currentHourData.precipitation, " mm"),
+          "Sonnenaufgang": formatValue(sunriseTime),
+          "Sonnenuntergang": formatValue(sunsetTime),
           "Sonnenscheindauer": formatValue(currentHourData.sunshine, " min"),
           "Bewölkung": formatValue(currentHourData.cloud_cover, "%"),
           "Relative Luftfeuchtigkeit": formatValue(currentHourData.relative_humidity, "%"),

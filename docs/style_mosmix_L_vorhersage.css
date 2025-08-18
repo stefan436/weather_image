@@ -1,8 +1,8 @@
 :root {
-  --bg: #f9fafb; --fg: #111827; --primary: #2563eb; --primary-hover: #1d4ed8;
-  --border: #e5e7eb; --badge-bg: #e0e7ff; --badge-text: #1e3a8a;
+  --bg: #f9fafb; --fg: #111827; --primary: #4f4f4f; --primary-hover: #333;
+  --border: #e5e7eb; --badge-bg: #f1f1f1; --badge-text: #4f4f4f;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-}
+} 
 body {
   background: var(--bg);
   color: var(--fg);
@@ -155,4 +155,3 @@ select {
 #table {
   display: none;
 }
-

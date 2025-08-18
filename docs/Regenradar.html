@@ -39,26 +39,24 @@
       background: white;
       line-height: 1.2em;
       font-size: 14px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       z-index: 1000;
     }
     .legend .scale {
       width: 200px;
       height: 12px;
-      background: linear-gradient(to right,
-        #00007F 0%,   /* dunkelblau */
-        #0000FF 15%,  /* blau */
-        #007FFF 30%,  /* cyan */
-        #00FF00 50%,  /* grün */
-        #FFFF00 70%,  /* gelb */
-        #FF7F00 85%,  /* orange */
-        #FF0000 100%  /* rot */
-      );
+      background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
       margin-bottom: 5px;
+      border-radius: 4px;
     }
+    
     .legend .labels {
       display: flex;
       justify-content: space-between;
+      font-size: 13px;
+      color: var(--fg);
     }
 
     #start {
@@ -299,7 +297,7 @@
         const utcTime = DateTime.fromFormat(radolanFilename.slice(2, 12), 'yyLLddHHmm', { zone: 'utc' });
         const berlinTime = utcTime.setZone('Europe/Berlin');
         const formatted = berlinTime.toFormat("d. LLLL HH:mm 'Uhr'");
-        output.textContent += `${formatted}`;
+        output.textContent += `${formatted}\n`;
 
         
         const phiCoords = await parseCoordinatesUrl(phiUrl);
@@ -352,6 +350,8 @@
             }
           });
         });
+
+
 
         // Legende anzeigen
         document.getElementById('legend').style.display = 'block';

@@ -385,14 +385,30 @@
 
     // Hilfsfunktionen für Layout und Config
     function getLayout(param) {
-      return {
+    // Alle Zeitpunkte als Date-Objekte
+    const xData = timeSteps.map(ts => new Date(ts));
+
+    // Bereich: von erstem Zeitpunkt bis +72 Stunden
+    let xRange = null;
+    if (xData.length > 0) {
+        const start = xData[0];
+        const end = new Date(start.getTime() + 72 * 3600 * 1000);
+        xRange = [start, end];
+    }
+
+    return {
         margin: { l: 50, r: 20, t: 30, b: 70 },
-        xaxis: { title: "Zeit", automargin: true },
+        xaxis: {
+        title: "Zeit",
+        automargin: true,
+        range: xRange   // <-- Standard-Zoom
+        },
         yaxis: { title: param, automargin: true },
         hovermode: "x unified",
         autosize: true,
-        showlegend: false
-      };
+        showlegend: false,
+        dragmode: "pan"
+    };
     }
 
     function getConfig() {
@@ -417,6 +433,5 @@
   </script>
 </body>
 </html>
-
 
 

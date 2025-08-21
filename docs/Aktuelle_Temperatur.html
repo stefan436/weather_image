@@ -119,8 +119,22 @@
 
     async function fetchWeather(lat, lon) {
       const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
-
+      const url_sun = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
       try {
+        // Sonnenaus- und Untergang 
+        const res_sun = await fetch(url_sun, { headers: { 'Accept': 'application/json' }});
+        if (!res_sun.ok) throw new Error('API-Fehler: ' + res_sun.status);
+        const data_sun = await res_sun.json();
+
+        const sunriseISO = data_sun.daily.sunrise[0]; // lokalisierte ISO-Zeit dank timezone=auto
+        const sunsetISO  = data_sun.daily.sunset[0];
+        const locale = navigator.language || 'de-DE';
+        const dtFmt = new Intl.DateTimeFormat(locale, { dateStyle: 'full' });
+        const tmFmt = new Intl.DateTimeFormat(locale, { timeStyle: 'short' });
+
+
+
+        // Restliche daten
         const res = await fetch(url);
         const data = await res.json();
         const now = DateTime.now();
@@ -133,21 +147,7 @@
           DateTime.fromISO(entry.timestamp).hour === 0
         );
 
-        let sunriseTime = null;
-        let sunsetTime = null;
 
-        if (dailyData) {
-          if (dailyData.sunrise) {
-            sunriseTime = DateTime.fromISO(dailyData.sunrise, { zone: "utc" })
-              .setZone("Europe/Berlin")
-              .toFormat("HH:mm 'Uhr'");
-          }
-          if (dailyData.sunset) {
-            sunsetTime = DateTime.fromISO(dailyData.sunset, { zone: "utc" })
-              .setZone("Europe/Berlin")
-              .toFormat("HH:mm 'Uhr'");
-          }
-        }
 
 
         if (!currentHourData) {
@@ -165,8 +165,8 @@
           ),
           "Temperatur": formatValue(currentHourData.temperature?.toFixed(1), "°C"),
           "Niederschlag": formatValue(currentHourData.precipitation, " mm"),
-          "Sonnenaufgang": formatValue(sunriseTime),
-          "Sonnenuntergang": formatValue(sunsetTime),
+          "Sonnenaufgang": formatValue(tmFmt.format(new Date(sunriseISO))),
+          "Sonnenuntergang": formatValue(tmFmt.format(new Date(sunsetISO))),
           "Sonnenscheindauer": formatValue(currentHourData.sunshine, " min"),
           "Bewölkung": formatValue(currentHourData.cloud_cover, "%"),
           "Relative Luftfeuchtigkeit": formatValue(currentHourData.relative_humidity, "%"),

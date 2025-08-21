@@ -57,6 +57,24 @@
 
   <!-- Mosmix Script -->
   <script>
+
+    // gewünschte Reihenfolge
+    const preferredOrder = [
+      "Temperature 2m above surface",
+      "Total precipitation during the last hour consistent with significant weather",
+      "Probability: Occurrence of precipitation within the last hour",
+      "Duration of precipitation within the last hour",
+      "Effective cloud cover", 
+      "Visibility", 
+      "Wind speed", 
+      "Maximum wind gust within the last hour",
+      "Wind direction",
+      "Probability for fog within the last hour", 
+      "Probability: Visibility below 1000m", 
+      "Sunshine duration during the last Hour", 
+      "Global Irradiance", 
+      "Surface pressure, reduced"
+    ];
   
 
     // Kürzel, die nicht im Dropdown auftauchen sollen
@@ -114,6 +132,26 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    function renderStationChoices(stations) {
+      stationEl.innerHTML = "<b>Nächste Stationen gefunden:</b><br>";
+      stations.forEach(st => {
+        const btn = document.createElement("button");
+        btn.textContent = `${st.description} (${Math.round(st.distance)} m)`;
+        btn.className = "btn";  // falls du dein CSS für Buttons nutzen willst
+        btn.onclick = () => {
+          closest_station_id = st.station_id;
+          minDistance = st.distance;
+          setStatus(`Station ${st.station_id} gewählt – lade KMZ …`);
+          loadMosmixData(st.station_id);
+        };
+        stationEl.appendChild(btn);
+        stationEl.appendChild(document.createElement("br"));
+      });
+    }
+
+
+
+
     async function findNearestStation() {
       setStatus("Lade Stationsliste …");
       try {
@@ -129,29 +167,28 @@
         navigator.geolocation.getCurrentPosition(async position => {
           const userLat = position.coords.latitude;
           const userLon = position.coords.longitude;
-          let nearest = null;
 
-          for (const row of data) {
+          // Alle Stationen mit Distanz berechnen
+          const stationsWithDist = data.map(row => {
             const lat = parseFloat(row.lat);
             const lon = parseFloat(row.lon);
-            if (isNaN(lat) || isNaN(lon)) continue;
+            if (isNaN(lat) || isNaN(lon)) return null;
             const distance = haversineDistance(userLat, userLon, lat, lon);
-            if (distance < minDistance) {
-              minDistance = distance;
-              nearest = row;
-            }
-          }
+            return { ...row, distance };
+          }).filter(Boolean);
 
-          if (!nearest) {
-            setStatus('Keine gültigen Koordinaten gefunden.');
-            return;
-          }
-          closest_station_id = nearest.station_id;
-          setStatus(`Station gefunden: ${closest_station_id} – lade KMZ …`);
-          await loadMosmixData(closest_station_id);
+          // nach Distanz sortieren
+          stationsWithDist.sort((a, b) => a.distance - b.distance);
+
+          // Top 5
+          const nearestFive = stationsWithDist.slice(0, 5);
+
+          // Buttons rendern
+          renderStationChoices(nearestFive);
         }, error => {
           setStatus('Fehler beim Standortzugriff: ' + error.message);
         });
+
 
       } catch (err) {
         setStatus('Fehler: ' + err.message);
@@ -258,8 +295,19 @@
           }
         }
 
+        // Spalten holen
+        let cols = Object.keys(seriesMap);
 
-        const cols = Object.keys(seriesMap).sort();
+        // Sortieren nach preferredOrder, alles was nicht drinsteht kommt hinten dran
+        cols.sort((a, b) => {
+          const ia = preferredOrder.indexOf(a);
+          const ib = preferredOrder.indexOf(b);
+          if (ia === -1 && ib === -1) return a.localeCompare(b); // beide nicht in Liste → alphabetisch
+          if (ia === -1) return 1; // a nicht drin → nach hinten
+          if (ib === -1) return -1; // b nicht drin → nach hinten
+          return ia - ib; // nach Reihenfolge in Liste
+        });
+
         const wide = [];
         for (let i = 0; i < timeSteps.length; i++) {
           const row = { Zeit: fmtLocal(timeSteps[i]) };
@@ -433,5 +481,4 @@
   </script>
 </body>
 </html>
-
 

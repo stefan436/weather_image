@@ -133,23 +133,29 @@
     }
 
     function renderStationChoices(stations) {
-      stationEl.innerHTML = "<b>Nächste Stationen gefunden:</b><br>";
+      // Überschrift + Container für die Buttons
+      stationEl.innerHTML = `
+        <div class="station-info">
+          <b>Nächste Stationen gefunden:</b>
+          <div class="station-choices"></div>
+        </div>
+      `;
+
+      const container = stationEl.querySelector(".station-choices");
+
       stations.forEach(st => {
         const btn = document.createElement("button");
         btn.textContent = `${st.description} (${Math.round(st.distance)} m)`;
-        btn.className = "btn";  // falls du dein CSS für Buttons nutzen willst
+        btn.className = "btn station-btn";
         btn.onclick = () => {
           closest_station_id = st.station_id;
           minDistance = st.distance;
           setStatus(`Station ${st.station_id} gewählt – lade KMZ …`);
           loadMosmixData(st.station_id);
         };
-        stationEl.appendChild(btn);
-        stationEl.appendChild(document.createElement("br"));
+        container.appendChild(btn);
       });
     }
-
-
 
 
     async function findNearestStation() {

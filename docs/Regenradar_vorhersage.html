@@ -420,7 +420,8 @@
           document.getElementById('renderProgressLabel').style.display = 'none';
           document.getElementById('renderProgress').style.display = 'none';
           document.getElementById('renderProgressText').style.display = 'none';
-          
+          document.getElementById('controls').style.padding = "6px";
+          document.getElementById('controls').style.gap = "6px";
         }, 1000);
       } catch (e) {
         output.textContent += "Fehler: " + e.message + "\n";

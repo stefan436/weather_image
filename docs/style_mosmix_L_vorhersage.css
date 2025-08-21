@@ -59,7 +59,10 @@ h1 {
 
 .meta {
   margin-bottom: 20px;
-  padding: 14px 16px;
+  padding-left: 14px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-right: 294px;
   background: white;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -124,6 +127,17 @@ select {
   font-size: 14px;
 }
 
+#table {
+  display: none;
+}
+
+#station {
+  display: flex;
+  flex-direction: column; /* untereinander */
+  gap: 2px;              /* Abstand zwischen Buttons */
+
+}
+
 /* Mobile Anpassungen */
 @media (max-width: 600px) {
   h1 {
@@ -152,6 +166,4 @@ select {
   }
 }
 
-#table {
-  display: none;
-}
+

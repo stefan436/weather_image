@@ -155,3 +155,30 @@ select {
 #table {
   display: none;
 }
+
+
+.station-info span {
+  font-size: 14px;
+}
+
+
+.station-info {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.station-choices {
+  display: flex;
+  flex-direction: column; /* <-- untereinander erzwingen */
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.station-btn {
+  width: 100%;   /* Button füllt die ganze Breite */
+  text-align: left; /* optional, falls du den Text linksbündig willst */
+}

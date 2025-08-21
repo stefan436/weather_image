@@ -59,9 +59,7 @@ h1 {
 
 .meta {
   margin-bottom: 20px;
-  padding-left: 14px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding: 14px 16px;
   padding-right: 294px;
   background: white;
   border-radius: 8px;
@@ -165,5 +163,6 @@ select {
     font-size: 14px;
   }
 }
+
 
 

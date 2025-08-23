@@ -416,9 +416,6 @@
           document.getElementById('loadProgressText').textContent = percent + "%";
         }
 
-        const coords = await createCoords();
-        lat = coords.lat;
-        lon = coords.lon;
         
         document.getElementById('frameSlider').max = frames.length - 1;
         document.getElementById('frameSlider').disabled = false;

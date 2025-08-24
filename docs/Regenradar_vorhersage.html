@@ -228,7 +228,7 @@
     let currentFrame = 0;
     let forecastTime = 0;
 
-    const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
+    const ROWS_TO_KEEP = 400; // Daten werden gedrittelt(shape : 1200 x 1100)
 
     function getLocation(callback) {
       if (navigator.geolocation) {
@@ -269,9 +269,15 @@
       let startRow;
       let endRow;
     
-      if (lat_pos >= 49.717) {
-        // nördlich: oberen Teil behalten
+
+      if (lat_pos >= 51.817) {
+        // nördlichsten Teil
         startRow = 0;
+        endRow = shape[0] - ROWS_TO_KEEP*2;
+      }
+      if (lat_pos < 51.817 && lat_pos >= 49.717) {
+        // mittlerer Teil
+        startRow = shape[0] - ROWS_TO_KEEP*2;
         endRow = shape[0] - ROWS_TO_KEEP;
       } else {
         // südlich: unteren Teil behalten
@@ -409,6 +415,7 @@
 
         const entries = await untar(arrayBuffer);
         entries.sort((a, b) => a.name.localeCompare(b.name));
+        
 
         for (let i = 0; i < entries.length; i++) {
           await new Promise(requestAnimationFrame);

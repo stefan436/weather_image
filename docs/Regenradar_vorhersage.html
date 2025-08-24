@@ -126,6 +126,11 @@
       color: var(--fg);
     }
 
+    .leaflet-overlay-pane svg {
+      overflow: visible !important;
+    }
+
+
     label {
       font-size: 14px;
       font-weight: 500;
@@ -152,11 +157,6 @@
       background-color: var(--primary);
       border-radius: 6px;
     }
-
-    .leaflet-overlay-pane svg {
-      overflow: visible !important;
-    }
-
 
     @media (max-width: 600px) {
       #controls {
@@ -228,7 +228,7 @@
     let currentFrame = 0;
     let forecastTime = 0;
 
-    const ROWS_TO_KEEP = 400; // Daten werden gedrittelt(shape : 1200 x 1100)
+    const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
 
     function getLocation(callback) {
       if (navigator.geolocation) {
@@ -252,65 +252,50 @@
     }
 
     // HDF5-Datei parsen & nur unteren Teil extrahieren
-    async function parseH5File(buffer, lat_pos) {
+    async function parseH5File(buffer) {
       await h5wasm.ready;
       const filename = "/tmp.h5";
       h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
       const file = new h5wasm.File(filename, "r");
-    
+
       const dataSet = file.get("/dataset1/data1/data");
       const shape = dataSet.shape;
       const raw = dataSet.to_array();
       const what = file.get("/dataset1/data1/what");
       const nodata = what.attrs['nodata'].value;
       forecastTime = file.get("what").attrs['time'].value;
+      
       file.close();
-    
-      let startRow;
-      let endRow;
-    
 
-      if (lat_pos >= 51.817) {
-        // nördlichsten Teil
-        startRow = 0;
-        endRow = shape[0] - ROWS_TO_KEEP*2;
-      }
-      if (lat_pos < 51.817 && lat_pos >= 49.717) {
-        // mittlerer Teil
-        startRow = shape[0] - ROWS_TO_KEEP*2;
-        endRow = shape[0] - ROWS_TO_KEEP;
-      } else {
-        // südlich: unteren Teil behalten
-        startRow = shape[0] - ROWS_TO_KEEP;
-        endRow = shape[0];
-      }
-    
-      const sliced = raw.slice(startRow, endRow).map(row =>
+      // Nur unteren Teil extrahieren
+      const startRow = shape[0] - ROWS_TO_KEEP;
+      const sliced = raw.slice(startRow).map(row =>
         row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
       );
-    
-      return { data: sliced, startRow, endRow, height: shape[0] };
+
+      return { data: sliced };
     }
 
     // Koordinaten einlesen und nur unteren Teil extrahieren
-    async function createCoords(lat_pos, startRow, endRow, height) {
+    async function createCoords() {
       const response = await fetch('coords_radarcomposite_rv.bin');
       const buffer = await response.arrayBuffer();
       const view = new DataView(buffer);
-    
+
       let offset = 0;
-      const h = view.getUint32(offset, true); offset += 4;
-      const w = view.getUint32(offset, true); offset += 4;
-      const numValues = h * w;
-    
+      const height = view.getUint32(offset, true); offset += 4;
+      const width = view.getUint32(offset, true); offset += 4;
+      const numValues = height * width;
+
       const lat1D = new Float32Array(buffer, offset, numValues); offset += numValues * 4;
       const lon1D = new Float32Array(buffer, offset, numValues);
-    
+
+      const startRow = height - ROWS_TO_KEEP;
       const lat2D = [], lon2D = [];
-      for (let y = startRow; y < endRow; y++) {
+      for (let y = startRow; y < height; y++) {
         const latRow = [], lonRow = [];
-        for (let x = 0; x < w; x++) {
-          const idx = y * w + x;
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
           latRow.push(lat1D[idx]);
           lonRow.push(lon1D[idx]);
         }
@@ -357,17 +342,15 @@
           contourLevels.map(async level => {
             const colorHex = colorMap[level];
             const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-            // Renderer mit erweitertem Padding (damit Leaflet mehr Rand einrechnet)
             const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-            const myRenderer = isMobile ? L.canvas({ padding: 2.0 }) : L.svg({ padding: 3.0 });
-
+            const myRenderer = isMobile ? L.canvas({ padding: 2.0 }) : L.svg({ padding: 3.0 }); // Standard ist 0.1
             return lines
               .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
               .map(line => {
                 const geoLines = convertIndicesToLatLon(line, lat, lon);
                 return isClosed(geoLines)
-                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1, renderer: myRenderer })
-                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1, });
+                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1, renderer: canvasRenderer })
+                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1 });
               });
           })
         );
@@ -415,23 +398,19 @@
 
         const entries = await untar(arrayBuffer);
         entries.sort((a, b) => a.name.localeCompare(b.name));
-        
 
         for (let i = 0; i < entries.length; i++) {
           await new Promise(requestAnimationFrame);
-          const parsed = await parseH5File(entries[i].buffer, lat_pos);
+          const parsed = await parseH5File(entries[i].buffer);
           frames.push(parsed.data);
-          if (i === 0) {
-            // Nur einmal Koordinaten erzeugen
-            const coords = await createCoords(lat_pos, parsed.startRow, parsed.endRow, parsed.height);
-            lat = coords.lat;
-            lon = coords.lon;
-          }
           const percent = Math.round((i + 1) / entries.length * 100);
           document.getElementById('loadProgress').value = percent;
           document.getElementById('loadProgressText').textContent = percent + "%";
         }
 
+        const coords = await createCoords();
+        lat = coords.lat;
+        lon = coords.lon;
         
         document.getElementById('frameSlider').max = frames.length - 1;
         document.getElementById('frameSlider').disabled = false;

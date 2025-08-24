@@ -153,6 +153,11 @@
       border-radius: 6px;
     }
 
+    .leaflet-overlay-pane svg {
+      overflow: visible !important;
+    }
+
+
     @media (max-width: 600px) {
       #controls {
         flex-direction: column;
@@ -346,13 +351,15 @@
           contourLevels.map(async level => {
             const colorHex = colorMap[level];
             const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+            // Renderer mit erweitertem Padding (damit Leaflet mehr Rand einrechnet)
+            const myRenderer = L.svg({ padding: 2.0 }); // Standard ist 0.1
             return lines
               .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
               .map(line => {
                 const geoLines = convertIndicesToLatLon(line, lat, lon);
                 return isClosed(geoLines)
-                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1 })
-                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1 });
+                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1, renderer: myRenderer })
+                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1, });
               });
           })
         );

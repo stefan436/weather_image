@@ -1,90 +1,122 @@
 /* Grundlegende Styles */
-body {
-    font-family: sans-serif;
-    margin: 0;
+:root {
+  /* Höhe deines Banners (grauer Balken mit "Wetterinfo") */
+  --header-height: 60px;
 }
 
+/* Grundlegende Styles */
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+/* NAVBAR / Banner */
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #4f4f4f;
-    padding: 10px 20px;
-    color: white;
+  position: relative;
+  z-index: 1001;               /* über dem Slide-In */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #4f4f4f;
+  padding: 0 20px;
+  color: white;
+  height: var(--header-height); /* feste Bannerhöhe */
 }
 
 .navbar .logo {
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1.5em;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.5em;
 }
 
+/* Desktop: Links nebeneinander */
 .nav-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex; /* Links nebeneinander */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
 }
 
-.nav-links li {
-    margin-left: 20px;
-}
+.nav-links li { margin-left: 20px; }
+.nav-links a { color: white; text-decoration: none; }
 
-.nav-links a {
-    color: white;
-    text-decoration: none;
-}
-
-/* Hamburger Menü Styles */
+/* HAMBURGER ICON – zentriertes X */
 .hamburger-menu {
-    display: none; /* Standardmäßig versteckt auf größeren Bildschirmen */
-    flex-direction: column;
-    cursor: pointer;
+  display: none;               /* erst im Mobile sichtbar */
+  position: relative;
+  width: 32px;
+  height: 24px;
+  cursor: pointer;
 }
 
 .hamburger-menu span {
-    display: block;
-    width: 25px;
-    height: 3px;
-    background-color: white;
-    margin: 5px 0;
-    transition: all 0.3s ease; /* Für die Animation beim Öffnen/Schließen */
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: white;
+  border-radius: 2px;
+  transform-origin: 50% 50%;   /* wirklich um die Mitte drehen */
+  transition: transform .3s ease, opacity .2s ease, top .3s ease, bottom .3s ease;
 }
 
-/* Responsive Design für kleine Bildschirme */
+/* Ausgangspositionen (oben / mitte / unten) */
+.hamburger-menu span:nth-child(1) { top: 0; }
+.hamburger-menu span:nth-child(2) { top: 50%; transform: translateY(-50%); }
+.hamburger-menu span:nth-child(3) { bottom: 0; }
+
+/* Geöffnet: beide Balken in die Mitte ziehen und drehen */
+.hamburger-menu.open span:nth-child(1) {
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+.hamburger-menu.open span:nth-child(2) { opacity: 0; }
+.hamburger-menu.open span:nth-child(3) {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+/* MOBILE */
 @media (max-width: 768px) {
-    .nav-links {
-        display: none; /* Menü auf kleinen Bildschirmen standardmäßig verstecken */
-        flex-direction: column;
-        width: 100%;
-        background-color: #444;
-        position: absolute;
-        top: 60px; /* Unter dem Header */
-        left: 0;
-        text-align: center;
-    }
+  .hamburger-menu { display: flex; }
 
-    .nav-links.active {
-        display: flex; /* Menü anzeigen, wenn 'active' Klasse hinzugefügt wird */
-    }
+  /* Off-Canvas Panel rechts */
+  .nav-links {
+    position: fixed;
+    top: 80px;        /* bündig unter Banner */
+    right: 0;
+    width: 280px;                     /* feste Breite */
+    height: calc(100vh - var(--header-height));
+    background-color: #444;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
 
-    .nav-links li {
-        margin: 10px 0;
-    }
+    transform: translateX(100%);
+    transition: transform .35s ease;
+    z-index: 1000;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.3); /* dezenter Schatten */
+  }
 
-    .hamburger-menu {
-        display: flex; /* Hamburger Icon auf kleinen Bildschirmen anzeigen */
-    }
+  .nav-links.active {
+    transform: translateX(0); /* fährt von rechts herein */
+  }
 
-    /* Animation für das Hamburger-Icon (wird durch JS hinzugefügt) */
-    .hamburger-menu.open span:nth-child(1) {
-        transform: rotate(-45deg) translate(-5px, 6px);
-    }
-    .hamburger-menu.open span:nth-child(2) {
-        opacity: 0;
-    }
-    .hamburger-menu.open span:nth-child(3) {
-        transform: rotate(45deg) translate(-5px, -6px);
-    }
+  .nav-links li {
+    opacity: 0;
+    transform: translateX(16px);
+    transition: opacity .25s ease, transform .25s ease;
+  }
+
+  .nav-links.active li {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  body.menu-open { overflow: hidden; }
 }

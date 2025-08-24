@@ -352,7 +352,9 @@
             const colorHex = colorMap[level];
             const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
             // Renderer mit erweitertem Padding (damit Leaflet mehr Rand einrechnet)
-            const myRenderer = L.svg({ padding: 2.0 }); // Standard ist 0.1
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            const myRenderer = isMobile ? L.canvas({ padding: 2.0 }) : L.svg({ padding: 3.0 });
+
             return lines
               .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
               .map(line => {

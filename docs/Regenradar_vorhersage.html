@@ -342,14 +342,12 @@
           contourLevels.map(async level => {
             const colorHex = colorMap[level];
             const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-            const myRenderer = isMobile ? L.canvas({ padding: 2.0 }) : L.svg({ padding: 3.0 }); // Standard ist 0.1
             return lines
               .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
               .map(line => {
                 const geoLines = convertIndicesToLatLon(line, lat, lon);
                 return isClosed(geoLines)
-                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1, renderer: canvasRenderer })
+                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1})
                   : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1 });
               });
           })

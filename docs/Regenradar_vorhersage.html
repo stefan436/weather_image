@@ -2,204 +2,44 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>RV Komposit Karte</title>
+  <title>RV Kompositkarte mit gefüllten Konturen (D3.js)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Hilfsbibliotheken -->
   <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-  <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chroma-js@2.4.2/chroma.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
-  <script src="MarchingSquares.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
-  <style>
-    :root {
-      --bg: #f9fafb; 
-      --fg: #111827; 
-      --primary: #4f4f4f; 
-      --primary-hover: #333;
-      --border: #e5e7eb; 
-      --badge-bg: #f1f1f1; 
-      --badge-text: #4f4f4f;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    }
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      font-family: var(--font-family);
-      background: var(--bg);
-      color: var(--fg);
-    }
-
-    #controls {
-      padding: 16px;
-      background: white;
-      border-top: 1px solid var(--border);
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-      order: 2;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
-    }
-
-    #map {
-      flex: 1 1 auto;
-    }
-
-    button, .btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    button:hover {
-      background: var(--primary-hover);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    #loadProgress, #renderProgress {
-      border-radius: 6px;
-      height: 12px;
-    }
-
-    #frameSlider {
-      accent-color: var(--primary);
-      cursor: pointer;
-    }
-
-    #output {
-      max-height: 100px;
-      overflow: auto;
-      font-size: 13px;
-      background: white;
-      border: 1px solid var(--border);
-      padding: 8px;
-      border-radius: 6px;
-      width: 100%;
-    }
-
-    #location_output {
-      font-size: 14px;
-    }
-
-    #legend {
-      position: absolute;
-      top: 30px;
-      right: 20px;
-      padding: 10px;
-      background: white;
-      line-height: 1.2em;
-      font-size: 14px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      z-index: 1000;
-    }
-
-    .legend .scale {
-      width: 200px;
-      height: 12px;
-      background: linear-gradient(to right, #00007F 0%, #0000FF 15%, #007FFF 30%, #00FF00 50%, #FFFF00 70%, #FF7F00 85%, #FF0000 100%);
-      margin-bottom: 5px;
-      border-radius: 4px;
-    }
-
-    .legend .labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--fg);
-    }
-
-    .leaflet-overlay-pane svg {
-      overflow: visible !important;
-    }
-
-
-    label {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    progress {
-      appearance: none;
-      height: 12px;
-      border-radius: 6px;
-      background-color: #e5e7eb;
-    }
-
-    progress::-webkit-progress-bar {
-      background-color: #e5e7eb;
-      border-radius: 6px;
-    }
-
-    progress::-webkit-progress-value {
-      background-color: var(--primary);
-      border-radius: 6px;
-    }
-
-    progress::-moz-progress-bar {
-      background-color: var(--primary);
-      border-radius: 6px;
-    }
-
-    @media (max-width: 600px) {
-      #controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      button, #frameSlider {
-        width: 100%;
-      }
-
-      #output {
-        font-size: 13px;
-      }
-
-      .legend {
-        right: 10px;
-        top: 10px;
-      }
-    }
-  </style>
-
+  <link rel="stylesheet" href="regenradar_vorhersage_style.css" />
 </head>
 <body>
   <div id="controls">
     <button id="start">RV Daten laden & animieren</button>
     <p id="location_output"></p>
 
-    <label id="loadProgressLabel" for="loadProgress">Dateien lesen:</label>
+    <label id="loadProgressLabel">Dateien lesen:</label>
     <progress id="loadProgress" value="0" max="100" style="width:300px;"></progress>
     <span id="loadProgressText">0%</span>
 
-    <label id="renderProgressLabel" for="renderProgress">Kontouren berechnen:</label>
+    <label id="renderProgressLabel">Konturen berechnen:</label>
     <progress id="renderProgress" value="0" max="100" style="width:300px;"></progress>
     <span id="renderProgressText">0%</span>
 
     <span id="frameLabel">Frame: 0</span>
     <input id="frameSlider" type="range" min="0" max="24" value="0" style="width:300px;" disabled />
     <button id="playPause" disabled>▶️ Play</button>
-
-
   </div>
+
   <div id="map"></div>
+
   <div id="legend" class="legend" style="display:none;">
     <div class="scale"></div>
     <div class="labels">
@@ -215,10 +55,10 @@
     map.getPane('contourPane').style.zIndex = 450;
     map.getPane('contourPane').style.mixBlendMode = 'multiply';
 
-    const output = document.getElementById('output');
     const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
     const contourLevels = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
+    const ROWS_TO_KEEP = 450;
     let frames = [];
     let lat, lon;
     let contourLayers = [];
@@ -227,8 +67,6 @@
     let isPlaying = false;
     let currentFrame = 0;
     let forecastTime = 0;
-
-    const ROWS_TO_KEEP = 450; // <-- nur untere 450 Zeilen
 
     function getLocation(callback) {
       if (navigator.geolocation) {
@@ -251,7 +89,6 @@
       document.getElementById("location_output").innerText = messages[error.code] || messages.default;
     }
 
-    // HDF5-Datei parsen & nur unteren Teil extrahieren
     async function parseH5File(buffer) {
       await h5wasm.ready;
       const filename = "/tmp.h5";
@@ -264,10 +101,9 @@
       const what = file.get("/dataset1/data1/what");
       const nodata = what.attrs['nodata'].value;
       forecastTime = file.get("what").attrs['time'].value;
-      
+
       file.close();
 
-      // Nur unteren Teil extrahieren
       const startRow = shape[0] - ROWS_TO_KEEP;
       const sliced = raw.slice(startRow).map(row =>
         row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
@@ -276,7 +112,6 @@
       return { data: sliced };
     }
 
-    // Koordinaten einlesen und nur unteren Teil extrahieren
     async function createCoords() {
       const response = await fetch('coords_radarcomposite_rv.bin');
       const buffer = await response.arrayBuffer();
@@ -321,12 +156,6 @@
       return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
     }
 
-    function isLargeOutline(line, width, height) {
-      const xs = line.map(([x, _]) => x), ys = line.map(([_, y]) => y);
-      return (Math.max(...xs) - Math.min(...xs) > 0.9 * width &&
-              Math.max(...ys) - Math.min(...ys) > 0.9 * height);
-    }
-
     async function renderAllFrames() {
       const renderProgress = document.getElementById('renderProgress');
       const renderProgressText = document.getElementById('renderProgressText');
@@ -334,27 +163,35 @@
       renderProgressText.style.display = 'inline';
 
       const requestIdle = window.requestIdleCallback || (cb => setTimeout(cb, 0));
-      const colorMap = Object.fromEntries(contourLevels.map(level => [level, colorScale(level).hex()]));
 
       for (let idx = 0; idx < frames.length; idx++) {
         const raster = frames[idx];
-        const levelLayers = await Promise.all(
-          contourLevels.map(async level => {
-            const colorHex = colorMap[level];
-            const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
-            return lines
-              .filter(line => !isLargeOutline(line, raster[0].length, raster.length))
-              .map(line => {
-                const geoLines = convertIndicesToLatLon(line, lat, lon);
-                return isClosed(geoLines)
-                  ? L.polygon(geoLines, { pane: 'contourPane', color: colorHex, fillColor: colorHex, fillOpacity: 0.4, weight: 1})
-                  : L.polyline(geoLines, { pane: 'contourPane', color: colorHex, weight: 2, opacity: 1 });
+        const contours = d3.contours()
+          .size([raster[0].length, raster.length])
+          .thresholds(contourLevels)
+          (raster.flat());
+
+        const levelLayers = contours.flatMap(contour => {
+          const colorHex = colorScale(contour.value).hex();
+          return contour.coordinates.flatMap(geom => {
+            return geom.map(ring => {
+              const latlngs = convertIndicesToLatLon(ring, lat, lon);
+              if (latlngs.length < 3) return null;
+              return L.polygon(latlngs, {
+                pane: 'contourPane',
+                fillColor: colorHex,
+                fillOpacity: 0.6,
+                color: colorHex,
+                weight: 0
               });
-          })
-        );
-        preRenderedFrames.push(levelLayers.flat());
-        frames[idx] = null; // <-- Speicher freigeben
-        const percent = Math.round(((idx + 1) / (frames.length)) * 100);
+            }).filter(p => p);
+          });
+        });
+
+        preRenderedFrames.push(levelLayers);
+        frames[idx] = null;
+
+        const percent = Math.round(((idx + 1) / frames.length) * 100);
         renderProgress.value = percent;
         renderProgressText.textContent = percent + "%";
         await new Promise(resolve => requestIdle(resolve));
@@ -364,8 +201,11 @@
     function renderFrame(idx) {
       contourLayers.forEach(l => map.removeLayer(l));
       contourLayers = [];
-      preRenderedFrames[idx].forEach(layer => { layer.addTo(map); contourLayers.push(layer); });
-      updateForecastTimeDisplay(idx)
+      preRenderedFrames[idx].forEach(layer => {
+        layer.addTo(map);
+        contourLayers.push(layer);
+      });
+      updateForecastTimeDisplay(idx);
     }
 
     function updateForecastTimeDisplay(frameIdx) {
@@ -382,8 +222,6 @@
       const formatted = baseTime.toFormat('HH:mm') + ' Uhr';
       document.getElementById('frameLabel').textContent = `${formatted}`;
     }
-
-
 
     async function fetchAndProcessComposite(lat_pos, lon_pos) {
       map.setView([lat_pos, lon_pos], 10);
@@ -409,13 +247,15 @@
         const coords = await createCoords();
         lat = coords.lat;
         lon = coords.lon;
-        
+
         document.getElementById('frameSlider').max = frames.length - 1;
         document.getElementById('frameSlider').disabled = false;
         document.getElementById('playPause').disabled = false;
         document.getElementById('legend').style.display = 'block';
+
         await renderAllFrames();
         renderFrame(0);
+
         setTimeout(() => {
           document.getElementById('start').style.display = 'none';
           document.getElementById('loadProgressLabel').style.display = 'none';
@@ -428,8 +268,8 @@
           document.getElementById('controls').style.gap = "6px";
         }, 1000);
       } catch (e) {
-        output.textContent += "Fehler: " + e.message + "\n";
-        console.error(e);
+        console.error("Fehler: ", e);
+        document.getElementById("location_output").textContent = "Fehler: " + e.message;
       }
     }
 
@@ -445,7 +285,6 @@
           currentFrame = (currentFrame + 1) % preRenderedFrames.length;
           renderFrame(currentFrame);
           document.getElementById('frameSlider').value = currentFrame;
-          updateForecastTimeDisplay(currentFrame);
         }, 500);
       } else {
         isPlaying = false;
@@ -454,14 +293,11 @@
       }
     });
 
-    // Slider-Event: Frame wechseln
     document.getElementById('frameSlider').addEventListener('input', (e) => {
       const idx = parseInt(e.target.value);
       currentFrame = idx;
       renderFrame(currentFrame);
-      updateForecastTimeDisplay(currentFrame);
     });
-
   </script>
 </body>
 </html>

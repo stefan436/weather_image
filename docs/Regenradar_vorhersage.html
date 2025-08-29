@@ -46,7 +46,13 @@
       <span id="minLabel">1 mm/h</span>
       <span id="maxLabel">30 mm/h</span>
     </div>
+    <div id="legend-hover" style="margin-top:6px; font-size:14px; display:none;">
+      <span id="hoverColorBox" style="display:inline-block; width:16px; height:12px; border:1px solid #ccc; vertical-align:middle; margin-right:6px;"></span>
+      <span id="hoverValue"></span>
+    </div>
   </div>
+
+
 
   <script>
     const map = L.map('map').setView([48.1373, 11.57577], 10);
@@ -186,6 +192,8 @@
                 fillOpacity: 0.6,
                 color: colorHex,
                 weight: 0
+              }).on('add', function() {
+                attachContourEvents(this, contour.value);
               });
             }).filter(p => p);
           });
@@ -211,6 +219,7 @@
       updateForecastTimeDisplay(idx);
     }
 
+
     function updateForecastTimeDisplay(frameIdx) {
       const baseTime = luxon.DateTime
         .utc()
@@ -225,6 +234,27 @@
       const formatted = baseTime.toFormat('HH:mm') + ' Uhr';
       document.getElementById('frameLabel').textContent = `${formatted}`;
     }
+
+    function attachContourEvents(polygon, value) {
+      const showValue = () => {
+        document.getElementById("hoverColorBox").style.background = colorScale(value).hex();
+        document.getElementById("hoverValue").textContent = `${value} mm/h`;
+        document.getElementById("legend-hover").style.display = "inline-block";
+      };
+
+      const hideValue = () => {
+        document.getElementById("legend-hover").style.display = "none";
+      };
+
+      // Desktop: Maus-Ereignisse
+      polygon.on("mouseover", showValue);
+      polygon.on("mouseout", hideValue);
+
+      // Mobile: Tipp-Ereignisse
+      polygon.on("click", showValue);
+    }
+
+
 
     async function fetchAndProcessComposite(lat_pos, lon_pos) {
       map.setView([lat_pos, lon_pos], 10);

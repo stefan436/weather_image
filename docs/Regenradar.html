@@ -104,10 +104,15 @@
   <div id="legend" class="legend" style="display:none;">
     <div class="scale"></div>
     <div class="labels">
-      <span id="minLabel">min</span>
-      <span id="maxLabel">max</span>
+      <span id="minLabel">1 mm/h</span>
+      <span id="maxLabel">20 mm/h</span>
+    </div>
+    <div id="legend-hover" style="margin-top:6px; font-size:14px; display:none;">
+      <span id="hoverColorBox" style="display:inline-block; width:16px; height:12px; border:1px solid #ccc; vertical-align:middle; margin-right:6px;"></span>
+      <span id="hoverValue"></span>
     </div>
   </div>
+
 
   <script>
     const DateTime = luxon.DateTime;
@@ -125,6 +130,23 @@
 
 
     const output = document.getElementById('output');
+
+    function attachContourEvents(layer, value) {
+      const showValue = () => {
+        document.getElementById("hoverColorBox").style.background = colorScale(value).hex();
+        document.getElementById("hoverValue").textContent = `${value} mm/h`;
+        document.getElementById("legend-hover").style.display = "inline-block";
+      };
+
+      const hideValue = () => {
+        document.getElementById("legend-hover").style.display = "none";
+      };
+
+      layer.on("mouseover", showValue);
+      layer.on("mouseout", hideValue);
+      layer.on("click", showValue); // Für mobile Geräte
+    }
+
 
 
     function getLocation(callback) {
@@ -338,6 +360,7 @@
                 fillOpacity: 0.4,
                 weight: 1 // keine Linienkontur
               }).addTo(map);
+              attachContourEvents(polygon, level);
               window.contourLayers.push(polygon);
             } else {
               const polyline = L.polyline(geoLines, {
@@ -346,6 +369,7 @@
                 weight: 2,
                 opacity: 1
               }).addTo(map);
+              attachContourEvents(polyline, level);
               window.contourLayers.push(polyline);
             }
           });

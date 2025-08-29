@@ -34,6 +34,7 @@ body, html {
 
 #map {
     flex: 1 1 auto;
+    min-height: 0;
 }
 
 button, .btn {
@@ -160,4 +161,10 @@ progress::-moz-progress-bar {
     right: 10px;
     top: 10px;
     }
+}
+
+@supports (height: 100dvh) {
+  html, body {
+    height: 100dvh; /* 👈 nimmt die tatsächliche sichtbare Höhe */
+  }
 }

@@ -41,12 +41,12 @@
   </header>
 
   <!-- Hauptinhalt -->
-  <main style="padding: 24px;">
+  <main style="padding: 12px;">
     <h1>Aktuelle Mosmix Vorhersage</h1>
 
     <div class="row">
       <button id="loadButton" class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
-      <label for="plotSelect">Plot-Parameter:</label>
+      <label for="plotSelect"><b>Plot-Parameter:</b></label>
       <select id="plotSelect" disabled></select>
       <span id="status" class="badge">Bereit</span>
     </div>
@@ -442,7 +442,9 @@
         const stationDesc = placemark.getElementsByTagNameNS(KMLNS, "description")[0]?.textContent ?? "";
         const coords = placemark.getElementsByTagNameNS(KMLNS, "coordinates")[0]?.textContent?.trim() ?? "";
         const coordsFormatted = coords.replace(/,/g, ', ');
-        stationEl.innerHTML = `<b>Station:</b> ${stationName} — ${stationDesc} &nbsp; <b>Koordinaten:</b> ${coordsFormatted} &nbsp; <b>Entfernung:</b> ${Math.round(minDistance)}`;
+        const coordParts = coords.split(',');  // ergibt z. B. ["9.88", " 49.83", " 220.2"]
+        const height = coordParts[2]?.trim() ?? ""; // drittes Element ist die Höhe
+        stationEl.innerHTML = `<b>Station:</b> ${stationDesc} &nbsp; <b>Höhe:</b> ${height} m ü. M. &nbsp; <b>Entfernung:</b> ${Math.round(minDistance)} m`;
 
         const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
         seriesMap = {};
@@ -666,5 +668,3 @@
   </script>
 </body>
 </html>
-
-

@@ -53,10 +53,15 @@
 
     <div id="station" class="meta"></div>
 
+    <section id="weather-summary" class="weather-summary">
+      <div id="scroll-container" class="scroll-container"></div>
+    </section>
+
+
     <div id="plot">
-      <div id="plotTitle" class="plot-title"></div>
       <div id="plotlyDiv"></div>
     </div>
+
     
     <div class="row" style="margin-top: 20px;">
       <button id="reloadButton" class="btn" onclick="location.reload()">Seite neu laden</button>
@@ -69,6 +74,61 @@
 
   <!-- Mosmix Script -->
   <script>
+
+    const wwIconMap = {
+      // Gewitter
+      95: { icon: "thunderstorm.png", label: "Gewitter mit Regen/Schnee" },
+
+      // gefrierender Sprühregen/Regen
+      57: { icon: "freezing-rain.png", label: "Starker gefrierender Sprühregen" },
+      56: { icon: "freezing-rain.png", label: "Leichter gefrierender Sprühregen" },
+      67: { icon: "freezing-rain.png", label: "Starker gefrierender Regen" },
+      66: { icon: "freezing-rain.png", label: "Leichter gefrierender Regen" },
+
+      // Schnee/Schneeschauer
+      86: { icon: "snow.png", label: "Starker Schneeschauer" },
+      85: { icon: "snow.png", label: "Leichter Schneeschauer" },
+      84: { icon: "sleet.png", label: "Starker Schneeregenschauer" },
+      83: { icon: "sleet.png", label: "Leichter Schneeregenschauer" },
+      75: { icon: "snow.png", label: "Starker Schneefall" },
+      73: { icon: "snow.png", label: "Mäßiger Schneefall" },
+      71: { icon: "snow.png", label: "Leichter Schneefall" },
+      69: { icon: "sleet.png", label: "Starker Schneeregen" },
+      68: { icon: "sleet.png", label: "Leichter Schneeregen" },
+
+      // Regen/Schauer
+      82: { icon: "rain.png", label: "Heftiger Regenschauer" },
+      81: { icon: "rain.png", label: "Starker Regenschauer" },
+      80: { icon: "rain.png", label: "Leichter Regenschauer" },
+      65: { icon: "rain.png", label: "Starker Regen" },
+      63: { icon: "rain.png", label: "Mäßiger Regen" },
+      61: { icon: "rain.png", label: "Leichter Regen" },
+
+      // Sprühregen
+      55: { icon: "rain.png", label: "Starker Sprühregen" },
+      53: { icon: "rain.png", label: "Mäßiger Sprühregen" },
+      51: { icon: "rain.png", label: "Leichter Sprühregen" },
+
+      // Nebel
+      49: { icon: "fog.png", label: "Nebel mit Reif" },
+      45: { icon: "fog.png", label: "Nebel" },
+
+      // Bewölkung
+      3:  { icon: "clouds.png", label: "Bewölkung zunehmend" },
+      2:  { icon: "clouds.png", label: "Bewölkung unverändert" },
+      1:  { icon: "clouds.png", label: "Bewölkung abnehmend" },
+      0:  { icon: "day-and-night.png", label: "Klarer Himmel" }
+    };
+
+    const periods = [
+      { name: "Vormittag", startHour: 6,  endHour: 10 },
+      { name: "Mittag",    startHour: 10, endHour: 14 },
+      { name: "Nachmittag",startHour: 14, endHour: 18 },
+      { name: "Abend",     startHour: 18, endHour: 22 },
+      { name: "Nacht",     startHour: 22, endHour: 6 }
+    ];
+
+
 
     // gewünschte Reihenfolge
     const preferredOrder = [
@@ -116,7 +176,6 @@
     const statusEl = document.getElementById("status");
     const stationEl= document.getElementById("station");
     const plotSel  = document.getElementById("plotSelect");
-    const plotTitle= document.getElementById("plotTitle");
     const plotlyDiv= document.getElementById("plotlyDiv");
 
     let lastWide = null;
@@ -261,6 +320,109 @@
       SunD1: "s", SunD3: "s", SunD: "s", DRR1: "s"
     };
 
+
+    function buildSummary() {
+      if (!seriesMap["Significant Weather"]) {
+        console.warn("Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich");
+        return;
+      }
+
+      const container = document.getElementById("scroll-container");
+      container.innerHTML = "";
+
+      const now = new Date();
+
+      const entries = timeSteps.map((ts, i) => {
+        const dateObj = new Date(ts);
+        const code = parseInt(seriesMap["Significant Weather"][i]);
+        return {
+          timestamp: dateObj,
+          hour: dateObj.getHours(),
+          dateStr: dateObj.toLocaleString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          }),
+          dateOnly: dateObj.toLocaleDateString("de-DE"),
+          code
+        };
+      });
+
+      // Gruppiere nach Datum + Zeitraum
+      const grouped = {};
+
+      for (const entry of entries) {
+        const period = periods.find(p => {
+          if (p.startHour < p.endHour) {
+            return entry.hour >= p.startHour && entry.hour < p.endHour;
+          } else {
+            // Nacht (z.B. 22–6)
+            return entry.hour >= p.startHour || entry.hour < p.endHour;
+          }
+        });
+
+        if (!period) continue;
+
+        const key = `${entry.dateOnly}_${period.name}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            date: entry.dateOnly,
+            periodName: period.name,
+            entries: []
+          };
+        }
+        grouped[key].entries.push(entry);
+      }
+
+      // Sortiere nach Datum, dann Perioden – beginnend beim aktuellen Zeitraum
+      const sortedKeys = Object.keys(grouped).sort((a, b) => {
+        const [dateA, periodA] = a.split("_");
+        const [dateB, periodB] = b.split("_");
+        const dA = new Date(dateA.split(".").reverse().join("-"));
+        const dB = new Date(dateB.split(".").reverse().join("-"));
+
+        if (+dA !== +dB) return dA - dB;
+
+        const nowHour = now.getHours();
+        const periodOrder = periods.map(p => p.name);
+
+        const shift = periodOrder.findIndex(p => {
+          const pDef = periods.find(per => per.name === p);
+          return (pDef.startHour <= nowHour && nowHour < pDef.endHour) ||
+                (pDef.startHour > pDef.endHour && (nowHour >= pDef.startHour || nowHour < pDef.endHour));
+        });
+
+        const adjusted = [...periodOrder.slice(shift), ...periodOrder.slice(0, shift)];
+        const ia = adjusted.indexOf(periodA);
+        const ib = adjusted.indexOf(periodB);
+        return ia - ib;
+      });
+
+      for (const key of sortedKeys) {
+        const group = grouped[key];
+        const freq = {};
+        for (const e of group.entries) {
+          if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
+        }
+
+        const dominantCode = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
+        const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
+
+        const card = document.createElement("div");
+        card.className = "summary-card";
+        card.innerHTML = `
+          <img src="icons/${info.icon}" alt="${info.label}">
+          <strong>${group.periodName}</strong>
+          <span>${info.label}</span>
+          <span>${group.date}</span>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+
     function parseKML(text) {
       const KMLNS = "http://www.opengis.net/kml/2.2";
       const DWDNS = "https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd";
@@ -367,6 +529,8 @@
         }
 
         setStatus("Fertig!");
+        buildSummary();
+
         setTimeout(() => {
           setStatus("");  // Versteckt das Status-Element
           document.getElementById("loadButton").style.display = "none";  // Versteckt den Button
@@ -391,7 +555,6 @@
 
     function renderPlot(param) {
       currentParam = param;
-      plotTitle.textContent = `Verlauf von ${param}`;
 
       if (!seriesMap[param]) {
         plotlyDiv.innerHTML = "<em>Keine Daten für diesen Parameter</em>";

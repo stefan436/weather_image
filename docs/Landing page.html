@@ -72,21 +72,21 @@
 
     // gewünschte Reihenfolge
     const preferredOrder = [
-      "Temperature 2m above surface",
-      "Probability: Occurrence of precipitation within the last hour",
-      "Total precipitation during the last hour consistent with significant weather",
-      "Duration of precipitation within the last hour",
-      "Probability: Occurrence of thunderstorms within the last hour",
-      "Effective cloud cover", 
-      "Visibility", 
-      "Wind speed", 
-      "Maximum wind gust within the last hour",
-      "Wind direction",
-      "Probability for fog within the last hour", 
-      "Probability: Visibility below 1000m", 
-      "Sunshine duration during the last Hour", 
-      "Global Irradiance", 
-      "Surface pressure, reduced"
+      "Temperatur",
+      "Niederschlagswahrscheinlichkeit",
+      "Totale Niderschlagsmenge",
+      "Niederschlagsdauer",
+      "Gewitterwahrscheinlichkeit",
+      "Bewölkung", 
+      "Sichtweite", 
+      "Windgeschwindigkeit", 
+      "Maximale Windböe",
+      "Windrichtung",
+      "Nebelwahrscheinlichkeit", 
+      "Wahrscheinlichkeit Sichtweite < 1km", 
+      "Sonnenscheindauer", 
+      "Strahlungsintensität", 
+      "reduzierter Oberflächendruck"
     ];
   
 
@@ -106,9 +106,9 @@
  
     // Kombinationen von Werten + ihren Fehlern
     const combinedParams = [
-      { value: "Temperature 2m above surface", error: "Absolute error temperature 2m above surface" },
-      { value: "Wind speed", error: "Absolute error wind speed 10m above surface" },
-      { value: "Wind direction", error: "Absolute error wind direction" }
+      { value: "Temperatur", error: "Absolute error temperature 2m above surface" },
+      { value: "Windgeschwindigkeit", error: "Absolute error wind speed 10m above surface" },
+      { value: "Windrichtung", error: "Absolute error wind direction" }
     ];
 
     let closest_station_id = null;
@@ -303,6 +303,9 @@
           const readableName = elementNamesMap[elName] || elName;
           seriesMap[readableName] = values.slice(0, timeSteps.length);
         }
+
+        // In konsole Werte ausgeben
+        console.log("Parsed series:", seriesMap); 
 
         // Kombiniere Werte mit ihren Fehlern
         for (const { value, error } of combinedParams) {
@@ -500,4 +503,3 @@
   </script>
 </body>
 </html>
-

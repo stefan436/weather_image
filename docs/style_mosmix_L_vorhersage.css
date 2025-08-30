@@ -7,7 +7,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   margin: 0;
-  padding: 24px;
+  padding: 0px;
   line-height: 1.6;
 }
 

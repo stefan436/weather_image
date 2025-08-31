@@ -126,7 +126,7 @@
       { name: "Nachmittag" ,startHour: 12, endHour: 16 },
       { name: "Abend",     startHour: 16, endHour: 20 },
       { name: "Spät Abends", startHour:20, endHour:0 },
-      { name: "Nacht",     startHour: 0, endHour: 4 }
+      { name: "Nacht",     startHour: 0, endHour: 4,  groupAsPrevDay: true }
     ];
 
 
@@ -333,82 +333,60 @@
 
       const now = new Date();
 
+      // Schritt 1: Einträge vorbereiten
       const entries = timeSteps.map((ts, i) => {
         const dateObj = new Date(ts);
         const code = parseInt(seriesMap["Significant Weather"][i]);
-        return {
-          timestamp: dateObj,
-          hour: dateObj.getHours(),
-          dateStr: dateObj.toLocaleString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-          }),
-          dateOnly: dateObj.toLocaleDateString("de-DE"),
-          code
-        };
+        return { timestamp: dateObj, hour: dateObj.getHours(), code };
       });
 
-      // Gruppiere nach Datum + Zeitraum
-      const grouped = {};
+      // Schritt 2: nur Einträge ab der aktuellen Uhrzeit behalten
+      const futureEntries = entries.filter(e => e.timestamp >= now);
 
-      for (const entry of entries) {
+      // Schritt 3: nach Perioden gruppieren
+      const grouped = {};
+      for (const entry of futureEntries) {
         const period = periods.find(p => {
           if (p.startHour < p.endHour) {
             return entry.hour >= p.startHour && entry.hour < p.endHour;
           } else {
-            // Nacht (z.B. 22–6)
+            // Nacht (z.B. 20–0 oder 0–4)
             return entry.hour >= p.startHour || entry.hour < p.endHour;
           }
         });
-
         if (!period) continue;
 
-        const key = `${entry.dateOnly}_${period.name}`;
-        if (!grouped[key]) {
-          grouped[key] = {
-            date: entry.dateOnly,
-            periodName: period.name,
-            entries: []
-          };
-        }
+        const dateOnly = entry.timestamp.toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
+        const key = `${dateOnly}_${period.name}`;
+        if (!grouped[key]) grouped[key] = { date: dateOnly, periodName: period.name, entries: [] };
         grouped[key].entries.push(entry);
       }
 
-      // Sortiere nach Datum, dann Perioden – beginnend beim aktuellen Zeitraum
+      // Schritt 4: Sortieren (feste Reihenfolge)
+      const periodOrder = ["Nacht", "Früh", "Vormittag", "Nachmittag", "Abend", "Spät Abends"];
       const sortedKeys = Object.keys(grouped).sort((a, b) => {
         const [dateA, periodA] = a.split("_");
         const [dateB, periodB] = b.split("_");
         const dA = new Date(dateA.split(".").reverse().join("-"));
         const dB = new Date(dateB.split(".").reverse().join("-"));
-
         if (+dA !== +dB) return dA - dB;
-
-        const nowHour = now.getHours();
-        const periodOrder = periods.map(p => p.name);
-
-        const shift = periodOrder.findIndex(p => {
-          const pDef = periods.find(per => per.name === p);
-          return (pDef.startHour <= nowHour && nowHour < pDef.endHour) ||
-                (pDef.startHour > pDef.endHour && (nowHour >= pDef.startHour || nowHour < pDef.endHour));
-        });
-
-        const adjusted = [...periodOrder.slice(shift), ...periodOrder.slice(0, shift)];
-        const ia = adjusted.indexOf(periodA);
-        const ib = adjusted.indexOf(periodB);
-        return ia - ib;
+        return periodOrder.indexOf(periodA) - periodOrder.indexOf(periodB);
       });
 
+      // Schritt 5: Rendern
       for (const key of sortedKeys) {
         const group = grouped[key];
         const freq = {};
         for (const e of group.entries) {
           if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
         }
+        const dominantCode = Object.entries(freq)
+          .sort((a, b) => {
+            const countDiff = b[1] - a[1];      // zuerst nach Häufigkeit
+            if (countDiff !== 0) return countDiff;
+            return b[0] - a[0];                 // bei Gleichstand höhere Zahl nehmen
+          })[0]?.[0];
 
-        const dominantCode = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
         const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
 
         const card = document.createElement("div");
@@ -422,6 +400,7 @@
         container.appendChild(card);
       }
     }
+
 
 
     function parseKML(text) {

@@ -109,7 +109,7 @@ def main():
     output_folder = "docs/data"
     os.makedirs(output_folder, exist_ok=True)
 
-    output_path = os.path.join(output_folder, "dwd_forecast.json")
+    output_path = os.path.join(output_folder, "uv_and_pt_forecast_latest.json")
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
 

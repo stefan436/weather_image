@@ -105,7 +105,12 @@ def main():
         results = {"error": "Nicht alle Dateien konnten heruntergeladen werden.", "files": file_paths}
 
     # JSON speichern
-    with open("uv_and_pt_forecast_latest.json", "w") as f:
+    # Speichern in docs/data/
+    output_folder = "docs/data"
+    os.makedirs(output_folder, exist_ok=True)
+
+    output_path = os.path.join(output_folder, "dwd_forecast.json")
+    with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
 
 if __name__ == "__main__":

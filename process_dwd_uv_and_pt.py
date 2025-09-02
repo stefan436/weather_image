@@ -92,7 +92,7 @@ def main():
         json.dump(gft['longitude'].values.tolist(), f)
         
     with open("docs/data/data_gft.bin", "wb") as f:
-        f.write(gft['PT1M'].values.tobytes())
+        f.write(gft['PT1M'].values[:, 75:-157, 200:-477].tobytes())
         
     with open("docs/data/data_uvi.bin", "wb") as f:
         f.write(uvi['UVI_MAX_CL'].values.tobytes())

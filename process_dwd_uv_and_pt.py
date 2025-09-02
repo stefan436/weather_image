@@ -84,12 +84,18 @@ def main():
         print("error: Nicht alle Dateien konnten heruntergeladen werden.", f"files: {file_paths}")
 
 
-    # Daten speichern 
-    with open("docs/data/latitudes_uv_and_pt.json", "w") as f:
-        json.dump(gft['latitude'].values.tolist(), f)
+    #Daten speichern 
+    with open("docs/data/latitudes_gft.json", "w") as f:
+        json.dump(gft['latitude'].values[75:-157].tolist(), f)
         
-    with open("docs/data/longitudes_uv_and_pt.json", "w") as f:
-        json.dump(gft['longitude'].values.tolist(), f)
+    with open("docs/data/longitudes_gft.json", "w") as f:
+        json.dump(gft['longitude'].values[200:-477].tolist(), f)
+        
+    with open("docs/data/latitudes_uv.json", "w") as f:
+        json.dump(uvi['latitude'].values.tolist(), f)
+        
+    with open("docs/data/longitudes_uv.json", "w") as f:
+        json.dump(uvi['longitude'].values.tolist(), f)
         
     with open("docs/data/data_gft.bin", "wb") as f:
         f.write(gft['PT1M'].values[:, 75:-157, 200:-477].tobytes())

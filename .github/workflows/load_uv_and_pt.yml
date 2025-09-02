@@ -28,7 +28,7 @@ jobs:
           mkdir -p docs/data
           python process_dwd_uv_and_pt.py
 
-      - name: Deploy to gh-pages-data branch
+      - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

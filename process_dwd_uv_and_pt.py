@@ -61,10 +61,7 @@ def download_all_dwd_types(target_folder, date=None):
         paths[typ] = path
     return paths
 
-def get_forecast_at_point(ds, var_name, lat, lon):
-    var = ds[var_name]
-    values = var.sel(latitude=lat, longitude=lon, method="nearest").values
-    return values.tolist()  # für JSON konvertieren
+
 
 def main():
     download_folder = "./downloads"
@@ -73,9 +70,9 @@ def main():
     # Dateien herunterladen
     file_paths = download_all_dwd_types(download_folder)
 
-    lat_val, lon_val = 48.167225, 11.658726
 
-    results = {}
+
+
 
     if all(file_paths.values()):
         # Dateien mit xarray öffnen
@@ -83,35 +80,38 @@ def main():
         uvh = xr.open_dataset(file_paths["uvh"], engine='cfgrib')
         uvi = xr.open_dataset(file_paths["uvi"], engine='cfgrib')
 
-        # Werte extrahieren
-        pt1m_values = get_forecast_at_point(gft, "PT1M", lat_val, lon_val)
-        # Temperatur in Celsius umwandeln (K - 273.15)
-        pt1m_values = [v - 273.15 for v in pt1m_values]
-
-        uvh_values = get_forecast_at_point(uvh, "UVI_MAX_H", lat_val, lon_val)
-        uvi_values = get_forecast_at_point(uvi, "UVI_MAX_CL", lat_val, lon_val)
-
-        results = {
-            "location": {"latitude": lat_val, "longitude": lon_val},
-            "timestamps_gft": gft['valid_time'].values.tolist(),
-            "timestamps_uvh": uvh['valid_time'].values.tolist(),
-            "timestamps_uvi": uvi['valid_time'].values.tolist(),
-            "PT1M_Celsius": pt1m_values,
-            "UVI_MAX_H": uvh_values,
-            "UVI_MAX_CL": uvi_values
-        }
-
     else:
-        results = {"error": "Nicht alle Dateien konnten heruntergeladen werden.", "files": file_paths}
+        print("error: Nicht alle Dateien konnten heruntergeladen werden.", f"files: {file_paths}")
 
-    # JSON speichern
-    # Speichern in docs/data/
-    output_folder = "docs/data"
-    os.makedirs(output_folder, exist_ok=True)
 
-    output_path = os.path.join(output_folder, "uv_and_pt_forecast_latest.json")
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2)
+    # Daten speichern 
+    with open("docs/data/latitudes_uv_and_pt.json", "w") as f:
+        json.dump(gft['latitude'].values.tolist(), f)
+        
+    with open("docs/data/longitudes_uv_and_pt.json", "w") as f:
+        json.dump(gft['longitude'].values.tolist(), f)
+        
+    with open("docs/data/data_gft.bin", "wb") as f:
+        f.write(gft['PT1M'].values.tobytes())
+        
+    with open("docs/data/data_uvi.bin", "wb") as f:
+        f.write(uvi['UVI_MAX_CL'].values.tobytes())
+        
+    with open("docs/data/data_uvh.bin", "wb") as f:
+        f.write(uvh['UVI_MAX_H'].values.tobytes())
+        
+        
+    # Konvertiere numpy datetime64-Array in Liste von ISO-Strings
+    times_str_gft = [str(t) for t in gft['valid_time'].values]
+    with open("docs/data/gft_forecast_times.json", "w") as f:
+        json.dump(times_str_gft, f)
+
+
+    # Konvertiere numpy datetime64-Array in Liste von ISO-Strings
+    times_str_uvi = [str(t) for t in uvi['valid_time'].values]
+    with open("docs/data/uvi_forecast_times.json", "w") as f:
+        json.dump(times_str_uvi, f)
 
 if __name__ == "__main__":
     main()
+

@@ -35,3 +35,4 @@ jobs:
           publish_branch: gh-pages
           publish_dir: docs/data
           commit_message: "Update DWD forecast data [skip ci]"
+          keep_files: true

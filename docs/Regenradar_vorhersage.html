@@ -122,7 +122,7 @@
     }
 
     async function createCoords() {
-      const response = await fetch('coords_radarcomposite_rv.bin');
+      const response = await fetch('data/coords_radarcomposite_rv.bin');
       const buffer = await response.arrayBuffer();
       const view = new DataView(buffer);
 

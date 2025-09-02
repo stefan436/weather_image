@@ -36,21 +36,10 @@ jobs:
           git add docs/data/longitudes_uv_and_pt.json
           git add docs/data/data_uvi.bin
           git add docs/data/data_uvh.bin
+          git add docs/data/data_gft.bin
           git add docs/data/gft_forecast_times.json
           git add docs/data/uvi_forecast_times.json
           git commit -m "Update DWD forecast data [skip ci]" || echo "No changes to commit"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 📦 Ensure release exists
-        run: |
-          gh release create daily-data --notes "Daily DWD forecast data" || echo "Release already exists"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🚀 Upload große Datei ins Release
-        run: |
-          gh release upload daily-data docs/data/data_gft.bin --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

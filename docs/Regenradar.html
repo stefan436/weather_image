@@ -312,8 +312,8 @@
       const proxy = 'https://corsproxy.io/?';
       const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
 
-      const phiUrl = 'phi_bottom.txt';
-      const lambdaUrl = 'lambda_bottom.txt';
+      const phiUrl = 'data/phi_bottom.txt';
+      const lambdaUrl = 'data/lambda_bottom.txt';
 
       try {
         const utcTime = DateTime.fromFormat(radolanFilename.slice(2, 12), 'yyLLddHHmm', { zone: 'utc' });
@@ -398,4 +398,5 @@
 
 </body>
 </html>
+
 

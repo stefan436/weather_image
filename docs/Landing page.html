@@ -234,7 +234,7 @@
     async function findNearestStation() {
       setStatus("Lade Stationsliste …");
       try {
-        const response = await fetch('mosmix_stationen_coords.json');
+        const response = await fetch('data/mosmix_stationen_coords.json');
         if (!response.ok) throw new Error('JSON konnte nicht geladen werden.');
         const data = await response.json();
 
@@ -648,6 +648,7 @@
   </script>
 </body>
 </html>
+
 
 
 

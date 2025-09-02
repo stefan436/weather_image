@@ -2,8 +2,8 @@ name: Daily DWD Data Download and Save
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Jeden Tag um 6:00 UTC (du kannst anpassen)
-  workflow_dispatch:  # Manueller Trigger
+    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 jobs:
   download-and-save:
@@ -28,20 +28,29 @@ jobs:
           mkdir -p downloads
           python process_dwd_uv_and_pt.py
 
-      - name: 📦 Release erstellen (falls nicht vorhanden)
+      - name: 🔁 Commit and push JSON + kleine BIN-Dateien
         run: |
-          gh release create daily-data --notes "Daily data release" || echo "Release exists"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data/latitudes_uv_and_pt.json
+          git add docs/data/longitudes_uv_and_pt.json
+          git add docs/data/data_uvi.bin
+          git add docs/data/data_uvh.bin
+          git add docs/data/gft_forecast_times.json
+          git add docs/data/uvi_forecast_times.json
+          git commit -m "Update DWD forecast data [skip ci]" || echo "No changes to commit"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: 🚀 Datei hochladen
+
+      - name: 📦 Ensure release exists
+        run: |
+          gh release create daily-data --notes "Daily DWD forecast data" || echo "Release already exists"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Upload große Datei ins Release
         run: |
           gh release upload daily-data docs/data/data_gft.bin --clobber
-          gh release upload daily-data docs/data/data_uvi.bin --clobber
-          gh release upload daily-data docs/data/data_uvh.bin --clobber
-          gh release upload daily-data docs/data/latitudes_uv_and_pt.json --clobber
-          gh release upload daily-data docs/data/longitudes_uv_and_pt.json --clobber
-          gh release upload daily-data docs/data/gft_forecast_times.json --clobber
-          gh release upload daily-data docs/data/uvi_forecast_times.json --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

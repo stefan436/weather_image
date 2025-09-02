@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Manueller Trigger
 
 jobs:
-  download-and-deploy:
+  download-and-save:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,22 +22,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests xarray cfgrib numpy
-  
+
       - name: ▶️ Download und Skript ausführen
         run: |
-          mkdir -p docs/data
+          mkdir -p downloads
           python process_dwd_uv_and_pt.py
-      
-      - name: Configure Git for large file push
+
+      - name: 📦 Release erstellen (falls nicht vorhanden)
         run: |
-          git config --global http.postBuffer 524288000
-          git config --global http.lowSpeedTime 600
+          gh release create daily-data --notes "Daily data release" || echo "Release exists"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: docs/data
-          commit_message: "Update DWD forecast data [skip ci]"
-          keep_files: true
+      - name: 🚀 Datei hochladen
+        run: |
+          gh release upload daily-data docs/data/data_gft.bin --clobber
+          gh release upload daily-data docs/data/data_uvi.bin --clobber
+          gh release upload daily-data docs/data/data_uvh.bin --clobber
+          gh release upload daily-data docs/data/latitudes_uv_and_pt.json --clobber
+          gh release upload daily-data docs/data/longitudes_uv_and_pt.json --clobber
+          gh release upload daily-data docs/data/gft_forecast_times.json --clobber
+          gh release upload daily-data docs/data/uvi_forecast_times.json --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

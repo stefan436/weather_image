@@ -1,5 +1,5 @@
-const LAT_COUNT = 657;
-const LON_COUNT = 1377;
+const LAT_COUNT = 425;
+const LON_COUNT = 700;
 const TIME_STEPS = 72;
 
 

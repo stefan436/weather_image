@@ -105,7 +105,7 @@ async function loadTimeStamps() {
 
     const gft_times_formatted = gft_times.map(iso => {
         // Trim auf Millisekunden (max. 3 Stellen)
-        const trimmed = iso.replace(/(\.\d{3})\d*/, '$1'); 
+        const trimmed = iso.replace(/(\.\d{3})\d*/, '$1') + 'Z'; 
         return new Date(trimmed);
     });
 
@@ -114,7 +114,7 @@ async function loadTimeStamps() {
 
     const uvi_times_formatted = uvi_times.map(iso => {
         // Trim auf Millisekunden (max. 3 Stellen)
-        const trimmed = iso.replace(/(\.\d{3})\d*/, '$1'); 
+        const trimmed = iso.replace(/(\.\d{3})\d*/, '$1') + 'Z'; 
         return new Date(trimmed);
     });
 

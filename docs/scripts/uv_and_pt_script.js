@@ -27,12 +27,7 @@ function findNearestIndexUvAndPt(array, value) {
 async function loadTimeSeriesUvAndPt(latIdx, lonIdx) {
     const valuesPerStep = LAT_COUNT * LON_COUNT;
 
-
-    const proxy = 'https://corsproxy.io/?';
-    const response_gft = await fetch(`${proxy}https://github.com/stefan436/weather_image//releases/download/daily-data/data_gft.bin`);
-    if (!response_gft.ok) {
-      throw new Error(`HTTP-Fehler: ${response_gft.status}`);
-    }
+    const response_gft = await fetch("data/data_gft.bin");
     const buffer_gft = await response_gft.arrayBuffer();
     const allDatagft = new Float32Array(buffer_gft);
 

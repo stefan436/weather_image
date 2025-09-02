@@ -19,6 +19,10 @@
   <script src="scripts/elementNamesMap.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+
+  <!-- JS für uv und pt -->
+   <script src="scripts/uv_and_pt_script.js"></script>
+
 </head>
 <body>
   <!-- Navigation -->
@@ -146,6 +150,7 @@
       "Nebelwahrscheinlichkeit", 
       "Wahrscheinlichkeit Sichtweite < 1km", 
       "Sonnenscheindauer", 
+      "UV-Index",
       "Strahlungsintensität", 
       "reduzierter Oberflächendruck"
     ];
@@ -174,6 +179,9 @@
 
     let closest_station_id = null;
     let minDistance = Infinity;
+    let userLat = null;
+    let userLon = null;
+    let result_uv_and_pt = null;
     const statusEl = document.getElementById("status");
     const stationEl= document.getElementById("station");
     const plotSel  = document.getElementById("plotSelect");
@@ -244,8 +252,8 @@
         }
 
         navigator.geolocation.getCurrentPosition(async position => {
-          const userLat = position.coords.latitude;
-          const userLon = position.coords.longitude;
+          userLat = position.coords.latitude;
+          userLon = position.coords.longitude;
 
           // Alle Stationen mit Distanz berechnen
           const stationsWithDist = data.map(row => {
@@ -403,7 +411,7 @@
 
 
 
-    function parseKML(text) {
+    async function parseKML(text) {
       const KMLNS = "http://www.opengis.net/kml/2.2";
       const DWDNS = "https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd";
 
@@ -428,6 +436,24 @@
 
         const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
         seriesMap = {};
+
+        // uv und pt holen und einfügen
+        try {
+            result_uv_and_pt = await runForecastUvAndPt(userLat, userLon);
+            console.log(result_uv_and_pt);
+            seriesMap["Gefühlte Temperatur"] = result_uv_and_pt["GFT"].map(wert => {
+                const celsius = wert - 273.15;
+                return Math.round(celsius * 10) / 10;
+            });
+
+            seriesMap["UV-Index"] = result_uv_and_pt["UVI"].map(wert => {
+                return Math.round(wert * 10) / 10;  
+            });
+
+        } catch(e) {
+            console.warn("Fehler beim Laden von UV-Index und Gefühlter Temperatur:", e);
+        }
+
 
         for (const fc of forecasts) {
           const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
@@ -543,12 +569,144 @@
         return;
       }
 
-      const xData = timeSteps.map(ts => new Date(ts));
-      const yData = seriesMap[param].map(v => v == null ? null : v);
-
       // Fehlerbereich vorhanden?
       const hasError = !!seriesMap[param + "_error"];
       const traces = [];
+
+      // Uv index plot
+      if (param.includes("UV-Index")) {
+        const day_strings = result_uv_and_pt["uvi_times"]
+        const hours = result_uv_and_pt["UVH"]     // in 'hh' Format
+
+        const timeStep_uv = day_strings.map((date, i) => {
+            const newDate = new Date(date); // Kopie erstellen
+            newDate.setUTCHours(hours[i], 0, 0, 0); // Nur UTC-Hours setzen
+            return newDate;
+        });
+
+        const xData = timeStep_uv
+        const yData = seriesMap[param].map(v => v == null ? null : v);
+
+
+        // Linie in grau
+        traces.push({
+            x: xData,
+            y: yData,
+            type: "scatter",
+            mode: "lines",
+            line: { width: 2, shape: "spline", color: "rgb(102, 102, 102)" },
+            connectgaps: true,
+            hoverinfo: "skip",
+            showlegend: false
+        });
+
+        // Marker anderem grau
+        traces.push({
+            x: xData,
+            y: yData,
+            type: "scatter",
+            mode: "markers",
+            marker: { size: 6, color: "rgb(68, 68, 68)" }, 
+            name: param
+        });
+
+        const layout = {
+        ...getLayout(param),
+        shapes: [
+            {
+            type: 'rect',
+            xref: 'paper',
+            yref: 'y',
+            x0: 0,
+            x1: 1,
+            y0: 0,
+            y1: 3,
+            fillcolor: 'rgba(0, 255, 0, 0.2)', // grün
+            line: { width: 0 }
+            },
+            {
+            type: 'rect',
+            xref: 'paper',
+            yref: 'y',
+            x0: 0,
+            x1: 1,
+            y0: 3,
+            y1: 6,
+            fillcolor: 'rgba(255, 255, 0, 0.2)', // gelb
+            line: { width: 0 }
+            },
+            {
+            type: 'rect',
+            xref: 'paper',
+            yref: 'y',
+            x0: 0,
+            x1: 1,
+            y0: 6,
+            y1: 8,
+            fillcolor: 'rgba(255, 165, 0, 0.2)', // orange
+            line: { width: 0 }
+            },
+            {
+            type: 'rect',
+            xref: 'paper',
+            yref: 'y',
+            x0: 0,
+            x1: 1,
+            y0: 8,
+            y1: 11,
+            fillcolor: 'rgba(255, 0, 0, 0.2)', // rot
+            line: { width: 0 }
+            },
+            {
+            type: 'rect',
+            xref: 'paper',
+            yref: 'y',
+            x0: 0,
+            x1: 1,
+            y0: 11,
+            y1: 13,
+            fillcolor: 'rgba(128, 0, 128, 0.2)', // lila
+            line: { width: 0 }
+            }
+        ]
+        };
+
+        Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
+
+        return;
+      }
+
+      if (param.includes("Temperatur")) {
+        const gft_time_step = result_uv_and_pt['gft_times']
+        const gft_data = seriesMap["Gefühlte Temperatur"];
+
+        // Linie Gefühlte Temperatur in rot
+        traces.push({
+            x: gft_time_step,
+            y: gft_data,
+            type: "scatter",
+            mode: "lines",
+            line: { width: 2, shape: "spline", color: "rgb(200, 0, 0)" },
+            connectgaps: true,
+            hoverinfo: "skip",
+            showlegend: false
+        });
+
+        // Marker Gefühlte Temperatur in rot
+        traces.push({
+            x: gft_time_step,
+            y: gft_data,
+            type: "scatter",
+            mode: "markers",
+            marker: { size: 6, color: "rgb(120, 0, 0)" }, 
+            name: "Gefühlte Temperatur"
+        });
+
+      }
+
+      const xData = timeSteps.map(ts => new Date(ts));
+      const yData = seriesMap[param].map(v => v == null ? null : v);
+
 
       if (hasError) {
         const errorData = seriesMap[param + "_error"];
@@ -571,25 +729,26 @@
         });
       }
 
-      // Linie in mittlerem Blau
+      // Linie in grau
       traces.push({
         x: xData,
         y: yData,
         type: "scatter",
         mode: "lines",
-        line: { width: 2, shape: "spline", color: "rgb(102, 102, 102)" }, // kräftiges Blau
+        line: { width: 2, shape: "spline", color: "rgb(102, 102, 102)" },
         connectgaps: true,
         name: param,
+        hoverinfo: "skip",
         showlegend: false
       });
 
-      // Marker in dunklerem Blau
+      // Marker anderem grau
       traces.push({
         x: xData,
         y: yData,
         type: "scatter",
         mode: "markers",
-        marker: { size: 6, color: "rgb(68, 68, 68)" }, // dunkleres Blau
+        marker: { size: 6, color: "rgb(68, 68, 68)" }, 
         name: param
       });
 
@@ -619,7 +778,7 @@
         range: xRange   // <-- Standard-Zoom
         },
         yaxis: { title: param, automargin: true },
-        hovermode: "x unified",
+        hovermode: "x",
         autosize: true,
         showlegend: false,
         dragmode: "pan"
@@ -648,9 +807,5 @@
   </script>
 </body>
 </html>
-
-
-
-
 
 

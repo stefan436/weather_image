@@ -309,7 +309,7 @@
     async function fetchAndProcessRadvor(lat,lon) {
       map.setView([lat, lon], 10);
       const radolanFilename = getRadolanFilename();
-      const proxy = 'https://corsproxy.io/?';
+      const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
       const url = `${proxy}https://opendata.dwd.de/weather/radar/radvor/rq/${radolanFilename}`;
 
       const phiUrl = 'data/phi_bottom.txt';
@@ -398,5 +398,6 @@
 
 </body>
 </html>
+
 
 

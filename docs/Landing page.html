@@ -7,7 +7,7 @@
   
   <!-- App Icon für iOS Homescreen -->
   <link rel="apple-touch-icon" href="icons/app_icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Wetter von Stefan">
 
 
@@ -66,7 +66,17 @@
       <div id="plotlyDiv"></div>
     </div>
 
-    
+    <div class="row" style="margin-top: 20px;">
+      <span id="infoText" class="infoBadge">
+        <strong>Hinweise:</strong> 
+        <ul>
+          <li>Die Daten stammen vom Deutschen Wetterdienst (Model Output Statistics-MIX (MOSMIX)).</li>
+          <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden für den nächstgelegenen Vorhersagepunkt zum Standort angegeben.</li>
+          <li>Die Zusammenfassung zeigt die dominierenden Wetterbedingungen (signifikanteste Wettersituation) für Nachts (2-6 Uhr), Frühs (6-10 Uhr), Mittags (10-14 Uhr), Nachmittags (14-18 Uhr), Abends (18-22 Uhr) und Spät Abends (22-02 Uhr).</li>
+        </ul>
+      </span>
+    </div>
+
     <div class="row" style="margin-top: 20px;">
       <button id="reloadButton" class="btn" onclick="location.reload()">Seite neu laden</button>
     </div>
@@ -123,17 +133,6 @@
       1:  { icon: "clouds.png", label: "Bewölkung abnehmend" },
       0:  { icon: "day-and-night.png", label: "Klarer Himmel" }
     };
-
-    const periods = [
-      { name: "Früh", startHour: 4,  endHour: 8 },
-      { name: "Vormittag",    startHour: 8, endHour: 12 },
-      { name: "Nachmittag" ,startHour: 12, endHour: 16 },
-      { name: "Abend",     startHour: 16, endHour: 20 },
-      { name: "Spät Abends", startHour:20, endHour:0 },
-      { name: "Nacht",     startHour: 0, endHour: 4 }
-    ];
-
-
 
     // gewünschte Reihenfolge
     const preferredOrder = [
@@ -330,6 +329,16 @@
     };
 
 
+    const periods = [
+      { name: "Früh", startHour: 6,  endHour: 10 },
+      { name: "Mittag",    startHour: 10, endHour: 14 },
+      { name: "Nachmittag" ,startHour: 14, endHour: 18 },
+      { name: "Abend",     startHour: 18, endHour: 22 },
+      { name: "Spät Abends", startHour:22, endHour:2 },
+      { name: "Nacht",     startHour: 2, endHour: 6 }
+    ];
+
+
     function buildSummary() {
       if (!seriesMap["Significant Weather"]) {
         console.warn("Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich");
@@ -358,20 +367,29 @@
           if (p.startHour < p.endHour) {
             return entry.hour >= p.startHour && entry.hour < p.endHour;
           } else {
-            // Nacht (z.B. 20–0 oder 0–4)
             return entry.hour >= p.startHour || entry.hour < p.endHour;
           }
         });
         if (!period) continue;
 
-        const dateOnly = entry.timestamp.toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
+        const entryDate = new Date(entry.timestamp);
+        let groupDate = new Date(entryDate);
+
+        if (period.startHour > period.endHour && entry.hour < period.endHour) {
+          // Stunden nach Mitternacht zählen zum Vortag
+          groupDate.setDate(groupDate.getDate() - 1);
+        }
+
+        const dateOnly = groupDate.toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
         const key = `${dateOnly}_${period.name}`;
+
         if (!grouped[key]) grouped[key] = { date: dateOnly, periodName: period.name, entries: [] };
         grouped[key].entries.push(entry);
       }
 
+
       // Schritt 4: Sortieren (feste Reihenfolge)
-      const periodOrder = ["Nacht", "Früh", "Vormittag", "Nachmittag", "Abend", "Spät Abends"];
+      const periodOrder = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"];
       const sortedKeys = Object.keys(grouped).sort((a, b) => {
         const [dateA, periodA] = a.split("_");
         const [dateB, periodB] = b.split("_");

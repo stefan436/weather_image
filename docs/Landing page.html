@@ -437,6 +437,7 @@
         const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
         seriesMap = {};
 
+        setStatus("Get UV and PT data …");
         // uv und pt holen und einfügen
         try {
             result_uv_and_pt = await runForecastUvAndPt(userLat, userLon);
@@ -454,7 +455,7 @@
             console.warn("Fehler beim Laden von UV-Index und Gefühlter Temperatur:", e);
         }
 
-
+        setStatus("Finishing Data …");
         for (const fc of forecasts) {
           const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
           const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
@@ -542,7 +543,7 @@
         setTimeout(() => {
           setStatus("");  // Versteckt das Status-Element
           document.getElementById("loadButton").style.display = "none";  // Versteckt den Button
-        }, 1000);
+        }, 0);
 
       } catch (err) {
         console.error(err);
@@ -807,6 +808,5 @@
   </script>
 </body>
 </html>
-
 
 

@@ -259,7 +259,7 @@
     async function fetchAndProcessComposite(lat_pos, lon_pos) {
       map.setView([lat_pos, lon_pos], 10);
       try {
-        const proxy = 'https://corsproxy.io/?';
+        const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
         const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar?nocache=${Date.now()}`;
         const resp = await fetch(tarUrl);
         if (!resp.ok) throw new Error("Download fehlgeschlagen");

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -116,25 +115,23 @@
       return `${value}${unit}`;
     }
 
-
     async function fetchWeather(lat, lon) {
       const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
       const url_sun = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
+      const url_uv = `https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lon}`;
+
       try {
         // Sonnenaus- und Untergang 
         const res_sun = await fetch(url_sun, { headers: { 'Accept': 'application/json' }});
         if (!res_sun.ok) throw new Error('API-Fehler: ' + res_sun.status);
         const data_sun = await res_sun.json();
 
-        const sunriseISO = data_sun.daily.sunrise[0]; // lokalisierte ISO-Zeit dank timezone=auto
+        const sunriseISO = data_sun.daily.sunrise[0]; 
         const sunsetISO  = data_sun.daily.sunset[0];
         const locale = navigator.language || 'de-DE';
-        const dtFmt = new Intl.DateTimeFormat(locale, { dateStyle: 'full' });
         const tmFmt = new Intl.DateTimeFormat(locale, { timeStyle: 'short' });
 
-
-
-        // Restliche daten
+        // Wetterdaten
         const res = await fetch(url);
         const data = await res.json();
         const now = DateTime.now();
@@ -143,19 +140,24 @@
           DateTime.fromISO(entry.timestamp).hour === now.hour
         );
 
-        const dailyData = data.weather.find(entry =>
-          DateTime.fromISO(entry.timestamp).hour === 0
-        );
-
-
-
-
         if (!currentHourData) {
           document.getElementById("location_output").innerText = "Keine Wetterdaten gefunden.";
           return;
         }
 
         source_id = currentHourData.source_id;
+
+        // UV-Index
+        let uvIndexValue = null;
+        try {
+          const res_uv = await fetch(url_uv, { headers: { 'Accept': 'application/json' }});
+          if (res_uv.ok) {
+            const data_uv = await res_uv.json();
+            uvIndexValue = data_uv?.now?.uvi ?? null;
+          }
+        } catch (e) {
+          console.warn("Fehler beim Laden des UV-Index:", e);
+        }
 
         const fields = {
           "Zeitpunkt": formatValue(
@@ -168,6 +170,7 @@
           "Sonnenaufgang": formatValue(tmFmt.format(new Date(sunriseISO))),
           "Sonnenuntergang": formatValue(tmFmt.format(new Date(sunsetISO))),
           "Sonnenscheindauer": formatValue(currentHourData.sunshine, " min"),
+          "UV-Index": formatValue(uvIndexValue),
           "Bewölkung": formatValue(currentHourData.cloud_cover, "%"),
           "Relative Luftfeuchtigkeit": formatValue(currentHourData.relative_humidity, "%"),
           "Sichtweite": formatValue(currentHourData.visibility, " m"),
@@ -175,15 +178,12 @@
           "Niederschlagswahrscheinlichkeit (6h)": formatValue(currentHourData.precipitation_probability_6h, "%")
         };
 
-
         const sourceData = data.sources.find(s => s.id === source_id);
-        
         if (sourceData) {
           fields["Stationsname"] = formatValue(sourceData.station_name);
           fields["Entfernung zur Station"] = formatValue(sourceData.distance, " m");
           fields["Höhe der Station"] = formatValue(sourceData.height, " m");
         }
-
 
         renderWeather(fields);
 

@@ -50,7 +50,7 @@
 
     <div class="row">
       <button id="loadButton" class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
-      <label for="plotSelect"><b>Plot-Parameter:</b></label>
+      <label for="plotSelect"><strong>Plot-Parameter:</strong></label>
       <select id="plotSelect" disabled></select>
       <span id="status" class="badge">Bereit</span>
     </div>
@@ -58,12 +58,16 @@
     <div id="station" class="meta"></div>
 
     <section id="weather-summary" class="weather-summary">
-      <!-- Day selector (wird dynamisch gefüllt) -->
-      <div id="day-selector" class="day-selector"></div>
 
-      <!-- Container für die Summary-Karten -->
+      <div class="day-selector-wrapper">
+        <button class="day-arrow left" id="day-left">&#10094;</button>
+        <div id="day-selector" class="day-selector"></div>
+        <button class="day-arrow right" id="day-right">&#10095;</button>
+      </div>
+
       <div id="scroll-container" class="scroll-container"></div>
     </section>
+
 
 
 
@@ -374,7 +378,6 @@
       const futureEntries = entries.filter(e => e.timestamp >= now);
 
       // ********* Schritt 3: nach Tag (ISO YYYY-MM-DD) und Periode gruppieren *********
-      // daysMap: { "2025-09-04": { displayDate: "Do, 04.09", groups: { "Früh": [entries], ... } } }
       const daysMap = {};
 
       for (const entry of futureEntries) {
@@ -382,27 +385,22 @@
           if (p.startHour < p.endHour) {
             return entry.hour >= p.startHour && entry.hour < p.endHour;
           } else {
-            // Über Mitternacht (z. B. 22 - 2)
             return entry.hour >= p.startHour || entry.hour < p.endHour;
           }
         });
         if (!period) continue;
 
-        // groupDate: Datum, zu dem die Periode gehört (bei Über-Mitternacht: vorheriger Tag)
         const entryDate = new Date(entry.timestamp);
         let groupDate = new Date(entryDate);
         if (period.startHour > period.endHour && entry.hour < period.endHour) {
-          // Stunden nach Mitternacht zählen zum Vortag
           groupDate.setDate(groupDate.getDate() - 1);
         }
 
-        // ISO-Key (YYYY-MM-DD) stabil für Sortierung
         const y = groupDate.getFullYear();
         const m = String(groupDate.getMonth() + 1).padStart(2, "0");
         const d = String(groupDate.getDate()).padStart(2, "0");
         const dayIso = `${y}-${m}-${d}`;
 
-        // Anzeige-String: Heute / Morgen / Übermorgen / ab dann: "Fr, 06. Sep."
         const today = new Date();
         const diffDays = Math.floor((groupDate - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / (1000 * 60 * 60 * 24));
 
@@ -417,7 +415,7 @@
           displayDate = groupDate.toLocaleDateString("de-DE", {
             weekday: "short",
             day: "2-digit",
-            month: "short", // z.B. "Sep."
+            month: "short",
             timeZone: "Europe/Berlin"
           });
         }
@@ -427,45 +425,42 @@
         daysMap[dayIso].groups[period.name].push(entry);
       }
 
-      // Kein Zukunftstag gefunden?
       const dayKeys = Object.keys(daysMap).sort();
       if (dayKeys.length === 0) {
         container.innerHTML = `<div class="no-data">Keine zukünftigen Vorhersagen vorhanden.</div>`;
         return;
       }
 
-      // ********* Schritt 4: Day-Selector rendern (inkl. "Alle Tage") *********
-      // Buttons pro Tag
-      dayKeys.forEach(iso => {
-        const btn = document.createElement("button");
-        btn.className = "day-button";
-        btn.dataset.iso = iso;
-        btn.textContent = daysMap[iso].displayDate;
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".day-button").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          renderDay(iso, daysMap);
-        });
-        selector.appendChild(btn);
-      });
-
-      // ********* Schritt 5: Default-Auswahl *********
+      // ********* Schritt 4: Aktuellen Tag finden *********
       const today = new Date();
       const ty = today.getFullYear();
       const tm = String(today.getMonth() + 1).padStart(2, "0");
       const td = String(today.getDate()).padStart(2, "0");
       const todayIso = `${ty}-${tm}-${td}`;
 
-      const defaultIso = daysMap[todayIso] ? todayIso : dayKeys[0];
-      // Markiere default-Button aktiv
-      const defaultBtn = selector.querySelector(`[data-iso="${defaultIso}"]`);
-      if (defaultBtn) defaultBtn.classList.add("active");
+      const sortedKeys = Object.keys(daysMap).sort();
+      let currentIndex = sortedKeys.findIndex(k => k === todayIso);
+      if (currentIndex === -1) currentIndex = 0;
 
-      // Render initial view (default day)
-      renderDay(defaultIso, daysMap);
+      // ********* Schritt 5: Rendering eines einzelnen Tages *********
+      function updateDaySelector(index) {
+        selector.innerHTML = "";
 
-      // ********* Hilfsfunktionen zum Rendern *********
-      function renderDay(iso, daysMap) {
+        const iso = sortedKeys[index];
+
+        const strong = document.createElement("strong");
+        strong.textContent = daysMap[iso].displayDate;
+        selector.appendChild(strong);
+
+        renderDay(iso);
+
+        document.getElementById("day-left").disabled = index <= 0;
+        document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+      }
+
+
+      // ********* Schritt 6: Einzeltag-Rendering *********
+      function renderDay(iso) {
         container.innerHTML = "";
         const day = daysMap[iso];
         if (!day) {
@@ -473,16 +468,15 @@
           return;
         }
 
-        // Perioden in fester Reihenfolge durchgehen
         periodOrder.forEach(periodName => {
           const entries = day.groups[periodName];
           if (!entries || entries.length === 0) return;
 
-          // Dominanter Code bestimmen (wie vorher: nach Häufigkeit, bei Gleichstand höhere Zahl)
           const freq = {};
           for (const e of entries) {
             if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
           }
+
           const dominantCode = Object.entries(freq)
             .sort((a, b) => {
               const countDiff = b[1] - a[1];
@@ -509,49 +503,28 @@
         }
       }
 
-      // Rendern aller Tage (Kopfzeile pro Tag + dessen Karten)
-      function renderAllDays(sortedDayKeys, daysMap) {
-        container.innerHTML = "";
-        for (const iso of sortedDayKeys) {
-          const heading = document.createElement("div");
-          heading.style.gridColumn = "1/-1";
-          heading.style.fontWeight = "600";
-          heading.style.margin = "8px 0 4px";
-          heading.textContent = daysMap[iso].displayDate;
-          container.appendChild(heading);
+      // ********* Schritt 7: Event-Listener für Pfeile *********
+      const leftBtn = document.getElementById("day-left");
+      const rightBtn = document.getElementById("day-right");
 
-          // Perioden wie oben
-          periodOrder.forEach(periodName => {
-            const entries = daysMap[iso].groups[periodName];
-            if (!entries || entries.length === 0) return;
-
-            const freq = {};
-            for (const e of entries) {
-              if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
-            }
-            const dominantCode = Object.entries(freq)
-              .sort((a, b) => {
-                const countDiff = b[1] - a[1];
-                if (countDiff !== 0) return countDiff;
-                return b[0] - a[0];
-              })[0]?.[0];
-            const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
-
-            const card = document.createElement("div");
-            card.className = "summary-card";
-            card.innerHTML = `
-              <img src="icons/${info.icon}" alt="${info.label}">
-              <div class="summary-text">
-                <strong>${periodName}</strong>
-                <span class="label">${info.label}</span>
-                <span class="date">${daysMap[iso].displayDate}</span>
-              </div>
-            `;
-            container.appendChild(card);
-          });
+      leftBtn.addEventListener("click", () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateDaySelector(currentIndex);
         }
-      }
+      });
+
+      rightBtn.addEventListener("click", () => {
+        if (currentIndex < sortedKeys.length - 1) {
+          currentIndex++;
+          updateDaySelector(currentIndex);
+        }
+      });
+
+      // ********* Initialisierung *********
+      updateDaySelector(currentIndex);
     }
+
 
 
 

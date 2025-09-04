@@ -9,7 +9,7 @@ window.elementNamesMap = {
     "FX1": "Maximale Windböe",
     "FX3": "Maximum wind gust within the last 3 hours",
     "FXh": "Maximum wind gust within the last 12 hours",
-    "RR1c": "Totale Niderschlagsmenge",
+    "RR1c": "Totale Niederschlagsmenge",
     "RR1": "Total precipitation during the last hour",
     "RR3c": "Total precipitation during the last 3 hours consistent with significant weather",
     "RR3": "Total precipitation during the last 3 hours",

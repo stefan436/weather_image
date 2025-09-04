@@ -340,12 +340,12 @@
 
     // periods; Die Vorhersage für das signifikante Wetter vorhergesagt um 7 uhr bedeutet das Wetter zwischen 6:00 und 6.59 Uhr (within last hour)
     const periods = [
-      { name: "Früh", startHour: 7,  endHour: 11 },
-      { name: "Mittag",    startHour: 11, endHour: 15 },
-      { name: "Nachmittag" ,startHour: 15, endHour: 19 },
-      { name: "Abend",     startHour: 19, endHour: 23 },
-      { name: "Spät Abends", startHour:23, endHour:3 },
-      { name: "Nacht",     startHour: 3, endHour: 7 }
+      { name: "Früh", startHour: 6,  endHour: 10 },
+      { name: "Mittag",    startHour: 10, endHour: 14 },
+      { name: "Nachmittag" ,startHour: 14, endHour: 18 },
+      { name: "Abend",     startHour: 18, endHour: 22 },
+      { name: "Spät Abends", startHour:22, endHour:2 },
+      { name: "Nacht",     startHour: 2, endHour: 6 }
     ];
 
     const periodOrder = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"];
@@ -431,6 +431,7 @@
         container.innerHTML = `<div class="no-data">Keine zukünftigen Vorhersagen vorhanden.</div>`;
         return;
       }
+
 
       // ********* Schritt 4: Aktuellen Tag finden *********
       const today = new Date();
@@ -536,13 +537,44 @@
             if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
           }
 
-          const dominantCode = Object.entries(freq)
+          let dominantCode = Object.entries(freq)
             .sort((a, b) => {
               const countDiff = b[1] - a[1];
               if (countDiff !== 0) return countDiff;
               return b[0] - a[0];
             })[0]?.[0];
+          
 
+          if ([0, 1, 2, 3].includes(Number(dominantCode))) {
+            const indices = [];
+            for (const e of entries) {
+              if (!isNaN(e.index)) indices.push(e.index);
+            }
+
+            const cloud_covers = [];
+            for (const i of indices) {
+              if (!isNaN(seriesMap["Bewölkung"]?.[i])) cloud_covers.push(seriesMap["Bewölkung"][i]);  
+            }
+
+            if (cloud_covers.length === 0) {
+              console.warn("Warnung: cloud_cover ist leer, Durchschnitt wird auf 0 gesetzt.");
+            }
+
+            const avg_cloud_cover = cloud_covers.length > 0
+              ? cloud_covers.reduce((acc, val) => acc + val, 0) / cloud_covers.length
+              : 0; // oder null
+
+            if (avg_cloud_cover <= 20) {
+              dominantCode = 0;
+            } else if (avg_cloud_cover <= 50) {
+              dominantCode = 1;
+            } else if (avg_cloud_cover <= 80) {
+              dominantCode = 2;
+            } else {
+              dominantCode = 3;
+            }
+          }
+          
           const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
 
           const card = document.createElement("div");

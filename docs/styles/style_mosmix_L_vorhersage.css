@@ -336,3 +336,18 @@ select {
   display: none;
 }
 
+
+/* Day Selector Slide-Animation */
+.day-selector {
+  position: relative;
+  overflow: hidden;
+  height: 24px; /* Höhe passend zum Text – optional anpassen */
+}
+
+.day-slide-wrapper {
+  position: absolute;
+  width: 100%;
+  transition: transform 0.3s ease;
+  will-change: transform;
+  text-align: center;
+}

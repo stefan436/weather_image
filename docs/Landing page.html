@@ -963,7 +963,7 @@
           type: "scatter",
           mode: "lines",
           fill: "toself",
-          fillcolor: "rgba(120, 120, 120, 0.2)", // Hellblau transparent
+          fillcolor: "rgba(79, 79, 79, 0.5)", 
           line: { color: "transparent" },
           hoverinfo: "skip",
           showlegend: false,
@@ -972,13 +972,57 @@
         });
       }
 
+      // Nachtbereiche hinzufügen (20-8 Uhr) in hellgrau
+      let shapes = [];
+
+      if (!param.includes("UV-Index")) {
+        const nightColor = 'rgba(241, 241, 241, 0.75)'; // hellgrau
+        const datesSet = new Set();
+
+        xData.forEach(dt => {
+          const dateStr = dt.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+          if (datesSet.has(dateStr)) return; // Nur ein Rechteck pro Datum
+          datesSet.add(dateStr);
+
+          // Rechteck von 00:00 bis 08:00
+          shapes.push({
+            type: 'rect',
+            xref: 'x',
+            yref: 'paper',
+            x0: new Date(dateStr + "T00:00:00Z"),
+            x1: new Date(dateStr + "T06:00:00Z"),
+            y0: 0,
+            y1: 1,
+            fillcolor: nightColor,
+            line: { width: 0 },
+            layer: 'below'
+          });
+
+          // Rechteck von 20:00 bis 23:59
+          shapes.push({
+            type: 'rect',
+            xref: 'x',
+            yref: 'paper',
+            x0: new Date(dateStr + "T18:00:00Z"),
+            x1: new Date(new Date(dateStr + "T23:59:59Z").getTime() + 1000), // leicht drüber hinaus
+            y0: 0,
+            y1: 1,
+            fillcolor: nightColor,
+            line: { width: 0 },
+            layer: 'below'
+          });
+        });
+      }
+
+
       // Linie in grau
       traces.push({
         x: xData,
         y: yData,
         type: "scatter",
         mode: "lines",
-        line: { width: 2, shape: "spline", color: "rgb(102, 102, 102)" },
+        line: { width: 2, shape: "spline", color: "rgba(17, 24, 39, 1)" },
         connectgaps: true,
         name: param,
         hoverinfo: "skip",
@@ -991,11 +1035,17 @@
         y: yData,
         type: "scatter",
         mode: "markers",
-        marker: { size: 6, color: "rgb(68, 68, 68)" }, 
+        marker: { size: 6, color: "rgba(17, 24, 39, 1)" }, 
         name: param
       });
 
-      Plotly.newPlot(plotlyDiv, traces, getLayout(param), getConfig());
+      const layout = {
+        ...getLayout(param),
+        shapes: shapes
+      };
+
+      Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
+
     }
 
 
@@ -1009,7 +1059,7 @@
     let xRange = null;
     if (xData.length > 0) {
         const start = xData[0];
-        const end = new Date(start.getTime() + 72 * 3600 * 1000);
+        const end = new Date(start.getTime() + 60 * 3600 * 1000);
         xRange = [start, end];
     }
 

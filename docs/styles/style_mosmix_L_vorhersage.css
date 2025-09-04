@@ -2,12 +2,13 @@
   --bg: #f9fafb; --fg: #111827; --primary: #4f4f4f; --primary-hover: #333;
   --border: #e5e7eb; --badge-bg: #f1f1f1; --badge-text: #4f4f4f;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-} 
+}
+
 body {
   background: var(--bg);
   color: var(--fg);
   margin: 0;
-  padding: 0px;
+  padding: 0;
   line-height: 1.6;
 }
 
@@ -48,16 +49,7 @@ h1 {
   cursor: not-allowed;
 }
 
-.badge {
-  background: var(--badge-bg);
-  color: var(--badge-text);
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.infoBadge {
+.badge, .infoBadge {
   background: var(--badge-bg);
   color: var(--badge-text);
   padding: 4px 10px;
@@ -65,6 +57,7 @@ h1 {
   font-size: 13px;
   font-weight: 500;
 }
+.badge { border-radius: 999px; }
 
 .meta {
   margin-bottom: 20px;
@@ -110,15 +103,14 @@ th {
   background: white;
   border-radius: 8px;
   border: 1px solid var(--border);
-  height: auto; /* Ändern von 440px auf auto */
+  height: auto;
   position: relative;
 }
 
 #plotlyDiv {
   width: 100%;
-  height: 360px; /* feste Höhe damit Plotly korrekt rechnen kann */
+  height: 360px;
 }
-
 
 .plot-title {
   font-weight: 600;
@@ -148,28 +140,17 @@ select {
     width: 100%;
   }
   #plot {
-    height: auto; /* statt 300px */
     padding: 12px;
   }
-
   #plotlyDiv {
-    height: 300px; /* kleinere Höhe für Handy */
+    height: 300px;
   }
-
   .meta, .scroll {
     font-size: 14px;
   }
 }
 
-#table {
-  display: none;
-}
-
-
-.station-info span {
-  font-size: 14px;
-}
-
+#table { display: none; }
 
 .station-info {
   background: white;
@@ -179,21 +160,20 @@ select {
   margin-bottom: 16px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
+.station-info span { font-size: 14px; }
 
 .station-choices {
   display: flex;
-  flex-direction: column; /* <-- untereinander erzwingen */
+  flex-direction: column;
   gap: 8px;
   margin-top: 8px;
 }
-
 .station-btn {
-  width: 100%;   /* Button füllt die ganze Breite */
-  text-align: left; /* optional, falls du den Text linksbündig willst */
+  width: 100%;
+  text-align: left;
 }
 
-
-/* Container für die gesamte Übersicht */
+/* Wetterübersicht */
 .weather-summary {
   background: white;
   border: 1px solid var(--border);
@@ -202,21 +182,44 @@ select {
   margin-top: 20px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
-
 .weather-summary h2 {
   margin: 0 0 12px 0;
   font-size: 1.2rem;
   font-weight: 600;
 }
 
-/* Scrollbarer Bereich */
+/* Day selector (neu) */
+.day-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  margin-bottom: 8px;
+}
+.day-button {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+.day-button.active {
+  background: #0ea5a4;
+  color: white;
+  border-color: #089e9c;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Scrollbarer Bereich für Karten */
 .scroll-container {
   display: flex;
   overflow-x: auto;
   gap: 12px;
   padding-bottom: 10px;
 }
-
 .scroll-container::-webkit-scrollbar {
   height: 8px;
 }
@@ -225,7 +228,7 @@ select {
   border-radius: 4px;
 }
 
-/* Jede Karte */
+/* Karten-Design */
 .summary-card {
   flex: 0 0 auto;
   width: 100px;
@@ -241,20 +244,22 @@ select {
   align-items: center;
   justify-content: flex-start;
 }
-
 .summary-card img {
   width: 40px;
   height: 40px;
   margin-bottom: 8px;
 }
-
 .summary-card strong {
   display: block;
   font-size: 14px;
   margin-bottom: 4px;
 }
-
 .summary-card span {
   font-size: 12px;
   color: #4f4f4f;
+}
+
+.no-data {
+  padding: 12px;
+  color: #6b7280;
 }

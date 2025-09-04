@@ -137,9 +137,9 @@
       45: { icon: "fog.png", label: "Nebel" },
 
       // Bewölkung
-      3:  { icon: "clouds.png", label: "Bewölkung zunehmend" },
-      2:  { icon: "clouds.png", label: "Bewölkung unverändert" },
-      1:  { icon: "clouds.png", label: "Bewölkung abnehmend" },
+      3:  { icon: "total cloud.png", label: "Bewölkung zunehmend" },
+      2:  { icon: "medium cloud.png", label: "Bewölkung unverändert" },
+      1:  { icon: "low cloud.png", label: "Bewölkung abnehmend" },
       0:  { icon: "day-and-night.png", label: "Klarer Himmel" }
     };
 
@@ -574,7 +574,7 @@
               dominantCode = 3;
             }
           }
-          
+
           const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
 
           const card = document.createElement("div");

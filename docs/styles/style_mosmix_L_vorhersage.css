@@ -1,9 +1,16 @@
 :root {
-  --bg: #f9fafb; --fg: #111827; --primary: #4f4f4f; --primary-hover: #333;
-  --border: #e5e7eb; --badge-bg: #f1f1f1; --badge-text: #4f4f4f;
+  --bg: #f9fafb;
+  --fg: #111827;
+  --primary: #4f4f4f;
+  --primary-hover: #333;
+  --border: #e5e7eb;
+  --badge-bg: #f1f1f1;
+  --badge-text: #4f4f4f;
+
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
 }
 
+/* Grundlegendes Layout */
 body {
   background: var(--bg);
   color: var(--fg);
@@ -18,6 +25,7 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* Layout-Struktur */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -28,9 +36,10 @@ h1 {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* Buttons */
 .btn {
   background: var(--primary);
   color: white;
@@ -41,15 +50,19 @@ h1 {
   cursor: pointer;
   transition: background 0.2s ease;
 }
+
 .btn:hover {
   background: var(--primary-hover);
 }
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.badge, .infoBadge {
+/* Badges */
+.badge,
+.infoBadge {
   background: var(--badge-bg);
   color: var(--badge-text);
   padding: 4px 10px;
@@ -57,8 +70,12 @@ h1 {
   font-size: 13px;
   font-weight: 500;
 }
-.badge { border-radius: 999px; }
 
+.badge {
+  border-radius: 999px;
+}
+
+/* Meta-Box */
 .meta {
   margin-bottom: 20px;
   padding: 14px 16px;
@@ -68,6 +85,7 @@ h1 {
   font-size: 15px;
 }
 
+/* Scrollbare Bereiche */
 .scroll {
   overflow: auto;
   max-height: 70vh;
@@ -78,17 +96,21 @@ h1 {
   background: white;
 }
 
+/* Tabellen */
 table {
   border-collapse: collapse;
   width: 100%;
 }
-th, td {
+
+th,
+td {
   border-bottom: 1px solid var(--border);
   padding: 10px;
   font-size: 14px;
   text-align: left;
   white-space: nowrap;
 }
+
 th {
   position: sticky;
   top: 0;
@@ -97,6 +119,7 @@ th {
   z-index: 1;
 }
 
+/* Plot-Container */
 #plot {
   margin-top: 20px;
   padding: 16px;
@@ -118,6 +141,7 @@ th {
   font-size: 16px;
 }
 
+/* Formularelemente */
 select {
   padding: 6px 10px;
   border-radius: 6px;
@@ -125,49 +149,28 @@ select {
   font-size: 14px;
 }
 
-/* Mobile Anpassungen */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 1.4rem;
-    margin-bottom: 16px;
-  }
-  .row {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 14px;
-  }
-  .btn, select {
-    width: 100%;
-  }
-  #plot {
-    padding: 12px;
-  }
-  #plotlyDiv {
-    height: 300px;
-  }
-  .meta, .scroll {
-    font-size: 14px;
-  }
-}
-
-#table { display: none; }
-
+/* Station Info */
 .station-info {
   background: white;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-.station-info span { font-size: 14px; }
 
+.station-info span {
+  font-size: 14px;
+}
+
+/* Station Choices */
 .station-choices {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 8px;
 }
+
 .station-btn {
   width: 100%;
   text-align: left;
@@ -180,37 +183,56 @@ select {
   border-radius: 12px;
   padding: 16px;
   margin-top: 20px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
 .weather-summary h2 {
   margin: 0 0 12px 0;
   font-size: 1.2rem;
   font-weight: 600;
 }
 
-/* Day selector (neu) */
+/* Day Selector */
+.day-selector-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-bottom: 14px;
+}
+
 .day-selector {
   display: flex;
-  gap: 8px;
+  justify-content: center;
   align-items: center;
-  padding-bottom: 8px;
-  overflow-x: auto;
-  margin-bottom: 8px;
+  overflow: hidden;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  flex: 1;
 }
-.day-button {
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  padding: 6px 10px;
-  border-radius: 8px;
+
+/* Scrollbar Styles für Day Selector */
+.day-selector::-webkit-scrollbar {
+  height: 6px;
+}
+
+.day-selector::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+/* Pfeile Day Selector */
+.day-arrow {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: var(--primary);
   cursor: pointer;
-  white-space: nowrap;
-  font-size: 0.9rem;
+  padding: 4px 10px;
 }
-.day-button.active {
-  background: #0ea5a4;
-  color: white;
-  border-color: #089e9c;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+
+.day-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 /* Scrollbarer Bereich für Karten */
@@ -218,11 +240,13 @@ select {
   display: flex;
   overflow-x: auto;
   gap: 12px;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }
+
 .scroll-container::-webkit-scrollbar {
   height: 8px;
 }
+
 .scroll-container::-webkit-scrollbar-thumb {
   background-color: #ccc;
   border-radius: 4px;
@@ -236,7 +260,7 @@ select {
   background: #f1f1f1;
   border-radius: 10px;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   padding: 10px;
   text-align: center;
   display: flex;
@@ -244,22 +268,71 @@ select {
   align-items: center;
   justify-content: flex-start;
 }
+
 .summary-card img {
   width: 40px;
   height: 40px;
   margin-bottom: 8px;
 }
+
 .summary-card strong {
   display: block;
   font-size: 14px;
   margin-bottom: 4px;
 }
-.summary-card span {
+
+.summary-card span.label {
   font-size: 12px;
   color: #4f4f4f;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* oder left/right je nach Bedarf */
+  gap: 1px; /* statt line-height hack */
 }
 
+
+
+
+/* Kein Daten Zustand */
 .no-data {
   padding: 12px;
   color: #6b7280;
 }
+
+/* Responsive Anpassungen */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+  }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .btn,
+  select {
+    width: 100%;
+  }
+
+  #plot {
+    padding: 12px;
+  }
+
+  #plotlyDiv {
+    height: 300px;
+  }
+
+  .meta,
+  .scroll {
+    font-size: 14px;
+  }
+}
+
+/* Versteckte Elemente */
+#table {
+  display: none;
+}
+

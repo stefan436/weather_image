@@ -524,6 +524,43 @@
 
       // ********* Initialisierung *********
       updateDaySelector(currentIndex);
+
+      // ********* Schritt 8: Swipe-Gesten *********
+      let touchStartX = null;
+      let touchEndX = null;
+
+      const swipeThreshold = 50; // Mindestabstand für einen Swipe in px
+
+      selector.addEventListener("touchstart", function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+      }, false);
+
+      selector.addEventListener("touchend", function (e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+      }, false);
+
+      function handleSwipeGesture() {
+        if (touchStartX === null || touchEndX === null) return;
+        const diffX = touchEndX - touchStartX;
+
+        if (Math.abs(diffX) > swipeThreshold) {
+          if (diffX < 0 && currentIndex < sortedKeys.length - 1) {
+            // Swipe nach links → nächster Tag
+            currentIndex++;
+            updateDaySelector(currentIndex);
+          } else if (diffX > 0 && currentIndex > 0) {
+            // Swipe nach rechts → vorheriger Tag
+            currentIndex--;
+            updateDaySelector(currentIndex);
+          }
+        }
+
+        // Reset
+        touchStartX = null;
+        touchEndX = null;
+      }
+
     }
 
 

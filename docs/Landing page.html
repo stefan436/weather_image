@@ -79,18 +79,26 @@
       <span id="infoText" class="infoBadge">
         <strong>Hinweise:</strong> 
         <ul>
-          <li>Die Daten stammen vom Deutschen Wetterdienst (Model Output Statistics-MIX (MOSMIX)).</li>
+          <li>Die Daten basieren auf offenen Daten (Model Output Statistics-MIX (MOSMIX)) vom <strong>Deutschen Wetterdienstes (DWD)</strong> und werden unter der Lizenz
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+            verwendet.<br>
+            Daten wurden für die Darstellung aggregiert, berechnet oder bearbeitet (z. B. Glättung, Mittelung, Visualisierung).<br>
+            Quelle: Deutscher Wetterdienst
+          </li>
           <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden für den nächstgelegenen Vorhersagepunkt zum Standort angegeben.</li>
           <li>Die Zusammenfassung zeigt die dominierenden Wetterbedingungen (signifikanteste Wettersituation) für Nachts (2-6 Uhr), Frühs (6-10 Uhr), Mittags (10-14 Uhr), Nachmittags (14-18 Uhr), Abends (18-22 Uhr) und Spät Abends (22-02 Uhr).</li>
         </ul>
       </span>
     </div>
-
-    <div class="row" style="margin-top: 20px;">
-      <button id="reloadButton" class="btn" onclick="location.reload()">Seite neu laden</button>
-    </div>
-
   </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <a href="Impressum.html" class="footer-link">Impressum</a>
+      <a href="#" class="footer-link" onclick="location.reload(); return false;">Seite neu laden</a>
+    </div>
+  </footer>
 
   <!-- Hamburger-Skript -->
   <script src="scripts/Hamburgermenu_script.js"></script>

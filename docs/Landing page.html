@@ -444,20 +444,61 @@
       if (currentIndex === -1) currentIndex = 0;
 
       // ********* Schritt 5: Rendering eines einzelnen Tages *********
-      function updateDaySelector(index) {
+      function updateDaySelector(index, direction = null) {
         selector.innerHTML = "";
 
         const iso = sortedKeys[index];
+        const displayText = daysMap[iso].displayDate;
 
-        const strong = document.createElement("strong");
-        strong.textContent = daysMap[iso].displayDate;
-        selector.appendChild(strong);
+        const wrapper = document.createElement("div");
+        wrapper.className = "day-slide-wrapper";
+        wrapper.textContent = displayText;
 
-        renderDay(iso);
+        // Setze Startposition je nach Richtung
+        if (direction === "left") {
+          wrapper.style.transform = "translateX(100%)";
+        } else if (direction === "right") {
+          wrapper.style.transform = "translateX(-100%)";
+        } else {
+          wrapper.style.transform = "translateX(0)";
+        }
 
+        const oldWrapper = selector.querySelector(".day-slide-wrapper");
+        if (oldWrapper) {
+          // Alte Animation ausführen
+          const exitDir = direction === "left" ? "-100%" : "100%";
+          oldWrapper.style.transform = `translateX(${exitDir})`;
+          oldWrapper.addEventListener("transitionend", () => {
+            if (oldWrapper.parentNode === selector) {
+              selector.removeChild(oldWrapper);
+            }
+          });
+        }
+
+        selector.appendChild(wrapper);
+
+        // Force reflow, damit der Startwert sicher angewendet wird
+        wrapper.getBoundingClientRect();
+
+        // Dann animieren
+        requestAnimationFrame(() => {
+          wrapper.style.transform = "translateX(0)";
+        });
+
+
+        // Trigger reines Reinsliden
+        requestAnimationFrame(() => {
+          wrapper.style.transform = "translateX(0)";
+        });
+
+        // Danach Karten rendern
+        renderDay(iso, direction);
+
+        // Pfeile aktivieren/deaktivieren
         document.getElementById("day-left").disabled = index <= 0;
         document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
       }
+
 
 
       // ********* Schritt 6: Einzeltag-Rendering *********
@@ -508,19 +549,22 @@
       const leftBtn = document.getElementById("day-left");
       const rightBtn = document.getElementById("day-right");
 
+      // Links
       leftBtn.addEventListener("click", () => {
         if (currentIndex > 0) {
           currentIndex--;
-          updateDaySelector(currentIndex);
+          updateDaySelector(currentIndex, "right");
         }
       });
 
+      // Rechts
       rightBtn.addEventListener("click", () => {
         if (currentIndex < sortedKeys.length - 1) {
           currentIndex++;
-          updateDaySelector(currentIndex);
+          updateDaySelector(currentIndex, "left");
         }
       });
+
 
       // ********* Initialisierung *********
       updateDaySelector(currentIndex);
@@ -546,13 +590,11 @@
 
         if (Math.abs(diffX) > swipeThreshold) {
           if (diffX < 0 && currentIndex < sortedKeys.length - 1) {
-            // Swipe nach links → nächster Tag
             currentIndex++;
-            updateDaySelector(currentIndex);
+            updateDaySelector(currentIndex, "left");
           } else if (diffX > 0 && currentIndex > 0) {
-            // Swipe nach rechts → vorheriger Tag
             currentIndex--;
-            updateDaySelector(currentIndex);
+            updateDaySelector(currentIndex, "right");
           }
         }
 
@@ -963,4 +1005,3 @@
   </script>
 </body>
 </html>
-

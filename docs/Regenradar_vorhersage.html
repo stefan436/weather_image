@@ -50,6 +50,9 @@
       <span id="hoverColorBox" style="display:inline-block; width:16px; height:12px; border:1px solid #ccc; vertical-align:middle; margin-right:6px;"></span>
       <span id="hoverValue"></span>
     </div>
+    <div style="font-size:10px; margin-top:6px; color:#444;">
+      Quelle: Deutscher Wetterdienst, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+    </div>
   </div>
 
 
@@ -301,7 +304,7 @@
           document.getElementById('controls').style.padding = "6px";
           document.getElementById('controls').style.gap = "6px";
           requestAnimationFrame(() => map.invalidateSize());
-        }, 1000);
+        }, 0);
       } catch (e) {
         console.error("Fehler: ", e);
         document.getElementById("location_output").textContent = "Fehler: " + e.message;

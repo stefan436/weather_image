@@ -452,7 +452,7 @@
 
         const wrapper = document.createElement("div");
         wrapper.className = "day-slide-wrapper";
-        wrapper.textContent = displayText;
+        wrapper.textContent = `<strong>${displayText}</strong>`;
 
         // Setze Startposition je nach Richtung
         if (direction === "left") {
@@ -1005,3 +1005,4 @@
   </script>
 </body>
 </html>
+

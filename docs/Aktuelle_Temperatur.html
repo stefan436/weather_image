@@ -9,7 +9,7 @@
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0px;
       background: #f9fafb;
       color: #333;
     }
@@ -72,16 +72,57 @@
     .value {
       color: #111827;
     }
+
+    footer {
+      background: #f1f1f1;
+      color: #4f4f4f;
+      text-align: center;
+      padding: 16px;
+      margin-top: 40px;
+      font-size: 14px;
+      border-top: 1px solid #ccc;
+    }
+
+    footer p {
+      font-size: 10px;
+    }
+
+    footer a {
+      color: #4f4f4f;
+      text-decoration: underline;
+    }
+
+    footer a:hover {
+      color: #333;
+    }
+
   </style>
 </head>
 <body>
-  <h1>Aktuelle Messwerte</h1>
-  <button onclick="getLocation(fetchWeather)">Daten laden</button>
-  <p id="location_output"></p>
+  <main style="padding: 12px;">
+    <h1>Aktuelle Messwerte</h1>
+    <button onclick="getLocation(fetchWeather)">Daten laden</button>
+    <p id="location_output"></p>
 
-  <div class="weather-card">
-    <div class="weather-data" id="weather_data"></div>
-  </div>
+    <div class="weather-card" style="height: 625px;">
+      <div class="weather-data" id="weather_data"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      Wetterdaten (Sonnenauf- und untergang) von C, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
+    </p>
+    <p>
+      UV-Index-Daten von <a href="https://currentuvindex.com" target="_blank" rel="noopener noreferrer">currentuvindex.com</a>, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
+    </p>
+    <p>
+      Die restlichen Daten wurden über die <a href="https://brightsky.dev/" target="_blank" rel="noopener noreferrer">brightsky.dev</a> geladen, stamme jedoch vom Deutschen Wetterdienst (DWD). Quelle: Deutscher Wetterdienst, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
+    </p>
+  </footer>
+
+
 
   <script>
     const DateTime = luxon.DateTime;
@@ -195,12 +236,14 @@
 
     function renderWeather(fields) {
       const container = document.getElementById("weather_data");
+      document.querySelector('.weather-card').style.height = '';
       container.innerHTML = "";
       for (const [label, value] of Object.entries(fields)) {
         const row = document.createElement("div");
         row.innerHTML = `<span class="label">${label}:</span><span class="value">${value}</span>`;
         container.appendChild(row);
       }
+      
     }
   </script>
 </body>

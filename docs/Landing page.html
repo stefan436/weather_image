@@ -338,14 +338,14 @@
     };
 
 
-    // periods unverändert (verwende deine vorhandene Definition)
+    // periods; Die Vorhersage für das signifikante Wetter vorhergesagt um 7 uhr bedeutet das Wetter zwischen 6:00 und 6.59 Uhr (within last hour)
     const periods = [
-      { name: "Früh", startHour: 6,  endHour: 10 },
-      { name: "Mittag",    startHour: 10, endHour: 14 },
-      { name: "Nachmittag" ,startHour: 14, endHour: 18 },
-      { name: "Abend",     startHour: 18, endHour: 22 },
-      { name: "Spät Abends", startHour:22, endHour:2 },
-      { name: "Nacht",     startHour: 2, endHour: 6 }
+      { name: "Früh", startHour: 7,  endHour: 11 },
+      { name: "Mittag",    startHour: 11, endHour: 15 },
+      { name: "Nachmittag" ,startHour: 15, endHour: 19 },
+      { name: "Abend",     startHour: 19, endHour: 23 },
+      { name: "Spät Abends", startHour:23, endHour:3 },
+      { name: "Nacht",     startHour: 3, endHour: 7 }
     ];
 
     const periodOrder = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"];
@@ -366,6 +366,7 @@
       selector.innerHTML = "";
 
       const now = new Date();
+      now.setMinutes(0, 0, 0); // Minuten, Sekunden, Millisekunden auf 0 setzen
 
       // ********* Schritt 1: Roh-Einträge vorbereiten *********
       const entries = timeSteps.map((ts, i) => {

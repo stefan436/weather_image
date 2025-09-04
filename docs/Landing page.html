@@ -58,8 +58,13 @@
     <div id="station" class="meta"></div>
 
     <section id="weather-summary" class="weather-summary">
+      <!-- Day selector (wird dynamisch gefüllt) -->
+      <div id="day-selector" class="day-selector"></div>
+
+      <!-- Container für die Summary-Karten -->
       <div id="scroll-container" class="scroll-container"></div>
     </section>
+
 
 
     <div id="plot">
@@ -138,7 +143,7 @@
     const preferredOrder = [
       "Temperatur",
       "Niederschlagswahrscheinlichkeit",
-      "Totale Niederschlagsmenge",
+      "Totale Niderschlagsmenge",
       "Niederschlagsdauer",
       "Gewitterwahrscheinlichkeit",
       "Bewölkung",  
@@ -329,6 +334,7 @@
     };
 
 
+    // periods unverändert (verwende deine vorhandene Definition)
     const periods = [
       { name: "Früh", startHour: 6,  endHour: 10 },
       { name: "Mittag",    startHour: 10, endHour: 14 },
@@ -338,92 +344,212 @@
       { name: "Nacht",     startHour: 2, endHour: 6 }
     ];
 
+    const periodOrder = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"];
 
+    /**
+    * buildSummary: erstellt die Tag-Auswahl und rendert beim Klick die Summary-Karten
+    * Benötigt global: timeSteps (Array), seriesMap["Significant Weather"] (Array gleicher Länge), wwIconMap (Objekt)
+    */
     function buildSummary() {
-      if (!seriesMap["Significant Weather"]) {
+      if (!seriesMap || !seriesMap["Significant Weather"]) {
         console.warn("Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich");
         return;
       }
 
       const container = document.getElementById("scroll-container");
+      const selector = document.getElementById("day-selector");
       container.innerHTML = "";
+      selector.innerHTML = "";
 
       const now = new Date();
 
-      // Schritt 1: Einträge vorbereiten
+      // ********* Schritt 1: Roh-Einträge vorbereiten *********
       const entries = timeSteps.map((ts, i) => {
         const dateObj = new Date(ts);
         const code = parseInt(seriesMap["Significant Weather"][i]);
-        return { timestamp: dateObj, hour: dateObj.getHours(), code };
+        return { timestamp: dateObj, hour: dateObj.getHours(), code, index: i };
       });
 
-      // Schritt 2: nur Einträge ab der aktuellen Uhrzeit behalten
+      // ********* Schritt 2: nur zukünftige Einträge (ab jetzt) *********
       const futureEntries = entries.filter(e => e.timestamp >= now);
 
-      // Schritt 3: nach Perioden gruppieren
-      const grouped = {};
+      // ********* Schritt 3: nach Tag (ISO YYYY-MM-DD) und Periode gruppieren *********
+      // daysMap: { "2025-09-04": { displayDate: "Do, 04.09", groups: { "Früh": [entries], ... } } }
+      const daysMap = {};
+
       for (const entry of futureEntries) {
         const period = periods.find(p => {
           if (p.startHour < p.endHour) {
             return entry.hour >= p.startHour && entry.hour < p.endHour;
           } else {
+            // Über Mitternacht (z. B. 22 - 2)
             return entry.hour >= p.startHour || entry.hour < p.endHour;
           }
         });
         if (!period) continue;
 
+        // groupDate: Datum, zu dem die Periode gehört (bei Über-Mitternacht: vorheriger Tag)
         const entryDate = new Date(entry.timestamp);
         let groupDate = new Date(entryDate);
-
         if (period.startHour > period.endHour && entry.hour < period.endHour) {
           // Stunden nach Mitternacht zählen zum Vortag
           groupDate.setDate(groupDate.getDate() - 1);
         }
 
-        const dateOnly = groupDate.toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
-        const key = `${dateOnly}_${period.name}`;
+        // ISO-Key (YYYY-MM-DD) stabil für Sortierung
+        const y = groupDate.getFullYear();
+        const m = String(groupDate.getMonth() + 1).padStart(2, "0");
+        const d = String(groupDate.getDate()).padStart(2, "0");
+        const dayIso = `${y}-${m}-${d}`;
 
-        if (!grouped[key]) grouped[key] = { date: dateOnly, periodName: period.name, entries: [] };
-        grouped[key].entries.push(entry);
+        // Anzeige-String: Heute / Morgen / Übermorgen / ab dann: "Fr, 06. Sep."
+        const today = new Date();
+        const diffDays = Math.floor((groupDate - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / (1000 * 60 * 60 * 24));
+
+        let displayDate;
+        if (diffDays === 0) {
+          displayDate = "Heute";
+        } else if (diffDays === 1) {
+          displayDate = "Morgen";
+        } else if (diffDays === 2) {
+          displayDate = "Übermorgen";
+        } else {
+          displayDate = groupDate.toLocaleDateString("de-DE", {
+            weekday: "short",
+            day: "2-digit",
+            month: "short", // z.B. "Sep."
+            timeZone: "Europe/Berlin"
+          });
+        }
+
+        if (!daysMap[dayIso]) daysMap[dayIso] = { displayDate, groups: {} };
+        if (!daysMap[dayIso].groups[period.name]) daysMap[dayIso].groups[period.name] = [];
+        daysMap[dayIso].groups[period.name].push(entry);
       }
 
+      // Kein Zukunftstag gefunden?
+      const dayKeys = Object.keys(daysMap).sort();
+      if (dayKeys.length === 0) {
+        container.innerHTML = `<div class="no-data">Keine zukünftigen Vorhersagen vorhanden.</div>`;
+        return;
+      }
 
-      // Schritt 4: Sortieren (feste Reihenfolge)
-      const periodOrder = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"];
-      const sortedKeys = Object.keys(grouped).sort((a, b) => {
-        const [dateA, periodA] = a.split("_");
-        const [dateB, periodB] = b.split("_");
-        const dA = new Date(dateA.split(".").reverse().join("-"));
-        const dB = new Date(dateB.split(".").reverse().join("-"));
-        if (+dA !== +dB) return dA - dB;
-        return periodOrder.indexOf(periodA) - periodOrder.indexOf(periodB);
+      // ********* Schritt 4: Day-Selector rendern (inkl. "Alle Tage") *********
+      // Buttons pro Tag
+      dayKeys.forEach(iso => {
+        const btn = document.createElement("button");
+        btn.className = "day-button";
+        btn.dataset.iso = iso;
+        btn.textContent = daysMap[iso].displayDate;
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".day-button").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          renderDay(iso, daysMap);
+        });
+        selector.appendChild(btn);
       });
 
-      // Schritt 5: Rendern
-      for (const key of sortedKeys) {
-        const group = grouped[key];
-        const freq = {};
-        for (const e of group.entries) {
-          if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
+      // ********* Schritt 5: Default-Auswahl *********
+      const today = new Date();
+      const ty = today.getFullYear();
+      const tm = String(today.getMonth() + 1).padStart(2, "0");
+      const td = String(today.getDate()).padStart(2, "0");
+      const todayIso = `${ty}-${tm}-${td}`;
+
+      const defaultIso = daysMap[todayIso] ? todayIso : dayKeys[0];
+      // Markiere default-Button aktiv
+      const defaultBtn = selector.querySelector(`[data-iso="${defaultIso}"]`);
+      if (defaultBtn) defaultBtn.classList.add("active");
+
+      // Render initial view (default day)
+      renderDay(defaultIso, daysMap);
+
+      // ********* Hilfsfunktionen zum Rendern *********
+      function renderDay(iso, daysMap) {
+        container.innerHTML = "";
+        const day = daysMap[iso];
+        if (!day) {
+          container.innerHTML = `<div class="no-data">Keine Daten für den gewählten Tag.</div>`;
+          return;
         }
-        const dominantCode = Object.entries(freq)
-          .sort((a, b) => {
-            const countDiff = b[1] - a[1];      // zuerst nach Häufigkeit
-            if (countDiff !== 0) return countDiff;
-            return b[0] - a[0];                 // bei Gleichstand höhere Zahl nehmen
-          })[0]?.[0];
 
-        const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
+        // Perioden in fester Reihenfolge durchgehen
+        periodOrder.forEach(periodName => {
+          const entries = day.groups[periodName];
+          if (!entries || entries.length === 0) return;
 
-        const card = document.createElement("div");
-        card.className = "summary-card";
-        card.innerHTML = `
-          <img src="icons/${info.icon}" alt="${info.label}">
-          <strong>${group.periodName}</strong>
-          <span>${info.label}</span>
-          <span>${group.date}</span>
-        `;
-        container.appendChild(card);
+          // Dominanter Code bestimmen (wie vorher: nach Häufigkeit, bei Gleichstand höhere Zahl)
+          const freq = {};
+          for (const e of entries) {
+            if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
+          }
+          const dominantCode = Object.entries(freq)
+            .sort((a, b) => {
+              const countDiff = b[1] - a[1];
+              if (countDiff !== 0) return countDiff;
+              return b[0] - a[0];
+            })[0]?.[0];
+
+          const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
+
+          const card = document.createElement("div");
+          card.className = "summary-card";
+          card.innerHTML = `
+            <img src="icons/${info.icon}" alt="${info.label}">
+            <div class="summary-text">
+              <strong>${periodName}</strong>
+              <span class="label">${info.label}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        if (container.children.length === 0) {
+          container.innerHTML = `<div class="no-data">Für diesen Tag liegen keine Vorhersagedaten vor.</div>`;
+        }
+      }
+
+      // Rendern aller Tage (Kopfzeile pro Tag + dessen Karten)
+      function renderAllDays(sortedDayKeys, daysMap) {
+        container.innerHTML = "";
+        for (const iso of sortedDayKeys) {
+          const heading = document.createElement("div");
+          heading.style.gridColumn = "1/-1";
+          heading.style.fontWeight = "600";
+          heading.style.margin = "8px 0 4px";
+          heading.textContent = daysMap[iso].displayDate;
+          container.appendChild(heading);
+
+          // Perioden wie oben
+          periodOrder.forEach(periodName => {
+            const entries = daysMap[iso].groups[periodName];
+            if (!entries || entries.length === 0) return;
+
+            const freq = {};
+            for (const e of entries) {
+              if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
+            }
+            const dominantCode = Object.entries(freq)
+              .sort((a, b) => {
+                const countDiff = b[1] - a[1];
+                if (countDiff !== 0) return countDiff;
+                return b[0] - a[0];
+              })[0]?.[0];
+            const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
+
+            const card = document.createElement("div");
+            card.className = "summary-card";
+            card.innerHTML = `
+              <img src="icons/${info.icon}" alt="${info.label}">
+              <div class="summary-text">
+                <strong>${periodName}</strong>
+                <span class="label">${info.label}</span>
+                <span class="date">${daysMap[iso].displayDate}</span>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        }
       }
     }
 
@@ -826,5 +952,4 @@
   </script>
 </body>
 </html>
-
 

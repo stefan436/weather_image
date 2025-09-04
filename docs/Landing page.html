@@ -443,62 +443,79 @@
       let currentIndex = sortedKeys.findIndex(k => k === todayIso);
       if (currentIndex === -1) currentIndex = 0;
 
+
+      let animating = false;
       // ********* Schritt 5: Rendering eines einzelnen Tages *********
       function updateDaySelector(index, direction = null) {
-        selector.innerHTML = "";
+        // Verhindere neue Animationen während eine läuft
+        if (animating) return;
 
         const iso = sortedKeys[index];
         const displayText = daysMap[iso].displayDate;
 
-        const wrapper = document.createElement("div");
-        wrapper.className = "day-slide-wrapper";
-        wrapper.textContent = `<strong>${displayText}</strong>`;
+        const newWrapper = document.createElement("div");
+        newWrapper.className = "day-slide-wrapper";
+        newWrapper.innerHTML = `<strong>${displayText}</strong>`;
 
-        // Setze Startposition je nach Richtung
+        // Startposition des neuen Wrappers
         if (direction === "left") {
-          wrapper.style.transform = "translateX(100%)";
+          newWrapper.style.transform = "translateX(100%)";
         } else if (direction === "right") {
-          wrapper.style.transform = "translateX(-100%)";
+          newWrapper.style.transform = "translateX(-100%)";
         } else {
-          wrapper.style.transform = "translateX(0)";
+          newWrapper.style.transform = "translateX(0)";
         }
 
+        // Suche alten Wrapper (falls vorhanden)
         const oldWrapper = selector.querySelector(".day-slide-wrapper");
-        if (oldWrapper) {
-          // Alte Animation ausführen
-          const exitDir = direction === "left" ? "-100%" : "100%";
-          oldWrapper.style.transform = `translateX(${exitDir})`;
-          oldWrapper.addEventListener("transitionend", () => {
-            if (oldWrapper.parentNode === selector) {
-              selector.removeChild(oldWrapper);
-            }
-          });
+
+        if (!oldWrapper) {
+          // erster Aufruf: einfach einfügen
+          selector.innerHTML = "";
+          selector.appendChild(newWrapper);
+          // Force reflow + sicherstellen, dass er bei 0 landet
+          newWrapper.getBoundingClientRect();
+          requestAnimationFrame(() => { newWrapper.style.transform = "translateX(0)"; });
+          // Render + Pfeile
+          renderDay(iso, direction);
+          document.getElementById("day-left").disabled = index <= 0;
+          document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+          return;
         }
 
-        selector.appendChild(wrapper);
+        // Beide vorhanden -> parallele Animation (alt raus, neu rein)
+        animating = true;
 
-        // Force reflow, damit der Startwert sicher angewendet wird
-        wrapper.getBoundingClientRect();
+        // append new (beide sind absolute, also überlappen sie)
+        selector.appendChild(newWrapper);
 
-        // Dann animieren
-        requestAnimationFrame(() => {
-          wrapper.style.transform = "translateX(0)";
-        });
+        // Stelle sicher, dass beide einen Transition-Wert haben (CSS hat das, aber inline ist robust)
+        oldWrapper.style.transition = "transform 0.3s ease";
+        newWrapper.style.transition = "transform 0.3s ease";
 
+        // Ausgangszustände setzen + reflow, damit die Transition später stattfindet
+        oldWrapper.style.transform = "translateX(0)";
+        oldWrapper.getBoundingClientRect();
+        newWrapper.getBoundingClientRect();
 
-        // Trigger reines Reinsliden
-        requestAnimationFrame(() => {
-          wrapper.style.transform = "translateX(0)";
-        });
+        // Trigger: alter Wrapper fährt raus, neuer fährt rein
+        const exitDir = direction === "left" ? "-100%" : "100%";
+        oldWrapper.style.transform = `translateX(${exitDir})`;
+        requestAnimationFrame(() => { newWrapper.style.transform = "translateX(0)"; });
 
-        // Danach Karten rendern
+        // Cleanup wenn neue Animation fertig ist
+        const onNewEnd = () => {
+          if (oldWrapper.parentNode === selector) selector.removeChild(oldWrapper);
+          newWrapper.removeEventListener("transitionend", onNewEnd);
+          animating = false;
+        };
+        newWrapper.addEventListener("transitionend", onNewEnd);
+
+        // Render + Pfeile
         renderDay(iso, direction);
-
-        // Pfeile aktivieren/deaktivieren
         document.getElementById("day-left").disabled = index <= 0;
         document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
       }
-
 
 
       // ********* Schritt 6: Einzeltag-Rendering *********
@@ -549,20 +566,16 @@
       const leftBtn = document.getElementById("day-left");
       const rightBtn = document.getElementById("day-right");
 
-      // Links
       leftBtn.addEventListener("click", () => {
-        if (currentIndex > 0) {
-          currentIndex--;
-          updateDaySelector(currentIndex, "right");
-        }
+        if (animating || currentIndex <= 0) return;
+        currentIndex--;
+        updateDaySelector(currentIndex, "right");
       });
 
-      // Rechts
       rightBtn.addEventListener("click", () => {
-        if (currentIndex < sortedKeys.length - 1) {
-          currentIndex++;
-          updateDaySelector(currentIndex, "left");
-        }
+        if (animating || currentIndex >= sortedKeys.length - 1) return;
+        currentIndex++;
+        updateDaySelector(currentIndex, "left");
       });
 
 
@@ -585,6 +598,7 @@
       }, false);
 
       function handleSwipeGesture() {
+        if (animating) return;
         if (touchStartX === null || touchEndX === null) return;
         const diffX = touchEndX - touchStartX;
 
@@ -598,7 +612,6 @@
           }
         }
 
-        // Reset
         touchStartX = null;
         touchEndX = null;
       }
@@ -1005,4 +1018,3 @@
   </script>
 </body>
 </html>
-

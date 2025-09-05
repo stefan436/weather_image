@@ -1,5 +1,5 @@
-const LAT_COUNT_GFT = 425;
-const LON_COUNT_GFT = 700;
+const LAT_COUNT_GFT = 225;
+const LON_COUNT_GFT = 250;
 
 const LAT_COUNT_UV = 657;
 const LON_COUNT_UV = 1377;

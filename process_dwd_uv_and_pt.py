@@ -86,10 +86,10 @@ def main():
 
     #Daten speichern 
     with open("docs/data/latitudes_gft.json", "w") as f:
-        json.dump(gft['latitude'].values[75:-157].tolist(), f)
+        json.dump(gft['latitude'].values[200:-232].tolist(), f)
         
     with open("docs/data/longitudes_gft.json", "w") as f:
-        json.dump(gft['longitude'].values[200:-477].tolist(), f)
+        json.dump(gft['longitude'].values[450:-677].tolist(), f)
         
     with open("docs/data/latitudes_uv.json", "w") as f:
         json.dump(uvi['latitude'].values.tolist(), f)
@@ -98,7 +98,7 @@ def main():
         json.dump(uvi['longitude'].values.tolist(), f)
         
     with open("docs/data/data_gft.bin", "wb") as f:
-        f.write(gft['PT1M'].values[:, 75:-157, 200:-477].tobytes())
+        f.write(gft['PT1M'].values[:, 200:-232, 450:-677].tobytes())
         
     with open("docs/data/data_uvi.bin", "wb") as f:
         f.write(uvi['UVI_MAX_CL'].values.tobytes())

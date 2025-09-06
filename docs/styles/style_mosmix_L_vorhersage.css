@@ -69,7 +69,7 @@ h1 {
   border-radius: 12px;
   font-size: 10px;
   font-weight: 500;
-  max-height: 150px;
+  max-height: 160px;
   display: flex;
   overflow: scroll;
 }
@@ -382,4 +382,11 @@ select {
 
 .footer-link:hover {
   text-decoration: underline;
+}
+
+
+/* Koordinaten suchleiste */
+input[type="text"] {
+    padding: 0.5em;
+    border-radius: 8px;
 }

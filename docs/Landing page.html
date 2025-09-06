@@ -49,7 +49,13 @@
     <h1>Aktuelle MOSMIX Vorhersage</h1>
 
     <div class="row">
-      <button id="loadButton" class="btn" onclick="findNearestStation()">Standort analysieren & Daten laden</button>
+      <button id="loadButton" class="btn" onclick="findNearestStation()">Aktueller Standort</button>
+      <div style="display: flex; gap: 0.5em;">
+        <input type="text" id="address" placeholder="Gib Adresse ein" style="flex: 2; padding: 0.5em;">
+        <button class='btn' id="addressButton" onclick="geocode()" style="flex: 1;">Suchen</button>
+      </div>
+      <div id="result"></div>
+      <button id="confirmButton" class="btn" style="display: none;" onclick="confirmResult()">Bestätigen</button>
       <label for="plotSelect"><strong>Plot-Parameter:</strong></label>
       <select id="plotSelect" disabled></select>
       <span id="status" class="badge">Bereit</span>
@@ -85,6 +91,7 @@
             Daten wurden für die Darstellung aggregiert, berechnet oder bearbeitet (z. B. Glättung, Mittelung, Visualisierung).<br>
             Quelle: Deutscher Wetterdienst
           </li>
+          <li>Geocoding durch <a href="https://nominatim.openstreetmap.org/">Nominatim</a> - Daten von <a href="https://www.openstreetmap.org/">OpenStreetMap-Mitwirkende</a></li>
           <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden für den nächstgelegenen Vorhersagepunkt zum Standort angegeben.</li>
           <li>Die Zusammenfassung zeigt die dominierenden Wetterbedingungen (signifikanteste Wettersituation) für Nachts (2-6 Uhr), Frühs (6-10 Uhr), Mittags (10-14 Uhr), Nachmittags (14-18 Uhr), Abends (18-22 Uhr) und Spät Abends (22-02 Uhr).</li>
         </ul>
@@ -95,7 +102,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <a href="Impressum.html" class="footer-link">Impressum</a>
+      <a href="Impressum.html" class="footer-link">Impressum&Datenschutz</a>
       <a href="#" class="footer-link" onclick="location.reload(); return false;">Seite neu laden</a>
     </div>
   </footer>
@@ -105,6 +112,110 @@
 
   <!-- Mosmix Script -->
   <script>
+    const cache = new Map();        // Einfacher Cache (Adresse → Antwort)
+    let lastRequestTime = 0;        // Zeit der letzten Anfrage (zum Limitieren)
+    let lastData = null;            // Letztes Ergebnis speichern, um es bei Bestätigung zu nutzen
+    let userLat = null;
+    let userLon = null;
+    let requestAdressData = null;
+
+    async function geocode() {
+        const address = document.getElementById("address").value;
+        const resultDiv = document.getElementById("result");
+        const confirmBtn = document.getElementById("confirmButton");
+
+        confirmBtn.style.display = "none"; // Bestätigungsbutton ausblenden bei neuem Suchvorgang
+        lastData = null;
+
+        if (!address) {
+            resultDiv.textContent = "Bitte gib eine Adresse ein.";
+            return;
+        }
+
+        // Prüfen, ob Ergebnis im Cache liegt
+        if (cache.has(address)) {
+            requestAdressData = cache.get(address);
+            showResult(requestAdressData, resultDiv);
+            lastData = requestAdressData[0];
+            confirmBtn.style.display = "inline-block";
+            console.log("Aus dem Cache geladen:", address);
+            return;
+        }
+
+        // Rate Limit prüfen
+        const now = Date.now();
+        const timeSinceLast = now - lastRequestTime;
+        const delay = Math.max(0, 1000 - timeSinceLast); // mind. 1 Sekunde Abstand
+
+
+        // Verzögern, wenn nötig
+        await new Promise(resolve => setTimeout(resolve, delay));
+        lastRequestTime = Date.now(); // Jetzt ist diese Anfrage "aktiv"
+
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Accept-Language": "de",
+                    "User-Agent": "wetterprojekt-stefan-2025 (https://stefan436.github.io/)"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Fehler bei der Anfrage.");
+            }
+
+            requestAdressData = await response.json();
+            cache.set(address, requestAdressData); // Zwischenspeichern
+
+            showResult(requestAdressData, resultDiv);
+            if(requestAdressData.length > 0) {
+                lastData = requestAdressData[0];
+                confirmBtn.style.display = "inline-block"; // Button anzeigen
+            } else {
+                confirmBtn.style.display = "none";
+            }
+            console.log("Cache-Inhalte:");
+            for (const [adresse, daten] of cache.entries()) {
+              console.log(adresse, daten);
+            }
+
+        } catch (error) {
+            resultDiv.textContent = "Fehler: " + error.message;
+            confirmBtn.style.display = "none";
+        }
+    }
+
+    function showResult(requestAdressData, resultDiv) {
+        if (!requestAdressData || requestAdressData.length === 0) {
+            resultDiv.textContent = "Keine Ergebnisse gefunden.";
+            return;
+        }
+
+        const { lat, lon, display_name } = requestAdressData[0];
+        resultDiv.innerHTML = `
+            <strong>${display_name}</strong>
+        `;
+    }
+
+    function confirmResult() {
+        if (!lastData) return;
+        const { lat, lon, display_name } = requestAdressData[0];
+        userLat = lat
+        userLon = lon
+
+        setTimeout(() => {
+          setStatus("");  // Versteckt das Status-Element
+          document.getElementById("loadButton").style.display = "none";  // Versteckt den Button
+          document.getElementById("address").style.display = "none";
+          document.getElementById("addressButton").style.display = "none";
+          document.getElementById("result").style.display = "none";
+          document.getElementById("confirmButton").style.display = "none";
+        }, 0);
+
+        findNearestStation()
+    }
 
     const wwIconMap = {
       // Gewitter
@@ -195,8 +306,6 @@
 
     let closest_station_id = null;
     let minDistance = Infinity;
-    let userLat = null;
-    let userLon = null;
     let result_uv_and_pt = null;
     const statusEl = document.getElementById("status");
     const stationEl= document.getElementById("station");
@@ -254,49 +363,62 @@
       });
     }
 
+    function processWithUserCoords(lat, lon, stationData) {
+        // Alle Stationen mit Distanz berechnen
+        const stationsWithDist = stationData.map(row => {
+            const stationLat = parseFloat(row.lat);
+            const stationLon = parseFloat(row.lon);
+            if (isNaN(stationLat) || isNaN(stationLon)) return null;
+            const distance = haversineDistance(lat, lon, stationLat, stationLon);
+            return { ...row, distance };
+        }).filter(Boolean);
+
+        // nach Distanz sortieren
+        stationsWithDist.sort((a, b) => a.distance - b.distance);
+
+        // Top 5
+        const nearestFive = stationsWithDist.slice(0, 5);
+
+        // Buttons rendern
+        renderStationChoices(nearestFive);
+    }
+
 
     async function findNearestStation() {
-      setStatus("Lade Stationsliste …");
-      try {
-        const response = await fetch('data/mosmix_stationen_coords.json');
-        if (!response.ok) throw new Error('JSON konnte nicht geladen werden.');
-        const data = await response.json();
+        setStatus("Lade Stationsliste …");
 
-        if (!navigator.geolocation) {
-          setStatus('Geolocation wird nicht unterstützt.');
-          return;
+        try {
+            const response = await fetch('data/mosmix_stationen_coords.json');
+            if (!response.ok) throw new Error('JSON konnte nicht geladen werden.');
+            const data = await response.json();
+
+            // Prüfen, ob Koordinaten bereits bekannt
+            if (userLat !== null && userLon !== null) {
+                // Bereits vorhanden → direkt verwenden
+                processWithUserCoords(userLat, userLon, data);
+            } else {
+                // Nicht vorhanden → Geolocation anfragen
+                if (!navigator.geolocation) {
+                    setStatus('Geolocation wird nicht unterstützt.');
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        userLat = position.coords.latitude;
+                        userLon = position.coords.longitude;
+                        processWithUserCoords(userLat, userLon, data);
+                    },
+                    error => {
+                        setStatus('Fehler beim Standortzugriff: ' + error.message);
+                    }
+                );
+            }
+        } catch (err) {
+            setStatus('Fehler: ' + err.message);
         }
-
-        navigator.geolocation.getCurrentPosition(async position => {
-          userLat = position.coords.latitude;
-          userLon = position.coords.longitude;
-
-          // Alle Stationen mit Distanz berechnen
-          const stationsWithDist = data.map(row => {
-            const lat = parseFloat(row.lat);
-            const lon = parseFloat(row.lon);
-            if (isNaN(lat) || isNaN(lon)) return null;
-            const distance = haversineDistance(userLat, userLon, lat, lon);
-            return { ...row, distance };
-          }).filter(Boolean);
-
-          // nach Distanz sortieren
-          stationsWithDist.sort((a, b) => a.distance - b.distance);
-
-          // Top 5
-          const nearestFive = stationsWithDist.slice(0, 5);
-
-          // Buttons rendern
-          renderStationChoices(nearestFive);
-        }, error => {
-          setStatus('Fehler beim Standortzugriff: ' + error.message);
-        });
-
-
-      } catch (err) {
-        setStatus('Fehler: ' + err.message);
-      }
     }
+
 
     async function loadMosmixData(stationId) {
       try {
@@ -793,6 +915,10 @@
         setTimeout(() => {
           setStatus("");  // Versteckt das Status-Element
           document.getElementById("loadButton").style.display = "none";  // Versteckt den Button
+          document.getElementById("address").style.display = "none";
+          document.getElementById("addressButton").style.display = "none";
+          document.getElementById("result").style.display = "none";
+          document.getElementById("confirmButton").style.display = "none";
         }, 0);
 
       } catch (err) {

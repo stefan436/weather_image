@@ -7,7 +7,7 @@
   
   <!-- App Icon für iOS Homescreen -->
   <link rel="apple-touch-icon" href="icons/app_icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Wetter von Stefan">
 
 
@@ -85,14 +85,7 @@
       <span id="infoText" class="infoBadge">
         <strong>Hinweise:</strong> 
         <ul>
-          <li>Alle Daten (außer anders Vermerkt) basieren auf offenen Daten des Deutschen Wetterdienstes (DWD) und werden unter der Lizenz
-            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
-            verwendet.<br>
-            Daten wurden für die Darstellung aggregiert, berechnet oder bearbeitet (z. B. Glättung, Mittelung, Visualisierung).<br>
-            Quelle: Deutscher Wetterdienst
-          </li>
-          <li>Geocoding durch <a href="https://nominatim.openstreetmap.org/">Nominatim</a> - Daten von <a href="https://www.openstreetmap.org/">OpenStreetMap-Mitwirkende</a></li>
-          <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden für den nächstgelegenen Vorhersagepunkt zum Standort angegeben.</li>
+          <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden für den nächstgelegenen Vorhersagepunkt zum Standort oder der Adresse angegeben.</li>
           <li>Die Zusammenfassung zeigt die dominierenden Wetterbedingungen (signifikanteste Wettersituation) für Nachts (2-6 Uhr), Frühs (6-10 Uhr), Mittags (10-14 Uhr), Nachmittags (14-18 Uhr), Abends (18-22 Uhr) und Spät Abends (22-02 Uhr).</li>
         </ul>
       </span>
@@ -102,7 +95,14 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <a href="Impressum.html" class="footer-link">Impressum&Datenschutz</a>
+      <p>
+        Alle Daten (außer anders Vermerkt) vom DWD (Quelle: Deutscher Wetterdienst), lizensiert unter <a class="footer-link" href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.<br>
+        Daten ggf. bearbeitet.<br>
+      </p>
+      <p>
+        Geocoding durch <a class="footer-link" href="https://nominatim.openstreetmap.org/">Nominatim</a> - Daten von <a class="footer-link" href="https://www.openstreetmap.org/">OpenStreetMap-Mitwirkende</a>
+      </p>
+      <a href="Impressum.html" class="footer-link">Impressum & Datenschutz</a>
       <a href="#" class="footer-link" onclick="location.reload(); return false;">Seite neu laden</a>
     </div>
   </footer>
@@ -1234,5 +1234,4 @@
   </script>
 </body>
 </html>
-
 

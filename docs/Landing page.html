@@ -1178,6 +1178,17 @@
         shapes: shapes
       };
 
+      // Wenn Windrichtung → Y-Achse in Richtungssymbolen anzeigen
+      if (param.includes("Windrichtung")) {
+        layout.yaxis = {
+          title: "Windrichtung",
+          tickmode: "array",
+          tickvals: [0, 90, 180, 270, 360],
+          ticktext: ["N", "E", "S", "W", "N"],
+          range: [0, 360]
+        };
+      }
+      
       Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
 
     }
@@ -1234,4 +1245,5 @@
   </script>
 </body>
 </html>
+
 

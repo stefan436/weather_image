@@ -267,7 +267,6 @@
       "Temperatur",
       "Niederschlagswahrscheinlichkeit",
       "Totale Niederschlagsmenge",
-      "Niederschlagsdauer",
       "Gewitterwahrscheinlichkeit",
       "Bewölkung",  
       "Windgeschwindigkeit", 
@@ -275,13 +274,13 @@
       "Windrichtung",
       "Sichtweite",
       "Nebelwahrscheinlichkeit", 
-      "Wahrscheinlichkeit Sichtweite < 1km", 
-      "Sonnenscheindauer", 
+      "Sonnenstunden-stündlich", 
+      "Sonnenstunden-täglich",
       "UV-Index",
       "Strahlungsintensität", 
       "reduzierter Oberflächendruck"
     ];
-  
+
 
     // Kürzel, die nicht im Dropdown auftauchen sollen
     const excludedElements = [
@@ -290,10 +289,10 @@
       "R120", "R130", "R150", "R600", "R602", "R610", "R650", "RRad1", "Rd00",
       "Rd02", "Rd10", "Rd50", "Rh00", "Rh02", "Rh10", "Rh50", "RR1o1", "RR1u1",
       "RR1w1", "RR3c", "RR6c", "RRdc", "RRhc", "RRL1c", "RRS1c", "RRS3c", "RSunD",
-      "SunD", "SunD3", "T5cm", "Td", "TG", "TM", "W1W2", "WPc11", "WPc31", "WPc61",
+      "SunD3", "T5cm", "Td", "TG", "TM", "W1W2", "WPc11", "WPc31", "WPc61", "DRR1",
       "WPcd1", "WPch1", "ww", "ww3", "wwC", "wwC6", "wwCh", "wwD", "wwD6", "wwDh",
       "wwF", "wwF6", "wwFh", "wwL", "wwL6", "wwLh", "wwM6", "wwMd", "wwMh", "wwP6",
-      "wwPd", "wwPh", "wwS", "wwS6", "wwSh", "wwT6", "wwTd", "wwTh", "wwZ",
+      "wwPd", "wwPh", "wwS", "wwS6", "wwSh", "wwT6", "wwTd", "wwTh", "wwZ", "VV10",
       "wwZ6", "wwZh", "FXh55", "N05", "Nh", "Nl", "Nlm", "Nm", "PEvap", "TX", "TN", "N", "Gefühlte Temperatur"
     ];
  
@@ -1148,6 +1147,47 @@
           });
         });
       }
+      if (param.includes("Sonnenstunden-täglich")) {
+        const xData = timeSteps.map(ts => {
+          const date = new Date(ts);
+          date.setDate(date.getDate() - 1); // Einen Tag abziehen
+          date.setUTCHours(12, 0, 0, 0);    // Uhrzeit auf 10:00:00.000 UTC setzen
+          return date;
+        });
+        const yData = seriesMap[param].map(v => v == null ? null : v / 60);
+
+        // Linie in grau
+        traces.push({
+          x: xData,
+          y: yData,
+          type: "scatter",
+          mode: "lines",
+          line: { width: 2, shape: "spline", color: "rgba(17, 24, 39, 1)" },
+          connectgaps: true,
+          name: param,
+          hoverinfo: "skip",
+          showlegend: false
+        });
+
+        // Marker anderem grau
+        traces.push({
+          x: xData,
+          y: yData,
+          type: "scatter",
+          mode: "markers",
+          marker: { size: 6, color: "rgba(17, 24, 39, 1)" }, 
+          name: param
+        });
+
+        const layout = {
+          ...getLayout(param),
+          shapes: shapes
+        };
+
+        Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
+        return;
+      }
+
 
 
       // Linie in grau
@@ -1190,9 +1230,7 @@
       }
       
       Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
-
     }
-
 
 
     // Hilfsfunktionen für Layout und Config

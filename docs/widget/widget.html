@@ -188,7 +188,7 @@
     // ------------------- KMZ laden -------------------
     async function loadMosmixData(stationId) {
       try {
-        const proxy = 'https://corsproxy.io/?';
+        const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
         const baseUrl = `https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/${stationId}/kml/MOSMIX_L_LATEST_${stationId}.kmz`;
         const url = proxy + encodeURIComponent(baseUrl);
 
@@ -483,3 +483,4 @@
   </script>
 </body>
 </html>
+

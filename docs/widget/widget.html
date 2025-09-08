@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta name="js-widget-title" content="Wetter Übersicht">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather summary</title>
+
+  <!-- Lokale Abhängigkeiten -->
+  <script src="elementNamesMap.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main style="padding: 12px;">
+    <div class="row">
+      <a href="#action=load" class="btn" id="loadButton" onclick="event.preventDefault(); findNearestStation();">Aktueller Standort</a>
+
+
+    </div>
+
+    <div id="station" class="meta" style="display: none;"></div>
+
+    <section id="weather-summary" class="weather-summary">
+      <div class="day-selector-wrapper">
+        <a class="day-arrow left" id="day-left" href="#action=prev" onclick="event.preventDefault(); navigateDay('left')">&#10094;</a>
+        <div id="day-selector" class="day-selector"></div>
+        <a class="day-arrow right" id="day-right" href="#action=next" onclick="event.preventDefault(); navigateDay('right')">&#10095;</a>
+      </div>
+
+
+      <div id="scroll-container" class="scroll-container"></div>
+    </section>
+  </main>
+
+  <script>
+    function __wweb2WaitMillisecondsToWidgetIsReady(currentDelayMs) {
+      return 0;
+    }
+
+    let queryString = window.location.hash;
+    if (queryString.startsWith("#")) {
+      queryString = queryString.substring(1);
+    }
+    const urlParams = new URLSearchParams(queryString);
+    const actionParam = urlParams.get('action');
+
+    if (actionParam) {
+      switch (actionParam) {
+        case "load":
+          findNearestStation();
+          break;
+        case "prev":
+          navigateDay('left');
+          break;
+        case "next":
+          navigateDay('right');
+          break;
+      }
+    }
+
+
+    function navigateDay(direction) {
+      if (direction === 'left') {
+        // Deine bisherige Logik, z. B.:
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateDaySelector(currentIndex, "right");
+        }
+      } else if (direction === 'right') {
+        if (currentIndex < sortedKeys.length - 1) {
+          currentIndex++;
+          updateDaySelector(currentIndex, "left");
+        }
+      }
+    }
+
+
+
+    // ------------------- Globale Variablen -------------------
+    let userLat = null;
+    let userLon = null;
+    let minDistance = Infinity;
+    let seriesMap = {};
+    let timeSteps = [];
+    let currentIndex = 0;
+    let sortedKeys = [];
+
+
+    const periods = [
+      { name: "Früh", startHour: 6,  endHour: 10 },
+      { name: "Mittag",    startHour: 10, endHour: 14 },
+      { name: "Nachmittag" ,startHour: 14, endHour: 18 },
+      { name: "Abend",     startHour: 18, endHour: 22 },
+      { name: "Spät Abends", startHour:22, endHour:2 },
+      { name: "Nacht",     startHour: 2, endHour: 6 }
+    ];
+    const periodOrder = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"];
+    const wwIconMap = {
+      // Gewitter
+      95: { icon: "thunderstorm.png", label: "Gewitter mit Regen/Schnee" },
+
+      // gefrierender Sprühregen/Regen
+      57: { icon: "heavy freeting rain.png", label: "Starker gefrierender Sprühregen" },
+      56: { icon: "light freezing rain.png", label: "Leichter gefrierender Sprühregen" },
+      67: { icon: "heavy freeting rain.png", label: "Starker gefrierender Regen" },
+      66: { icon: "light freezing rain.png", label: "Leichter gefrierender Regen" },
+
+      // Schnee/Schneeschauer
+      86: { icon: "heavy snow.png", label: "Starker Schneeschauer" },
+      85: { icon: "light snow.png", label: "Leichter Schneeschauer" },
+      84: { icon: "heavy sleet.png", label: "Starker Schneeregenschauer" },
+      83: { icon: "light sleet.png", label: "Leichter Schneeregenschauer" },
+      75: { icon: "heavy snow.png", label: "Starker Schneefall" },
+      73: { icon: "moderate snow.png", label: "Mäßiger Schneefall" },
+      71: { icon: "light snow.png", label: "Leichter Schneefall" },
+      69: { icon: "heavy sleet.png", label: "Starker Schneeregen" },
+      68: { icon: "light sleet.png", label: "Leichter Schneeregen" },
+
+      // Regen/Schauer
+      82: { icon: "heavy rain.png", label: "Heftiger Regenschauer" },
+      81: { icon: "moderate rain.png", label: "Starker Regenschauer" },
+      80: { icon: "light rain.png", label: "Leichter Regenschauer" },
+      65: { icon: "heavy rain.png", label: "Starker Regen" },
+      63: { icon: "moderate rain.png", label: "Mäßiger Regen" },
+      61: { icon: "light rain.png", label: "Leichter Regen" },
+
+      // Sprühregen
+      55: { icon: "heavy rain.png", label: "Starker Sprühregen" },
+      53: { icon: "moderate rain.png", label: "Mäßiger Sprühregen" },
+      51: { icon: "light rain.png", label: "Leichter Sprühregen" },
+
+      // Nebel
+      49: { icon: "fog.png", label: "Nebel mit Reif" },
+      45: { icon: "fog.png", label: "Nebel" },
+
+      // Bewölkung
+      3:  { icon: "total cloud cover.png", label: "Bewölkung zunehmend" },
+      2:  { icon: "medium cloud cover.png", label: "Bewölkung unverändert" },
+      1:  { icon: "low cloud cover.png", label: "Bewölkung abnehmend" },
+      0:  { icon: "clear-day-night.png", label: "Klarer Himmel" }
+    };
+
+    const stationEl = document.getElementById("station");
+
+
+    function toRadians(deg) { return deg * Math.PI / 180; }
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = toRadians(lat1), φ2 = toRadians(lat2);
+      const Δφ = toRadians(lat2 - lat1), Δλ = toRadians(lon2 - lon1);
+      const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // ------------------- Station automatisch wählen -------------------
+    async function findNearestStation() {
+      try {
+        const response = await fetch('mosmix_stationen_coords.json');
+        if (!response.ok) throw new Error('Stationsdaten konnten nicht geladen werden.');
+        const data = await response.json();
+
+
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+
+            const stationsWithDist = data.map(row => {
+              const stationLat = parseFloat(row.lat);
+              const stationLon = parseFloat(row.lon);
+              if (isNaN(stationLat) || isNaN(stationLon)) return null;
+              const distance = haversineDistance(userLat, userLon, stationLat, stationLon);
+              return { ...row, distance };
+            }).filter(Boolean);
+
+            stationsWithDist.sort((a, b) => a.distance - b.distance);
+            const nearestStation = stationsWithDist[0];
+
+            minDistance = nearestStation.distance;
+            loadMosmixData(nearestStation.station_id);
+          },
+        );
+      } catch (err) {
+      }
+    }
+
+    // ------------------- KMZ laden -------------------
+    async function loadMosmixData(stationId) {
+      try {
+        const proxy = 'https://corsproxy.io/?';
+        const baseUrl = `https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/${stationId}/kml/MOSMIX_L_LATEST_${stationId}.kmz`;
+        const url = proxy + encodeURIComponent(baseUrl);
+
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`KMZ konnte nicht geladen werden (${resp.status})`);
+        const blob = await resp.blob();
+
+        const zip = await JSZip.loadAsync(blob);
+        const kmlFile = Object.keys(zip.files).find(f => f.endsWith(".kml"));
+        if (!kmlFile) throw new Error("Keine KML in KMZ gefunden.");
+        const kmlText = await zip.files[kmlFile].async("string");
+
+        parseKML(kmlText);
+      } catch (err) {
+      }
+    }
+    // --- KML parsen (vereinfacht) ---
+    async function parseKML(text) {
+      const KMLNS = "http://www.opengis.net/kml/2.2";
+      const DWDNS = "https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd";
+
+      try {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "application/xml");
+        if (xml.getElementsByTagName("parsererror")[0]) throw new Error("XML-Parsing-Fehler");
+
+        timeSteps = Array.from(xml.getElementsByTagNameNS(DWDNS, "TimeStep")).map(n => n.textContent.trim());
+        if (timeSteps.length === 0) throw new Error("Keine dwd:TimeStep gefunden.");
+
+        const placemark = xml.getElementsByTagNameNS(KMLNS, "Placemark")[0];
+        if (!placemark) throw new Error("Kein kml:Placemark gefunden.");
+
+        const stationDesc = placemark.getElementsByTagNameNS(KMLNS, "description")[0]?.textContent ?? "";
+        const coords = placemark.getElementsByTagNameNS(KMLNS, "coordinates")[0]?.textContent?.trim() ?? "";
+        const coordParts = coords.split(',');
+        const height = coordParts[2]?.trim() ?? "";
+        // Forecasts einlesen
+        const forecasts = Array.from(placemark.getElementsByTagNameNS(DWDNS, "Forecast"));
+        seriesMap = {};
+
+        for (const fc of forecasts) {
+          const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
+          const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
+          if (!elName || !valueNode) continue;
+
+          // falls elementNamesMap/elementUnitsMap verfügbar sind, verwenden, sonst Fallback
+          const readableName = (typeof elementNamesMap !== "undefined" && elementNamesMap[elName]) ? elementNamesMap[elName] : elName;
+          const unit = (typeof elementUnitsMap !== "undefined") ? elementUnitsMap[elName] : undefined;
+          const converter = (unit && typeof unitConversionMap !== "undefined") ? unitConversionMap[unit] : null;
+
+          const values = valueNode.textContent.trim().split(/\s+/).map(v => {
+            if (v === "-" || v === "") return null;
+            const num = Number(v);
+            if (!Number.isFinite(num)) return v;
+            const converted = converter ? converter(num) : num;
+            return Math.round(converted * 100) / 100;
+          });
+
+          seriesMap[readableName] = values.slice(0, timeSteps.length);
+        }
+        buildSummary();
+        setTimeout(() => {
+          document.getElementById("loadButton").style.display = "none";
+        }, 0);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // --- Summary Builder (nutzt seriesMap & timeSteps) ---
+    function buildSummary() {
+      if (!seriesMap || !seriesMap["Significant Weather"]) {
+        console.warn("Kein Wettercode (Significant Weather) verfügbar – keine Zusammenfassung möglich");
+        const container = document.getElementById("scroll-container");
+        container.innerHTML = `<div class="no-data">Keine zusammenfassenden Wetterdaten vorhanden.</div>`;
+        return;
+      }
+
+      const container = document.getElementById("scroll-container");
+      const selector = document.getElementById("day-selector");
+      container.innerHTML = "";
+      selector.innerHTML = "";
+
+      const now = new Date();
+      now.setMinutes(0,0,0);
+
+      const entries = timeSteps.map((ts, i) => {
+        const dateObj = new Date(ts);
+        const codeRaw = seriesMap["Significant Weather"][i];
+        const code = (codeRaw === null || codeRaw === undefined || codeRaw === "-") ? NaN : parseInt(codeRaw);
+        return { timestamp: dateObj, hour: dateObj.getHours(), code, index: i };
+      });
+
+      const futureEntries = entries.filter(e => e.timestamp >= now);
+
+      const daysMap = {};
+      for (const entry of futureEntries) {
+        const period = periods.find(p => {
+          if (p.startHour < p.endHour) return entry.hour >= p.startHour && entry.hour < p.endHour;
+          return entry.hour >= p.startHour || entry.hour < p.endHour;
+        });
+        if (!period) continue;
+
+        const entryDate = new Date(entry.timestamp);
+        let groupDate = new Date(entryDate);
+        if (period.startHour > period.endHour && entry.hour < period.endHour) {
+          groupDate.setDate(groupDate.getDate() - 1);
+        }
+
+        const y = groupDate.getFullYear();
+        const m = String(groupDate.getMonth() + 1).padStart(2, "0");
+        const d = String(groupDate.getDate()).padStart(2, "0");
+        const dayIso = `${y}-${m}-${d}`;
+
+        const today = new Date();
+        const diffDays = Math.floor((groupDate - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / (1000 * 60 * 60 * 24));
+
+        let displayDate;
+        if (diffDays === 0) displayDate = "Heute";
+        else if (diffDays === 1) displayDate = "Morgen";
+        else if (diffDays === 2) displayDate = "Übermorgen";
+        else displayDate = groupDate.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "short", timeZone: "Europe/Berlin" });
+
+        if (!daysMap[dayIso]) daysMap[dayIso] = { displayDate, groups: {} };
+        if (!daysMap[dayIso].groups[period.name]) daysMap[dayIso].groups[period.name] = [];
+        daysMap[dayIso].groups[period.name].push(entry);
+      }
+
+      const dayKeys = Object.keys(daysMap).sort();
+      if (dayKeys.length === 0) {
+        container.innerHTML = `<div class="no-data">Keine zukünftigen Vorhersagen vorhanden.</div>`;
+        return;
+      }
+
+      sortedKeys = Object.keys(daysMap).sort();
+      let currentIndex = sortedKeys.findIndex(k => {
+        const t = new Date();
+        const ty = t.getFullYear(), tm = String(t.getMonth()+1).padStart(2,"0"), td = String(t.getDate()).padStart(2,"0");
+        const todayIso = `${ty}-${tm}-${td}`;
+        return k === todayIso;
+      });
+      if (currentIndex === -1) currentIndex = 0;
+
+      let animating = false;
+
+      function updateDaySelector(index, direction = null) {
+        if (animating) return;
+        const iso = sortedKeys[index];
+        const displayText = daysMap[iso].displayDate;
+
+        const newWrapper = document.createElement("div");
+        newWrapper.className = "day-slide-wrapper";
+        newWrapper.innerHTML = `<strong>${displayText}</strong>`;
+
+        if (direction === "left") newWrapper.style.transform = "translateX(100%)";
+        else if (direction === "right") newWrapper.style.transform = "translateX(-100%)";
+        else newWrapper.style.transform = "translateX(0)";
+
+        const oldWrapper = selector.querySelector(".day-slide-wrapper");
+
+        if (!oldWrapper) {
+          selector.innerHTML = "";
+          selector.appendChild(newWrapper);
+          newWrapper.getBoundingClientRect();
+          requestAnimationFrame(() => { newWrapper.style.transform = "translateX(0)"; });
+          renderDay(iso);
+          document.getElementById("day-left").disabled = index <= 0;
+          document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+          return;
+        }
+
+        animating = true;
+        selector.appendChild(newWrapper);
+
+        oldWrapper.style.transition = "transform 0.3s ease";
+        newWrapper.style.transition = "transform 0.3s ease";
+
+        oldWrapper.style.transform = "translateX(0)";
+        oldWrapper.getBoundingClientRect();
+        newWrapper.getBoundingClientRect();
+
+        const exitDir = direction === "left" ? "-100%" : "100%";
+        oldWrapper.style.transform = `translateX(${exitDir})`;
+        requestAnimationFrame(() => { newWrapper.style.transform = "translateX(0)"; });
+
+        const onNewEnd = () => {
+          if (oldWrapper.parentNode === selector) selector.removeChild(oldWrapper);
+          newWrapper.removeEventListener("transitionend", onNewEnd);
+          animating = false;
+        };
+        newWrapper.addEventListener("transitionend", onNewEnd);
+
+        renderDay(iso);
+        document.getElementById("day-left").disabled = index <= 0;
+        document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+      }
+
+      function renderDay(iso) {
+        container.innerHTML = "";
+        const day = daysMap[iso];
+        if (!day) {
+          container.innerHTML = `<div class="no-data">Keine Daten für den gewählten Tag.</div>`;
+          return;
+        }
+
+        periodOrder.forEach(periodName => {
+          const entries = day.groups[periodName];
+          if (!entries || entries.length === 0) return;
+
+          const freq = {};
+          for (const e of entries) {
+            if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
+          }
+
+          let dominantCode = Object.entries(freq)
+            .sort((a, b) => {
+              const countDiff = b[1] - a[1];
+              if (countDiff !== 0) return countDiff;
+              return b[0] - a[0];
+            })[0]?.[0];
+
+          // Für Wolkencodes: wenn 0-3, ermittele durchschnittliche Bewölkung (falls vorhanden)
+          if ([0,1,2,3].includes(Number(dominantCode))) {
+            const indices = entries.map(e => e.index).filter(i => i !== undefined && !isNaN(i));
+            const cloud_covers = indices.map(i => seriesMap["Bewölkung"]?.[i]).filter(v => v !== undefined && v !== null && !isNaN(v));
+            const avg_cloud_cover = cloud_covers.length > 0 ? cloud_covers.reduce((a,b)=>a+b,0)/cloud_covers.length : null;
+            if (avg_cloud_cover !== null) {
+              if (avg_cloud_cover <= 20) dominantCode = 0;
+              else if (avg_cloud_cover <= 50) dominantCode = 1;
+              else if (avg_cloud_cover <= 80) dominantCode = 2;
+              else dominantCode = 3;
+            }
+          }
+
+          const info = wwIconMap[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
+
+          const card = document.createElement("div");
+          card.className = "summary-card";
+          card.innerHTML = `
+            <img src="${info.icon}" alt="${info.label}">
+            <div class="summary-text">
+              <strong>${periodName}</strong>
+              <span class="label">${info.label}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        if (container.children.length === 0) {
+          container.innerHTML = `<div class="no-data">Für diesen Tag liegen keine Vorhersagedaten vor.</div>`;
+        }
+      }
+
+      document.getElementById("day-left").addEventListener("click", () => {
+        if (animating || currentIndex <= 0) return;
+        currentIndex--;
+        updateDaySelector(currentIndex, "right");
+      });
+
+      document.getElementById("day-right").addEventListener("click", () => {
+        if (animating || currentIndex >= sortedKeys.length - 1) return;
+        currentIndex++;
+        updateDaySelector(currentIndex, "left");
+      });
+
+      // Initial
+      updateDaySelector(currentIndex);
+
+      // Swipe
+      let touchStartX = null, touchEndX = null;
+      const swipeThreshold = 50;
+      selector.addEventListener("touchstart", function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+      }, false);
+      selector.addEventListener("touchend", function (e) {
+        touchEndX = e.changedTouches[0].screenX;
+        if (animating) return;
+        if (touchStartX === null || touchEndX === null) { touchStartX = null; touchEndX = null; return; }
+        const diffX = touchEndX - touchStartX;
+        if (Math.abs(diffX) > swipeThreshold) {
+          if (diffX < 0 && currentIndex < sortedKeys.length - 1) {
+            currentIndex++;
+            updateDaySelector(currentIndex, "left");
+          } else if (diffX > 0 && currentIndex > 0) {
+            currentIndex--;
+            updateDaySelector(currentIndex, "right");
+          }
+        }
+        touchStartX = null; touchEndX = null;
+      }, false);
+    }
+  </script>
+</body>
+</html>

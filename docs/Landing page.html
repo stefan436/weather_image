@@ -666,13 +666,7 @@
             if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
           }
 
-          let dominantCode = Object.entries(freq)
-            .sort((a, b) => {
-              const countDiff = b[1] - a[1];
-              if (countDiff !== 0) return countDiff;
-              return b[0] - a[0];
-            })[0]?.[0];
-          
+          let dominantCode = Math.max(...entries.map(e => Number(e.code)));
 
           if ([0, 1, 2, 3].includes(Number(dominantCode))) {
             const indices = [];

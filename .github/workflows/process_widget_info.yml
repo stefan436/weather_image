@@ -1,0 +1,27 @@
+name: Build Weather Summary
+
+on:
+  schedule:
+    - cron: "0 * * * *" # jede Stunde
+  workflow_dispatch:     # manuell starten
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install deps
+        run: pip install requests
+      - name: Run build script
+        run: python build_summary.py
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add weather-summary.json
+          git commit -m "Update weather summary"
+          git push

@@ -17,11 +17,11 @@ jobs:
       - name: Install deps
         run: pip install requests
       - name: Run build script
-        run: python build_summary.py
+        run: python create_widget_info.py
       - name: Commit and push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add weather-summary.json
+          git add docs/data/weather-summary.json
           git commit -m "Update weather summary"
           git push

@@ -1,0 +1,333 @@
+{
+  "name": "10865",
+  "description": "MUENCHEN STADT",
+  "days": {
+    "Heute": [
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      }
+    ],
+    "Morgen": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      }
+    ],
+    "Übermorgen": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      }
+    ],
+    "Fri, 12.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      }
+    ],
+    "Sat, 13.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/light rain.png",
+        "label": "Leichter Regen"
+      }
+    ],
+    "Sun, 14.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      }
+    ],
+    "Mon, 15.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      }
+    ],
+    "Tue, 16.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      }
+    ],
+    "Wed, 17.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      }
+    ],
+    "Thu, 18.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Abend",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert"
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      }
+    ],
+    "Fri, 19.09.": [
+      {
+        "period": "Nacht",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Früh",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://github.com/stefan436/weather_image/blob/main/docs/icons/low cloud cover.png",
+        "label": "Bewölkung abnehmend"
+      }
+    ]
+  }
+}

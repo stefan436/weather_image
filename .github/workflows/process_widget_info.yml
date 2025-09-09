@@ -25,3 +25,5 @@ jobs:
           git add docs/data/weather-summary.json
           git commit -m "Update weather summary"
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

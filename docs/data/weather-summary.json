@@ -8,19 +8,12 @@
         "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
         "label": "Bewölkung unverändert",
         "avg": {
-          "WW": 2.8,
-          "TTT": 13.6,
+          "WW": 2.7,
+          "TTT": 13.2,
           "RR1c": 0.0,
-          "Neff": 65.2
+          "Neff": 62.7
         },
         "details": [
-          {
-            "timestamp": "2025-09-09T18:00:00+00:00",
-            "WW": "3.00",
-            "TTT": 14.6,
-            "RR1c": "0.00",
-            "Neff": "73.00"
-          },
           {
             "timestamp": "2025-09-09T19:00:00+00:00",
             "WW": "3.00",

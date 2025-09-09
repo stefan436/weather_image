@@ -1,4 +1,4 @@
-name: Build Weather Summary
+name: Process widget info
 
 on:
   schedule:

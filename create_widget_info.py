@@ -256,7 +256,7 @@ def main():
     timeSteps, forecasts, name, description = parse_kml(kml_text)
     summary = build_summary(timeSteps, forecasts, name, description)
 
-    with open("weather-summary.json", "w", encoding="utf-8") as f:
+    with open("docs/data/weather-summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
 

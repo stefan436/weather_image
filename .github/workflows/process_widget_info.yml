@@ -2,8 +2,8 @@ name: Build Weather Summary
 
 on:
   schedule:
-    - cron: "0 * * * *" # jede Stunde
-  workflow_dispatch:     # manuell starten
+    - cron: "0 6 * * *" 
+  workflow_dispatch:    
 
 jobs:
   build:

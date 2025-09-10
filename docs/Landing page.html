@@ -152,8 +152,10 @@
         await new Promise(resolve => setTimeout(resolve, delay));
         lastRequestTime = Date.now(); // Jetzt ist diese Anfrage "aktiv"
 
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-
+        const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
+        const baseUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+        const url = proxy + encodeURIComponent(baseUrl);
+      
         try {
             const response = await fetch(url, {
                 headers: {
@@ -1277,6 +1279,7 @@
   </script>
 </body>
 </html>
+
 
 
 

@@ -74,9 +74,9 @@ WW_ICON_MAP = {
 
 # NEU HINZUGEFÜGT: Spezielle Icons für die Nacht
 WW_ICON_MAP_NIGHT = {
-    0: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear night.png", label: "Klarer Himmel" },
-    1: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/low cloud cover night.png", label: "Bewölkung abnehmend" },
-    2: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png", label: "Bewölkung unverändert" }
+    0: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear night.png", "label": "Klarer Himmel" },
+    1: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/low cloud cover night.png", "label": "Bewölkung abnehmend" },
+    2: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png", "label": "Bewölkung unverändert" }
 }
 
 

@@ -14,8 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
 
-  <!-- MarchingSquaresJS -->
-  <script src="scripts/MarchingSquares.js"></script>
+  <!-- D3 Js für Kontouren -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 
   <style>
     body, html {
@@ -300,88 +300,6 @@
     }
 
 
-    // Funktion zur Berechnung eines Punktes auf einer Catmull-Rom-Spline
-    function catmullRomPoint(P0, P1, P2, P3, t, alpha = 0.5) {
-        // Hilfsfunktion zur Berechnung der "Knoten"-Positionen.
-        // Diese bestimmen den "Abstand" zwischen den Punkten für die Kurvenberechnung.
-        function getKnot(t, p0, p1) {
-            const d = [p1[0] - p0[0], p1[1] - p0[1]];
-            const distSq = d[0] * d[0] + d[1] * d[1];
-            // Die Potenz von alpha bestimmt die "Straffheit" der Kurve.
-            const power = alpha * 0.5;
-            const knotDist = Math.pow(distSq, power);
-            return knotDist + t;
-        }
-
-        // Berechne die Knoten t0 bis t3
-        const t0 = 0;
-        const t1 = getKnot(t0, P0, P1);
-        const t2 = getKnot(t1, P1, P2);
-        const t3 = getKnot(t2, P2, P3);
-
-        // Dies ist der entscheidende Fix:
-        // Wenn der Abstand zwischen den Knoten t1 und t2 fast null ist (also P1 und P2
-        // sehr nah beieinander oder identisch sind), dann ist die "Kurve" zwischen ihnen
-        // einfach der Startpunkt P1. Das verhindert die Division durch Null.
-        const t1_t2_diff = t2 - t1;
-        if (Math.abs(t1_t2_diff) < 1e-9) {
-            return P1;
-        }
-
-        // Skaliere t auf den relevanten Knoten-Bereich
-        const T = t1 + t * t1_t2_diff;
-
-        // Führe die Interpolation nach dem De-Boor-Algorithmus durch
-        const A1_den = (t1 - t0);
-        const A1 = (Math.abs(A1_den) < 1e-9) ? P0 : P0.map((c, i) => (t1 - T) / A1_den * c + (T - t0) / A1_den * P1[i]);
-
-        const A2_den = (t2 - t1);
-        const A2 = P1.map((c, i) => (t2 - T) / A2_den * c + (T - t1) / A2_den * P2[i]);
-
-        const A3_den = (t3 - t2);
-        const A3 = (Math.abs(A3_den) < 1e-9) ? P2 : P2.map((c, i) => (t3 - T) / A3_den * c + (T - t2) / A3_den * P3[i]);
-
-        const B1_den = (t2 - t0);
-        const B1 = (Math.abs(B1_den) < 1e-9) ? A1 : A1.map((c, i) => (t2 - T) / B1_den * c + (T - t0) / B1_den * A2[i]);
-
-        const B2_den = (t3 - t1);
-        const B2 = (Math.abs(B2_den) < 1e-9) ? A2 : A2.map((c, i) => (t3 - T) / B2_den * c + (T - t1) / B2_den * A3[i]);
-        
-        // Letzter Interpolationsschritt
-        const C1_den = (t2 - t1); // Identisch zu A2_den
-        return B1.map((c, i) => (t2 - T) / C1_den * c + (T - t1) / C1_den * B2[i]);
-    }
-    // Hauptfunktion: Generiert eine geglättete Linie aus einer Punkteliste
-    function generateSplinePoints(points, pointsPerSegment = 10, isLoop = false) {
-        const smoothedPoints = [];
-        const n = points.length;
-        if (n < 2) return points;
-
-        for (let i = 0; i < n; i++) {
-            // Für geschlossene Schleifen (Polygone) müssen wir die Endpunkte "umwickeln"
-            const p0 = isLoop ? points[(i - 1 + n) % n] : (i === 0 ? points[0] : points[i - 1]);
-            const p1 = points[i];
-            const p2 = points[(i + 1) % n];
-            const p3 = isLoop ? points[(i + 2) % n] : (i === n - 1 ? points[n - 1] : points[i + 2] || points[n-1]);
-
-            if (i === 0) smoothedPoints.push(p1);
-
-            // Füge nur Punkte zwischen p1 und p2 hinzu
-            if (i < n -1 || isLoop) {
-                for (let j = 1; j <= pointsPerSegment; j++) {
-                    const t = j / pointsPerSegment;
-                    smoothedPoints.push(catmullRomPoint(p0, p1, p2, p3, t));
-                }
-            }
-        }
-        // Bei offenen Linien den letzten Punkt explizit hinzufügen
-        if (!isLoop) {
-          // smoothedPoints.push(points[n-1]); // Letzter Punkt wird durch die Schleife oben schon abgedeckt
-        }
-
-        return smoothedPoints;
-    }
-
 
     // Farbskala mit chroma.js (Beispiel)
     const colorScale = chroma.scale([
@@ -430,39 +348,41 @@
         const nx = raster[0].length,
               ny = raster.length;
 
-        contourLevels.forEach(level => {
-          const lines = MarchingSquaresJS.isoLines(raster, level, { noQuadTree: true });
+        // 1. D3-Contour-Generator erstellen und konfigurieren
+        const contours = d3.contours()
+          .size([nx, ny]) // Rastergröße [Breite, Höhe]
+          .thresholds(contourLevels); // Array der Schwellenwerte
 
-          lines.forEach(line => {
-            // Filtere große Umrandungen (egal ob exakt am Rand oder knapp daneben)
-            if (isLargeOutline(line, nx, ny)) return;
-              const geoLines = convertIndicesToLatLon(line, latGrid, lonGrid);
-              const closed = isClosed(geoLines);
+        // 2. Konturen für alle Level auf einmal berechnen
+        // Wichtig: d3-contour erwartet ein flaches (1D) Array der Daten
+        const contourData = contours(raster.flat());
 
-              // Generiere die geglätteten Punkte.
-              // Für geschlossene Polygone setzen wir isLoop auf true.
-              const smoothGeoLines = generateSplinePoints(geoLines, 8, closed); 
+        // 3. Durch die von D3 erzeugten Konturen iterieren und auf der Karte zeichnen
+        contourData.forEach(contour => {
+          const level = contour.value; // Der Schwellenwert für diese Kontur
 
-              if (closed) {
-                const polygon = L.polygon(smoothGeoLines, { // <-- smoothGeoLines verwenden
-                  pane: 'contourPane',
-                  color: colorScale(level).hex(),
-                  fillColor: colorScale(level).hex(),
-                  fillOpacity: 0.4,
-                  weight: 1
-                }).addTo(map);
-                attachContourEvents(polygon, level);
-                window.contourLayers.push(polygon);
-              } else {
-                const polyline = L.polyline(smoothGeoLines, { // <-- smoothGeoLines verwenden
-                  pane: 'contourPane',
-                  color: colorScale(level).hex(),
-                  weight: 2,
-                  opacity: 1
-                }).addTo(map);
-                attachContourEvents(polyline, level);
-                window.contourLayers.push(polyline);
-              }
+          // D3 gibt GeoJSON-ähnliche MultiPolygone zurück. Wir iterieren durch sie.
+          contour.coordinates.forEach(polygonCoords => {
+            polygonCoords.forEach(ringCoords => {
+              
+              // Filtere große Umrandungen (genau wie vorher)
+              if (isLargeOutline(ringCoords, nx, ny)) return;
+
+              // Konvertiere die Gitter-Koordinaten in Lat/Lon
+              const geoLines = convertIndicesToLatLon(ringCoords, latGrid, lonGrid);
+
+              // d3-contour erzeugt immer geschlossene Polygone, daher brauchen wir keine Unterscheidung mehr
+              const polygon = L.polygon(geoLines, {
+                pane: 'contourPane',
+                color: colorScale(level).hex(),
+                fillColor: colorScale(level).hex(),
+                fillOpacity: 0.4,
+                weight: 1
+              }).addTo(map);
+
+              attachContourEvents(polygon, level);
+              window.contourLayers.push(polygon);
+            });
           });
         });
 

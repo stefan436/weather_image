@@ -69,8 +69,16 @@ WW_ICON_MAP = {
     3: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png", "label": "Bewölkung zunehmend"},
     2: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png", "label": "Bewölkung unverändert"},
     1: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/low cloud cover.png", "label": "Bewölkung abnehmend"},
-    0: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear-day-night.png", "label": "Klarer Himmel"}
+    0: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear day.png", "label": "Klarer Himmel"}
 }
+
+# NEU HINZUGEFÜGT: Spezielle Icons für die Nacht
+WW_ICON_MAP_NIGHT = {
+    0: { icon: "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear night.png", label: "Klarer Himmel" },
+    1: { icon: "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/low cloud cover night.png", label: "Bewölkung abnehmend" },
+    2: { icon: "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png", label: "Bewölkung unverändert" }
+}
+
 
 def load_kmz(url):
     r = requests.get(url)
@@ -199,8 +207,16 @@ def build_summary(timeSteps, forecasts, name, description):
                         dominantCode = 2
                     else:
                         dominantCode = 3
+            
+            # GEÄNDERT: Wähle das Icon-Set basierend auf der Tageszeit
+            is_night_period = periodName in ["Abend", "Spät Abends", "Nacht"]
+            if is_night_period and dominantCode in [0, 1, 2]:
+                # Wenn es eine Nachtperiode ist und der Code 0-2 ist, nutze das Nacht-Icon-Set
+                info = WW_ICON_MAP_NIGHT.get(dominantCode, {"icon": "URL/unknown.png", "label": "unbekannt"})
+            else:
+                # Ansonsten nutze das Standard-Icon-Set
+                info = WW_ICON_MAP.get(dominantCode, {"icon": "URL/unknown.png", "label": "unbekannt"})
 
-            info = WW_ICON_MAP.get(dominantCode, {"icon": "URL/unknown.png", "label": "unbekannt"})
 
             timestep_entries = []
             ww_vals, ttt_vals, rr1_vals, neff_vals = [], [], [], []

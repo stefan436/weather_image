@@ -24,7 +24,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/data/weather-summary.json
-          git commit -m "Update weather summary"
+          git commit -m "Update weather summary via actions"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

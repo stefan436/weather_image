@@ -4,6 +4,7 @@ import io
 import xml.etree.ElementTree as ET
 import json
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 # ------------------ Konfiguration ------------------
 STATION_ID = "P755"  # Beispiel: Aschheim P755 Muenchen Stadt 10865
@@ -97,11 +98,13 @@ def parse_kml(kml_text):
 
 
 def build_summary(timeSteps, forecasts, name, description):
-    now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
 
     entries = []
     for i, ts in enumerate(timeSteps):
         dateObj = datetime.fromisoformat(ts)
+        # In Berliner Zeit konvertieren
+        dateObj = dateObj.astimezone(ZoneInfo("Europe/Berlin"))
+
         code_raw = forecasts.get("ww", [None] * len(timeSteps))[i]
         try:
             code = int(float(code_raw)) if code_raw and code_raw != "-" else None
@@ -109,10 +112,9 @@ def build_summary(timeSteps, forecasts, name, description):
             code = None
         entries.append({"timestamp": dateObj, "hour": dateObj.hour, "code": code, "index": i})
 
-    future_entries = [e for e in entries if e["timestamp"] >= now]
-
     daysMap = {}
-    for entry in future_entries:
+    for entry in entries:
+
         period = None
         for p in PERIODS:
             if p["startHour"] < p["endHour"]:
@@ -255,7 +257,7 @@ def main():
     kml_text = load_kmz(BASE_URL)
     timeSteps, forecasts, name, description = parse_kml(kml_text)
     summary = build_summary(timeSteps, forecasts, name, description)
-
+    print("Writing file...")
     with open("docs/data/weather-summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 

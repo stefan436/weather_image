@@ -710,7 +710,7 @@
             const isNightPeriod = ["Abend", "Spät Abends", "Nacht"].includes(periodName);
 
             if (isNightPeriod && [0, 1, 2].includes(dominantCode)) {
-                // Wenn es eine Nachtperiode ist und der Code 0-3 ist, nutze das Nacht-Icon-Set
+                // Wenn es eine Nachtperiode ist und der Code 0-2 ist, nutze das Nacht-Icon-Set
                 info = wwIconMapNight[dominantCode] || { icon: "unknown.png", label: "unbekannt" };
             } else {
                 // Ansonsten nutze das Standard-Icon-Set
@@ -1294,6 +1294,7 @@
    </script>
 </body>
 </html>
+
 
 
 

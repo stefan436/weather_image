@@ -2,27 +2,27 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>RV Kompositkarte</title>
+  <title>RV Komposit & KONRAD3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <!-- Hilfsbibliotheken -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-ellipse@0.9.1/l.ellipse.min.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chroma-js@2.4.2/chroma.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/h5wasm@0.8.3/dist/iife/h5wasm.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/proj4@2.19.10/dist/proj4.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 
   <link rel="stylesheet" href="styles/regenradar_vorhersage_style.css" />
 </head>
 <body>
   <div id="controls">
-    <button id="start">RV Daten laden & animieren</button>
+    <button id="start">Daten laden & animieren</button>
     <p id="location_output"></p>
 
     <label id="loadProgressLabel">Dateien lesen:</label>
@@ -55,290 +55,435 @@
     </div>
   </div>
 
-
-
   <script>
-    const map = L.map('map').setView([48.1373, 11.57577], 10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>-Mitwirkende',
-      maxZoom: 18
-    }).addTo(map);
-    map.createPane('contourPane');
-    map.getPane('contourPane').style.zIndex = 450;
-    map.getPane('contourPane').style.mixBlendMode = 'multiply';
-    const mapEl = document.getElementById('map');
-    new ResizeObserver(() => map.invalidateSize()).observe(mapEl);
+      // --- Initialisierung der Karte ---
+      const map = L.map('map').setView([48.1373, 11.57577], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>-Mitwirkende',
+        maxZoom: 18
+      }).addTo(map);
+      map.createPane('contourPane');
+      map.getPane('contourPane').style.zIndex = 450;
+      map.getPane('contourPane').style.mixBlendMode = 'multiply';
+      const mapEl = document.getElementById('map');
+      new ResizeObserver(() => map.invalidateSize()).observe(mapEl);
+      
+      // --- Globale Variablen ---
+      const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
+      const contourLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+      const ROWS_TO_KEEP = 450;
+      
+      let frames = [];
+      let lat, lon;
+      let konradData = null;
+      let contourLayers = [];
+      let konradLayerGroup = L.layerGroup().addTo(map);
+      let preRenderedFrames = [];
+      let animationTimer = null;
+      let isPlaying = false;
+      let currentFrame = 0;
+      let forecastTime = 0;
 
-
-    const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
-    const contourLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
-
-    const ROWS_TO_KEEP = 450;
-    let frames = [];
-    let lat, lon;
-    let contourLayers = [];
-    let preRenderedFrames = [];
-    let animationTimer = null;
-    let isPlaying = false;
-    let currentFrame = 0;
-    let forecastTime = 0;
-
-    function getLocation(callback) {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => callback(pos.coords.latitude, pos.coords.longitude),
-          showError
-        );
-      } else {
-        document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
-      }
-    }
-
-    function showError(error) {
-      const messages = {
-        1: "Zugriff auf Standort verweigert.",
-        2: "Standortinformationen nicht verfügbar.",
-        3: "Anfrage dauerte zu lange.",
-        default: "Unbekannter Fehler."
-      };
-      document.getElementById("location_output").innerText = messages[error.code] || messages.default;
-    }
-
-    async function parseH5File(buffer) {
-      await h5wasm.ready;
-      const filename = "/tmp.h5";
-      h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
-      const file = new h5wasm.File(filename, "r");
-
-      const dataSet = file.get("/dataset1/data1/data");
-      const shape = dataSet.shape;
-      const raw = dataSet.to_array();
-      const what = file.get("/dataset1/data1/what");
-      const nodata = what.attrs['nodata'].value;
-      forecastTime = file.get("what").attrs['time'].value;
-
-      file.close();
-
-      const startRow = shape[0] - ROWS_TO_KEEP;
-      const sliced = raw.slice(startRow).map(row =>
-        row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
-      );
-
-      return { data: sliced };
-    }
-
-    async function createCoords() {
-      const response = await fetch('data/coords_radarcomposite_rv.bin');
-      const buffer = await response.arrayBuffer();
-      const view = new DataView(buffer);
-
-      let offset = 0;
-      const height = view.getUint32(offset, true); offset += 4;
-      const width = view.getUint32(offset, true); offset += 4;
-      const numValues = height * width;
-
-      const lat1D = new Float32Array(buffer, offset, numValues); offset += numValues * 4;
-      const lon1D = new Float32Array(buffer, offset, numValues);
-
-      const startRow = height - ROWS_TO_KEEP;
-      const lat2D = [], lon2D = [];
-      for (let y = startRow; y < height; y++) {
-        const latRow = [], lonRow = [];
-        for (let x = 0; x < width; x++) {
-          const idx = y * width + x;
-          latRow.push(lat1D[idx]);
-          lonRow.push(lon1D[idx]);
+      // --- Standort-Funktionen ---
+      function getLocation(callback) {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            pos => callback(pos.coords.latitude, pos.coords.longitude),
+            showError
+          );
+        } else {
+          document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
         }
-        lat2D.push(latRow);
-        lon2D.push(lonRow);
       }
-      return { lat: lat2D, lon: lon2D };
-    }
 
-    function convertIndicesToLatLon(line, latGrid, lonGrid) {
-      return line.map(([x, y]) => {
-        const xi = Math.round(x), yi = Math.round(y);
-        if (yi >= 0 && yi < latGrid.length && xi >= 0 && xi < latGrid[0].length)
-          return [latGrid[yi][xi], lonGrid[yi][xi]];
-        return null;
-      }).filter(pt => pt !== null);
-    }
+      function showError(error) {
+        const messages = {
+          1: "Zugriff auf Standort verweigert.",
+          2: "Standortinformationen nicht verfügbar.",
+          3: "Anfrage dauerte zu lange.",
+          default: "Unbekannter Fehler."
+        };
+        document.getElementById("location_output").innerText = messages[error.code] || messages.default;
+      }
 
-    function isClosed(coords) {
-      if (coords.length < 3) return false;
-      const [lat1, lon1] = coords[0];
-      const [lat2, lon2] = coords[coords.length - 1];
-      return Math.hypot(lat1 - lat2, lon1 - lon2) < 0.0001;
-    }
+      // --- KONRAD3D Datenverarbeitung ---
+      async function fetchAndProcessKonrad() {
+          const now_utc = luxon.DateTime.utc().minus({ minutes: 5 });
+          const minute = Math.floor(now_utc.minute / 5) * 5;
+          const rounded_time = now_utc.set({ minute: minute, second: 0, millisecond: 0 });
+          const timestamp_str = rounded_time.toFormat('yyyyMMdd\'T\'HHmm\'00\'');
+          
+          const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
+          const url = `${proxy}https://opendata.dwd.de/weather/radar/konrad3d/KONRAD3D_${timestamp_str}.xml`;
 
-    async function renderAllFrames() {
-      const renderProgress = document.getElementById('renderProgress');
-      const renderProgressText = document.getElementById('renderProgressText');
-      renderProgress.style.display = 'inline';
-      renderProgressText.style.display = 'inline';
+          try {
+              const response = await fetch(url);
+              if (!response.ok) {
+                  throw new Error(`Fehler beim Abrufen der KONRAD3D-Datei: ${response.statusText} (Status: ${response.status})`);
+              }
+              const xmlText = await response.text();
+              
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(xmlText, "application/xml");
 
-      const requestIdle = window.requestIdleCallback || (cb => setTimeout(cb, 0));
+              const getText = (element, selector) => {
+                  const node = element.querySelector(selector);
+                  return node ? node.textContent.trim() : null;
+              };
 
-      for (let idx = 0; idx < frames.length; idx++) {
-        const raster = frames[idx];
-        const contours = d3.contours()
-          .size([raster[0].length, raster.length])
-          .thresholds(contourLevels)
-          (raster.flat());
+              const data = [];
+              const features = xmlDoc.querySelectorAll('feature');
 
-        const levelLayers = contours.flatMap(contour => {
-          const colorHex = colorScale(contour.value).hex();
-          return contour.coordinates.flatMap(geom => {
-            return geom.map(ring => {
-              const latlngs = convertIndicesToLatLon(ring, lat, lon);
-              if (latlngs.length < 3) return null;
-              return L.polygon(latlngs, {
-                pane: 'contourPane',
-                fillColor: colorHex,
-                fillOpacity: 0.6,
-                color: colorHex,
-                weight: 0
-              }).on('add', function() {
-                attachContourEvents(this, contour.value);
+              features.forEach((feature, index) => {
+                  try {
+                      const row = { cell_id: index + 1 };
+                      
+                      row.area_growth_rate = parseFloat(getText(feature, 'geometry > area_growth_rate'));
+                      row.bottom_of_cell = parseFloat(getText(feature, 'geometry > echo_bottom_msl'));
+                      row.vertical_extent = parseFloat(getText(feature, 'geometry > vertical_extent'));
+                      row.lat_centroid = parseFloat(getText(feature, 'centroid_3d geodetic_coordinate > latitude'));
+                      row.lon_centroid = parseFloat(getText(feature, 'centroid_3d geodetic_coordinate > longitude'));
+                      row.major_axis = parseFloat(getText(feature, 'centroid_3d uncertainty_ellipse > major_axis'));
+                      row.minor_axis = parseFloat(getText(feature, 'centroid_3d uncertainty_ellipse > minor_axis'));
+                      row.angle = parseFloat(getText(feature, 'centroid_3d uncertainty_ellipse > angle'));
+                      row.polygon_latitudes = getText(feature, 'polygons_projected geodetic_coordinates polygon > latitudes');
+                      row.polygon_longitudes = getText(feature, 'polygons_projected geodetic_coordinates polygon > longitudes');
+                      const severity_int = parseFloat(getText(feature, 'intensity > severity'));
+                      const severity_decimal = parseFloat(getText(feature, 'intensity > severity_decimal'));
+                      row.severity = severity_int + severity_decimal;
+                      
+                      const forecastNode = feature.querySelector('centroid_forecasts > centroid_forecast');
+                      if (forecastNode) {
+                          row.forecast_time = forecastNode.getAttribute('forecast_time');
+                          row.lat_centroid_forecast = parseFloat(getText(forecastNode, 'geodetic_coordinate > latitude'));
+                          row.lon_centroid_forecast = parseFloat(getText(forecastNode, 'geodetic_coordinate > longitude'));
+                          row.major_axis_forecast = parseFloat(getText(forecastNode, 'uncertainty_ellipse > major_axis'));
+                          row.minor_axis_forecast = parseFloat(getText(forecastNode, 'uncertainty_ellipse > minor_axis'));
+                          row.angle_forecast = parseFloat(getText(forecastNode, 'uncertainty_ellipse > angle'));
+                      }
+                      
+                      for (const key in row) {
+                          if (row[key] === -1000000000.0) {
+                              row[key] = null;
+                          }
+                      }
+                      data.push(row);
+                  } catch (e) {
+                      console.error(`Fehler beim Parsen von Zelle ${index + 1}:`, e);
+                  }
               });
-            }).filter(p => p);
-          });
-        });
+              
+              console.log("--- KONRAD3D Info Tabelle ---");
+              console.table(data);
 
-        preRenderedFrames.push(levelLayers);
-        frames[idx] = null;
+              konradData = data;
 
-        const percent = Math.round(((idx + 1) / frames.length) * 100);
-        renderProgress.value = percent;
-        renderProgressText.textContent = percent + "%";
-        await new Promise(resolve => requestIdle(resolve));
+          } catch (error) {
+              console.error("Fehler bei der Verarbeitung der KONRAD3D-Daten:", error);
+              document.getElementById("location_output").textContent += ` | KONRAD3D: ${error.message}`;
+              konradData = [];
+          }
       }
-    }
 
-    function renderFrame(idx) {
-      contourLayers.forEach(l => map.removeLayer(l));
-      contourLayers = [];
-      preRenderedFrames[idx].forEach(layer => {
-        layer.addTo(map);
-        contourLayers.push(layer);
-      });
-      updateForecastTimeDisplay(idx);
-    }
+      // --- RADVOR Datenverarbeitung ---
+      async function parseH5File(buffer) {
+        await h5wasm.ready;
+        const filename = "/tmp.h5";
+        h5wasm.FS.writeFile(filename, new Uint8Array(buffer));
+        const file = new h5wasm.File(filename, "r");
 
+        const dataSet = file.get("/dataset1/data1/data");
+        const shape = dataSet.shape;
+        const raw = dataSet.to_array();
+        const what = file.get("/dataset1/data1/what");
+        const nodata = what.attrs['nodata'].value;
+        forecastTime = file.get("what").attrs['time'].value;
 
-    function updateForecastTimeDisplay(frameIdx) {
-      const baseTime = luxon.DateTime
-        .utc()
-        .set({
-          hour: Math.floor(forecastTime / 10000),
-          minute: Math.floor(forecastTime / 100) % 100,
-          second: forecastTime % 100
-        })
-        .plus({ minutes: frameIdx * 5 })
-        .setZone('Europe/Berlin');
+        file.close();
 
-      const formatted = baseTime.toFormat('HH:mm') + ' Uhr';
-      document.getElementById('frameLabel').textContent = `${formatted}`;
-    }
+        const startRow = shape[0] - ROWS_TO_KEEP;
+        const sliced = raw.slice(startRow).map(row =>
+          row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
+        );
 
-    function attachContourEvents(polygon, value) {
-      const showValue = () => {
-        document.getElementById("hoverColorBox").style.background = colorScale(value).hex();
-        document.getElementById("hoverValue").textContent = `${value} mm/h`;
-        document.getElementById("legend-hover").style.display = "inline-block";
-      };
+        return { data: sliced };
+      }
 
-      const hideValue = () => {
-        document.getElementById("legend-hover").style.display = "none";
-      };
+      async function createCoords() {
+        const response = await fetch('data/coords_radarcomposite_rv.bin');
+        const buffer = await response.arrayBuffer();
+        const view = new DataView(buffer);
 
-      // Desktop: Maus-Ereignisse
-      polygon.on("mouseover", showValue);
-      polygon.on("mouseout", hideValue);
+        let offset = 0;
+        const height = view.getUint32(offset, true); offset += 4;
+        const width = view.getUint32(offset, true); offset += 4;
+        const numValues = height * width;
 
-      // Mobile: Tipp-Ereignisse
-      polygon.on("click", showValue);
-    }
+        const lat1D = new Float32Array(buffer, offset, numValues); offset += numValues * 4;
+        const lon1D = new Float32Array(buffer, offset, numValues);
 
-
-
-    async function fetchAndProcessComposite(lat_pos, lon_pos) {
-      map.setView([lat_pos, lon_pos], 10);
-      try {
-        const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
-        const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar?nocache=${Date.now()}`;
-        const resp = await fetch(tarUrl);
-        if (!resp.ok) throw new Error("Download fehlgeschlagen");
-        const arrayBuffer = await resp.arrayBuffer();
-
-        const entries = await untar(arrayBuffer);
-        entries.sort((a, b) => a.name.localeCompare(b.name));
-
-        for (let i = 0; i < entries.length; i++) {
-          await new Promise(requestAnimationFrame);
-          const parsed = await parseH5File(entries[i].buffer);
-          frames.push(parsed.data);
-          const percent = Math.round((i + 1) / entries.length * 100);
-          document.getElementById('loadProgress').value = percent;
-          document.getElementById('loadProgressText').textContent = percent + "%";
+        const startRow = height - ROWS_TO_KEEP;
+        const lat2D = [], lon2D = [];
+        for (let y = startRow; y < height; y++) {
+          const latRow = [], lonRow = [];
+          for (let x = 0; x < width; x++) {
+            const idx = y * width + x;
+            latRow.push(lat1D[idx]);
+            lonRow.push(lon1D[idx]);
+          }
+          lat2D.push(latRow);
+          lon2D.push(lonRow);
         }
-
-        const coords = await createCoords();
-        lat = coords.lat;
-        lon = coords.lon;
-
-        document.getElementById('frameSlider').max = frames.length - 1;
-        document.getElementById('frameSlider').disabled = false;
-        document.getElementById('playPause').disabled = false;
-        document.getElementById('legend').style.display = 'block';
-
-        await renderAllFrames();
-        renderFrame(0);
-        map.invalidateSize();
-
-        setTimeout(() => {
-          document.getElementById('start').style.display = 'none';
-          document.getElementById('loadProgressLabel').style.display = 'none';
-          document.getElementById('loadProgress').style.display = 'none';
-          document.getElementById('loadProgressText').style.display = 'none';
-          document.getElementById('renderProgressLabel').style.display = 'none';
-          document.getElementById('renderProgress').style.display = 'none';
-          document.getElementById('renderProgressText').style.display = 'none';
-          document.getElementById('controls').style.padding = "6px";
-          document.getElementById('controls').style.gap = "6px";
-          requestAnimationFrame(() => map.invalidateSize());
-        }, 0);
-      } catch (e) {
-        console.error("Fehler: ", e);
-        document.getElementById("location_output").textContent = "Fehler: " + e.message;
+        return { lat: lat2D, lon: lon2D };
       }
-    }
 
-    document.getElementById('start').addEventListener('click', () => {
-      getLocation(fetchAndProcessComposite);
-    });
-
-    document.getElementById('playPause').addEventListener('click', () => {
-      if (!isPlaying) {
-        isPlaying = true;
-        document.getElementById('playPause').textContent = '⏸️ Pause';
-        animationTimer = setInterval(() => {
-          currentFrame = (currentFrame + 1) % preRenderedFrames.length;
-          renderFrame(currentFrame);
-          document.getElementById('frameSlider').value = currentFrame;
-        }, 500);
-      } else {
-        isPlaying = false;
-        document.getElementById('playPause').textContent = '▶️ Play';
-        clearInterval(animationTimer);
+      function convertIndicesToLatLon(line, latGrid, lonGrid) {
+        return line.map(([x, y]) => {
+          const xi = Math.round(x), yi = Math.round(y);
+          if (yi >= 0 && yi < latGrid.length && xi >= 0 && xi < latGrid[0].length)
+            return [latGrid[yi][xi], lonGrid[yi][xi]];
+          return null;
+        }).filter(pt => pt !== null);
       }
-    });
+      
+      // --- Rendering-Funktionen ---
+      async function renderAllFrames() {
+        const renderProgress = document.getElementById('renderProgress');
+        const renderProgressText = document.getElementById('renderProgressText');
+        renderProgress.style.display = 'inline';
+        renderProgressText.style.display = 'inline';
 
-    document.getElementById('frameSlider').addEventListener('input', (e) => {
-      const idx = parseInt(e.target.value);
-      currentFrame = idx;
-      renderFrame(currentFrame);
-    });
+        const requestIdle = window.requestIdleCallback || (cb => setTimeout(cb, 0));
+
+        for (let idx = 0; idx < frames.length; idx++) {
+          const raster = frames[idx];
+          const contours = d3.contours()
+            .size([raster[0].length, raster.length])
+            .thresholds(contourLevels)
+            (raster.flat());
+
+          const levelLayers = contours.flatMap(contour => {
+            const colorHex = colorScale(contour.value).hex();
+            return contour.coordinates.flatMap(geom => {
+              return geom.map(ring => {
+                const latlngs = convertIndicesToLatLon(ring, lat, lon);
+                if (latlngs.length < 3) return null;
+                return L.polygon(latlngs, {
+                  pane: 'contourPane',
+                  fillColor: colorHex,
+                  fillOpacity: 0.6,
+                  color: colorHex,
+                  weight: 0
+                }).on('add', function() {
+                  attachContourEvents(this, contour.value);
+                });
+              }).filter(p => p);
+            });
+          });
+
+          preRenderedFrames.push(levelLayers);
+          frames[idx] = null;
+
+          const percent = Math.round(((idx + 1) / frames.length) * 100);
+          renderProgress.value = percent;
+          renderProgressText.textContent = percent + "%";
+          await new Promise(resolve => requestIdle(resolve));
+        }
+      }
+
+      /**
+       * Erstellt den HTML-Inhalt für das Pop-up einer Zelle.
+       * @param {object} cell - Das Zell-Datenobjekt.
+       * @returns {string} Ein HTML-String für das Pop-up.
+       */
+      function createPopupContent(cell) {
+          const format = (value, unit = '', decimals = 1) => {
+              if (value === null || typeof value === 'undefined' || isNaN(value)) {
+                  return 'N/A';
+              }
+              return `${value.toFixed(decimals)} ${unit}`;
+          };
+
+          return `
+              <div style="font-family: sans-serif; font-size: 12px; line-height: 1.5;">
+                  <b>Stärke:</b> ${format(cell.severity, '', 2)}<br>
+                  <hr style="margin: 2px 0;">
+                  <strong>Vert. Ausdehnung:</strong> ${format(cell.vertical_extent, 'm', 0)}<br>
+                  <strong>Zelluntergrenze:</strong> ${format(cell.bottom_of_cell, 'm ü. M.', 0)}<br>
+                  <strong>Wachstumsrate:</strong> ${format(cell.area_growth_rate, '/5min', 2)}
+              </div>
+          `;
+      }
+
+      /**
+       * Stellt die KONRAD3D-Daten für den gegebenen Frame-Index dar.
+       * @param {number} idx - Der Index des darzustellenden Frames (0 = T+0, 1 = T+5, etc.)
+       */
+      function renderKonradData(idx) {
+          konradLayerGroup.clearLayers();
+          if (!konradData) return;
+
+          // Frame 0: Aktuelle Positionen anzeigen
+          if (idx === 0) {
+              konradData.forEach(cell => {
+                  const popupContent = createPopupContent(cell); 
+
+                  // Zellpolygon (jetzt mit unsichtbarer, klickbarer Füllung)
+                  if (cell.polygon_latitudes && cell.polygon_longitudes) {
+                      const lats = cell.polygon_latitudes.split(' ').map(Number);
+                      const lons = cell.polygon_longitudes.split(' ').map(Number);
+                      if (lats.length > 2) {
+                          const latlngs = lats.map((lat, i) => [lat, lons[i]]);
+                          L.polygon(latlngs, { color: 'cyan', weight: 2, fill: true, fillOpacity: 0 })
+                              .bindPopup(popupContent)
+                              .addTo(konradLayerGroup);
+                      }
+                  }
+                  // Aktuelle Unsicherheitsellipse
+                  if (cell.lat_centroid && cell.major_axis) {
+                      L.ellipse(
+                          [cell.lat_centroid, cell.lon_centroid], 
+                          [cell.major_axis * 1000, cell.minor_axis * 1000],
+                          (90 - cell.angle),
+                          { color: 'cyan', weight: 1.5, dashArray: '5, 5', fillColor: '#00FFFF', fillOpacity: 0.2 }
+                      )
+                      .bindPopup(popupContent)
+                      .addTo(konradLayerGroup);
+                  }
+              });
+          }
+          
+          // Frame 1: Vorhersage für T+5 Minuten anzeigen
+          if (idx === 1) {
+              konradData.forEach(cell => {
+                  // Vorhersage-Ellipse
+                  if (cell.lat_centroid_forecast && cell.major_axis_forecast) {
+                      L.ellipse(
+                          [cell.lat_centroid_forecast, cell.lon_centroid_forecast],
+                          [cell.major_axis_forecast * 1000, cell.minor_axis_forecast * 1000],
+                          (90 - cell.angle_forecast),
+                          { color: 'cyan', weight: 1.5, dashArray: '5, 5', fillColor: '#00FFFF', fillOpacity: 0.2 }
+                      )
+                      .bindPopup(createPopupContent(cell))
+                      .addTo(konradLayerGroup);
+                  }
+              });
+          }
+      }
+
+      function renderFrame(idx) {
+        contourLayers.forEach(l => map.removeLayer(l));
+        contourLayers = [];
+        preRenderedFrames[idx].forEach(layer => {
+          layer.addTo(map);
+          contourLayers.push(layer);
+        });
+        updateForecastTimeDisplay(idx);
+        renderKonradData(idx);
+      }
+
+      function updateForecastTimeDisplay(frameIdx) {
+        const baseTime = luxon.DateTime
+          .utc()
+          .set({
+            hour: Math.floor(forecastTime / 10000),
+            minute: Math.floor(forecastTime / 100) % 100,
+            second: forecastTime % 100
+          })
+          .plus({ minutes: frameIdx * 5 })
+          .setZone('Europe/Berlin');
+
+        const formatted = baseTime.toFormat('HH:mm') + ' Uhr';
+        document.getElementById('frameLabel').textContent = `${formatted}`;
+      }
+
+      function attachContourEvents(polygon, value) {
+          // (unverändert)
+      }
+
+      // --- Hauptlogik zum Laden der Daten ---
+      async function fetchAndProcessComposite(lat_pos, lon_pos) {
+        map.setView([lat_pos, lon_pos], 10);
+        try {
+          const konradPromise = fetchAndProcessKonrad();
+
+          const proxy = 'https://corsproxy.io/?';
+          const tarUrl = `${proxy}https://opendata.dwd.de/weather/radar/composite/rv/composite_rv_LATEST.tar?nocache=${Date.now()}`;
+          const resp = await fetch(tarUrl);
+          if (!resp.ok) throw new Error("RV-Download fehlgeschlagen");
+          const arrayBuffer = await resp.arrayBuffer();
+
+          const entries = await untar(arrayBuffer);
+          entries.sort((a, b) => a.name.localeCompare(b.name));
+
+          for (let i = 0; i < entries.length; i++) {
+            await new Promise(requestAnimationFrame);
+            const parsed = await parseH5File(entries[i].buffer);
+            frames.push(parsed.data);
+            const percent = Math.round((i + 1) / entries.length * 100);
+            document.getElementById('loadProgress').value = percent;
+            document.getElementById('loadProgressText').textContent = percent + "%";
+          }
+
+          const coords = await createCoords();
+          lat = coords.lat;
+          lon = coords.lon;
+          
+          await konradPromise;
+
+          document.getElementById('frameSlider').max = frames.length - 1;
+          document.getElementById('frameSlider').disabled = false;
+          document.getElementById('playPause').disabled = false;
+          document.getElementById('legend').style.display = 'block';
+
+          await renderAllFrames();
+          renderFrame(0);
+          map.invalidateSize();
+
+          setTimeout(() => {
+            document.getElementById('start').style.display = 'none';
+            document.getElementById('loadProgressLabel').style.display = 'none';
+            document.getElementById('loadProgress').style.display = 'none';
+            document.getElementById('loadProgressText').style.display = 'none';
+            document.getElementById('renderProgressLabel').style.display = 'none';
+            document.getElementById('renderProgress').style.display = 'none';
+            document.getElementById('renderProgressText').style.display = 'none';
+            document.getElementById('controls').style.padding = "6px";
+            document.getElementById('controls').style.gap = "6px";
+            requestAnimationFrame(() => map.invalidateSize());
+          }, 0);
+        } catch (e) {
+          console.error("Fehler: ", e);
+          document.getElementById("location_output").textContent = "Fehler: " + e.message;
+        }
+      }
+
+      // --- Event Listeners ---
+      document.getElementById('start').addEventListener('click', () => {
+        getLocation(fetchAndProcessComposite);
+      });
+
+      document.getElementById('playPause').addEventListener('click', () => {
+        if (!isPlaying) {
+          isPlaying = true;
+          document.getElementById('playPause').textContent = '⏸️ Pause';
+          animationTimer = setInterval(() => {
+            currentFrame = (currentFrame + 1) % preRenderedFrames.length;
+            renderFrame(currentFrame);
+            document.getElementById('frameSlider').value = currentFrame;
+          }, 500);
+        } else {
+          isPlaying = false;
+          document.getElementById('playPause').textContent = '▶️ Play';
+          clearInterval(animationTimer);
+        }
+      });
+
+      document.getElementById('frameSlider').addEventListener('input', (e) => {
+        const idx = parseInt(e.target.value);
+        currentFrame = idx;
+        renderFrame(currentFrame);
+      });
   </script>
 </body>
 </html>

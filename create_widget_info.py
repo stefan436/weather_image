@@ -5,10 +5,15 @@ import xml.etree.ElementTree as ET
 import json
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+from datetime import datetime
+
+def log(msg):
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
+
 
 # ------------------ Konfiguration ------------------
-STATION_ID = "P755"  # Beispiel: Aschheim P755 Muenchen Stadt 10865
-BASE_URL = f"https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/{STATION_ID}/kml/MOSMIX_L_LATEST_{STATION_ID}.kmz"
+target_station_name = "ASCHHEIM"  # Beispiel: ASCHHEIM P755 MUENCHEN STADT 10865
+BASE_URL = f"https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_S/all_stations/kml/MOSMIX_S_LATEST_240.kmz"
 
 PERIODS = [
     {"name": "Früh", "startHour": 6, "endHour": 10},
@@ -72,7 +77,7 @@ def load_kmz(url):
     r.raise_for_status()
     z = zipfile.ZipFile(io.BytesIO(r.content))
     kml_file = [f for f in z.namelist() if f.endswith(".kml")][0]
-    return z.read(kml_file).decode("utf-8")
+    return z.read(kml_file).decode("iso-8859-1")
 
 
 def parse_kml(kml_text):
@@ -81,11 +86,19 @@ def parse_kml(kml_text):
     timeSteps = [t.text.strip() for t in xml_root.findall(f".//{DWDNS}TimeStep")]
     ns = {"kml": "http://www.opengis.net/kml/2.2"}
 
+    target_placemark = None
     for placemark in xml_root.findall(".//kml:Placemark", ns):
-        name_el = placemark.find("kml:name", ns)
-        description_el = placemark.find("kml:description", ns)
-        name = name_el.text.strip() if name_el is not None else ""
-        description = description_el.text.strip() if description_el is not None else ""
+        desc = placemark.find("kml:description", ns)
+        if desc is not None and desc.text.strip() == target_station_name:
+            target_placemark = placemark
+            break
+
+    if target_placemark is None:
+        raise ValueError(f"Station '{target_station_name}' nicht gefunden.")
+
+    name = target_placemark.find("kml:name", ns).text.strip()
+    description = target_placemark.find("kml:description", ns).text.strip()
+
 
     forecasts = {}
     for fc in xml_root.findall(f".//{DWDNS}Forecast"):
@@ -252,14 +265,17 @@ def build_summary(timeSteps, forecasts, name, description):
 
     return result
 
-
 def main():
+    log("Start: KMZ herunterladen")
     kml_text = load_kmz(BASE_URL)
+    log("KMZ geladen, beginne Parsing")
     timeSteps, forecasts, name, description = parse_kml(kml_text)
+    log(f"Parsing fertig, {len(timeSteps)} Timesteps gefunden, baue Zusammenfassung")
     summary = build_summary(timeSteps, forecasts, name, description)
-    print("Writing file...")
+    log("Zusammenfassung erstellt, schreibe JSON-Datei")
     with open("docs/data/weather-summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
+    log("Datei gespeichert, fertig")
 
 
 if __name__ == "__main__":

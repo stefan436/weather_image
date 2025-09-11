@@ -157,12 +157,18 @@
     }
 
     async function fetchWeather(lat, lon) {
-      const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
-  
-      const url = `${proxy}https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
-      const url_sun = `${proxy}https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
-      const url_uv = `${proxy}https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lon}`;
-
+      // 1. Definiere die Proxy-URL (ohne ?url=)
+      const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev';
+      
+      // 2. Erstelle die einzelnen Ziel-URLs als separate Variablen
+      const targetUrlBrightsky = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
+      const targetUrlSun = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
+      const targetUrlUv = `https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lon}`;
+      
+      // 3. Baue die finalen URLs zusammen, indem du die Ziel-URLs korrekt codierst
+      const url = `${proxy}?url=${encodeURIComponent(targetUrlBrightsky)}`;
+      const url_sun = `${proxy}?url=${encodeURIComponent(targetUrlSun)}`;
+      const url_uv = `${proxy}?url=${encodeURIComponent(targetUrlUv)}`;
 
       try {
         // Sonnenaus- und Untergang 

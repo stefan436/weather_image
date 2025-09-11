@@ -62,9 +62,16 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>-Mitwirkende',
         maxZoom: 18
       }).addTo(map);
+      
+      // --- Problem 1: Layering-Problem lösen ---
+      // Pane für Regenradar-Konturen (unten)
       map.createPane('contourPane');
       map.getPane('contourPane').style.zIndex = 450;
       map.getPane('contourPane').style.mixBlendMode = 'multiply';
+      // NEU: Pane für KONRAD-Daten (oben)
+      map.createPane('konradPane');
+      map.getPane('konradPane').style.zIndex = 460;
+
       const mapEl = document.getElementById('map');
       new ResizeObserver(() => map.invalidateSize()).observe(mapEl);
       
@@ -334,9 +341,15 @@
                       const lons = cell.polygon_longitudes.split(' ').map(Number);
                       if (lats.length > 2) {
                           const latlngs = lats.map((lat, i) => [lat, lons[i]]);
-                          L.polygon(latlngs, { color: 'cyan', weight: 2, fill: true, fillOpacity: 0 })
-                              .bindPopup(popupContent)
-                              .addTo(konradLayerGroup);
+                          L.polygon(latlngs, { 
+                              color: 'cyan', 
+                              weight: 2, 
+                              fill: true, 
+                              fillOpacity: 0,
+                              pane: 'konradPane' // GEÄNDERT: Korrekte Ebene zuweisen
+                          })
+                          .bindPopup(popupContent)
+                          .addTo(konradLayerGroup);
                       }
                   }
                   // Aktuelle Unsicherheitsellipse
@@ -345,7 +358,14 @@
                           [cell.lat_centroid, cell.lon_centroid], 
                           [cell.major_axis * 1000, cell.minor_axis * 1000],
                           (90 - cell.angle),
-                          { color: 'cyan', weight: 1.5, dashArray: '5, 5', fillColor: '#00FFFF', fillOpacity: 0.2 }
+                          { 
+                              color: 'cyan', 
+                              weight: 1.5, 
+                              dashArray: '5, 5', 
+                              fillColor: '#00FFFF', 
+                              fillOpacity: 0.2,
+                              pane: 'konradPane' // GEÄNDERT: Korrekte Ebene zuweisen
+                          }
                       )
                       .bindPopup(popupContent)
                       .addTo(konradLayerGroup);
@@ -362,7 +382,14 @@
                           [cell.lat_centroid_forecast, cell.lon_centroid_forecast],
                           [cell.major_axis_forecast * 1000, cell.minor_axis_forecast * 1000],
                           (90 - cell.angle_forecast),
-                          { color: 'cyan', weight: 1.5, dashArray: '5, 5', fillColor: '#00FFFF', fillOpacity: 0.2 }
+                          { 
+                              color: 'cyan', 
+                              weight: 1.5, 
+                              dashArray: '5, 5', 
+                              fillColor: '#00FFFF', 
+                              fillOpacity: 0.2,
+                              pane: 'konradPane' // GEÄNDERT: Korrekte Ebene zuweisen
+                          }
                       )
                       .bindPopup(createPopupContent(cell))
                       .addTo(konradLayerGroup);
@@ -397,8 +424,27 @@
         document.getElementById('frameLabel').textContent = `${formatted}`;
       }
 
+      // --- Problem 2: Legenden-Interaktivität lösen ---
+      // NEU: Implementierung der Funktion
       function attachContourEvents(polygon, value) {
-          // (unverändert)
+          const legendHover = document.getElementById('legend-hover');
+          const hoverColorBox = document.getElementById('hoverColorBox');
+          const hoverValue = document.getElementById('hoverValue');
+
+          const showHoverInfo = () => {
+              const color = colorScale(value).hex();
+              hoverColorBox.style.backgroundColor = color;
+              hoverValue.textContent = `${value.toFixed(1)} mm/h`;
+              legendHover.style.display = 'block';
+          };
+
+          const hideHoverInfo = () => {
+              legendHover.style.display = 'none';
+          };
+          
+          polygon.on('mouseover', showHoverInfo);
+          polygon.on('mouseout', hideHoverInfo);
+          polygon.on('click', showHoverInfo); // Für Touch-Geräte
       }
 
       // --- Hauptlogik zum Laden der Daten ---

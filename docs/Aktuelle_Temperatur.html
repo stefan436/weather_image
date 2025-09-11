@@ -157,9 +157,12 @@
     }
 
     async function fetchWeather(lat, lon) {
-      const url = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
-      const url_sun = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
-      const url_uv = `https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lon}`;
+      const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
+  
+      const url = `${proxy}https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
+      const url_sun = `${proxy}https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
+      const url_uv = `${proxy}https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lon}`;
+
 
       try {
         // Sonnenaus- und Untergang 

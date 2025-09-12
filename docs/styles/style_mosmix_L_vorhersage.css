@@ -334,11 +334,6 @@ select {
   }
 }
 
-/* Versteckte Elemente */
-#table {
-  display: none;
-}
-
 
 /* Day Selector Slide-Animation */
 .day-selector {
@@ -392,4 +387,5 @@ select {
 input[type="text"] {
     padding: 0.5em;
     border-radius: 8px;
+    font-size: 16px;
 }

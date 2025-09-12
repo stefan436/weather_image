@@ -153,7 +153,7 @@
           lastRequestTime = Date.now(); // Jetzt ist diese Anfrage "aktiv"
         
           const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=';
-          const baseUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+          const baseUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${address}`;
           const url = proxy + encodeURIComponent(baseUrl);
         
           try {
@@ -1297,6 +1297,7 @@
    </script>
 </body>
 </html>
+
 
 
 

@@ -9,18 +9,11 @@
         "label": "Leichter Regen",
         "avg": {
           "WW": 61.0,
-          "TTT": 11.2,
-          "RR1c": 1.7,
-          "Neff": 77.2
+          "TTT": 10.7,
+          "RR1c": 1.3,
+          "Neff": 77.7
         },
         "details": [
-          {
-            "timestamp": "2025-10-04T18:00:00+02:00",
-            "WW": "61.00",
-            "TTT": 12.8,
-            "RR1c": "0.40",
-            "Neff": "80.00"
-          },
           {
             "timestamp": "2025-10-04T19:00:00+02:00",
             "WW": "61.00",
@@ -31,16 +24,16 @@
           {
             "timestamp": "2025-10-04T20:00:00+02:00",
             "WW": "61.00",
-            "TTT": 10.5,
+            "TTT": 10.6,
             "RR1c": "0.20",
-            "Neff": "77.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-04T21:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.6,
+            "TTT": 9.7,
             "RR1c": "0.80",
-            "Neff": "76.00"
+            "Neff": "78.00"
           }
         ]
       },
@@ -52,22 +45,22 @@
           "WW": 3.0,
           "TTT": 8.7,
           "RR1c": 0.0,
-          "Neff": 75.0
+          "Neff": 75.2
         },
         "details": [
           {
             "timestamp": "2025-10-04T22:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.1,
+            "TTT": 9.2,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "77.00"
           },
           {
             "timestamp": "2025-10-04T23:00:00+02:00",
             "WW": "3.00",
             "TTT": 8.8,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "76.00"
           },
           {
             "timestamp": "2025-10-05T00:00:00+02:00",
@@ -81,7 +74,7 @@
             "WW": "3.00",
             "TTT": 8.2,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "74.00"
           }
         ]
       }
@@ -95,15 +88,15 @@
           "WW": 2.5,
           "TTT": 7.8,
           "RR1c": 0.0,
-          "Neff": 76.8
+          "Neff": 76.0
         },
         "details": [
           {
             "timestamp": "2025-10-05T02:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.9,
+            "TTT": 8.0,
             "RR1c": "0.00",
-            "Neff": "77.00"
+            "Neff": "76.00"
           },
           {
             "timestamp": "2025-10-05T03:00:00+02:00",
@@ -117,14 +110,14 @@
             "WW": "2.00",
             "TTT": 7.7,
             "RR1c": "0.00",
-            "Neff": "77.00"
+            "Neff": "76.00"
           },
           {
             "timestamp": "2025-10-05T05:00:00+02:00",
             "WW": "2.00",
-            "TTT": 7.4,
+            "TTT": 7.5,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "75.00"
           }
         ]
       },
@@ -134,9 +127,9 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 2.0,
-          "TTT": 7.6,
+          "TTT": 7.5,
           "RR1c": 0.0,
-          "Neff": 77.5
+          "Neff": 77.8
         },
         "details": [
           {
@@ -149,21 +142,21 @@
           {
             "timestamp": "2025-10-05T07:00:00+02:00",
             "WW": "2.00",
-            "TTT": 7.3,
+            "TTT": 7.2,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "77.00"
           },
           {
             "timestamp": "2025-10-05T08:00:00+02:00",
             "WW": "2.00",
-            "TTT": 7.5,
+            "TTT": 7.4,
             "RR1c": "0.00",
             "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-05T09:00:00+02:00",
             "WW": "2.00",
-            "TTT": 8.0,
+            "TTT": 7.9,
             "RR1c": "0.00",
             "Neff": "79.00"
           }
@@ -177,7 +170,7 @@
           "WW": 21.5,
           "TTT": 9.2,
           "RR1c": 0.2,
-          "Neff": 81.8
+          "Neff": 82.2
         },
         "details": [
           {
@@ -185,7 +178,7 @@
             "WW": "2.00",
             "TTT": 8.3,
             "RR1c": "0.00",
-            "Neff": "79.00"
+            "Neff": "80.00"
           },
           {
             "timestamp": "2025-10-05T11:00:00+02:00",
@@ -199,12 +192,12 @@
             "WW": "2.00",
             "TTT": 9.6,
             "RR1c": "0.00",
-            "Neff": "82.00"
+            "Neff": "83.00"
           },
           {
             "timestamp": "2025-10-05T13:00:00+02:00",
             "WW": "80.00",
-            "TTT": 9.8,
+            "TTT": 9.9,
             "RR1c": "0.20",
             "Neff": "85.00"
           }
@@ -216,15 +209,15 @@
         "label": "Leichter Regenschauer",
         "avg": {
           "WW": 80.0,
-          "TTT": 9.8,
+          "TTT": 9.9,
           "RR1c": 1.1,
-          "Neff": 83.2
+          "Neff": 83.5
         },
         "details": [
           {
             "timestamp": "2025-10-05T14:00:00+02:00",
             "WW": "80.00",
-            "TTT": 9.9,
+            "TTT": 10.0,
             "RR1c": "0.30",
             "Neff": "86.00"
           },
@@ -238,7 +231,7 @@
           {
             "timestamp": "2025-10-05T16:00:00+02:00",
             "WW": "80.00",
-            "TTT": 9.8,
+            "TTT": 9.9,
             "RR1c": "0.30",
             "Neff": "82.00"
           },
@@ -247,89 +240,89 @@
             "WW": "80.00",
             "TTT": 9.7,
             "RR1c": "0.30",
-            "Neff": "81.00"
+            "Neff": "82.00"
           }
         ]
       },
       {
         "period": "Abend",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light rain.png",
+        "label": "Leichter Regenschauer",
         "avg": {
-          "WW": 2.0,
-          "TTT": 8.6,
-          "RR1c": 0.0,
-          "Neff": 79.2
+          "WW": 21.8,
+          "TTT": 8.7,
+          "RR1c": 0.2,
+          "Neff": 81.2
         },
         "details": [
           {
             "timestamp": "2025-10-05T18:00:00+02:00",
-            "WW": "2.00",
+            "WW": "80.00",
             "TTT": 9.4,
-            "RR1c": "0.00",
-            "Neff": "75.00"
+            "RR1c": "0.20",
+            "Neff": "78.00"
           },
           {
             "timestamp": "2025-10-05T19:00:00+02:00",
             "WW": "2.00",
             "TTT": 8.8,
             "RR1c": "0.00",
-            "Neff": "77.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-05T20:00:00+02:00",
             "WW": "2.00",
-            "TTT": 8.2,
+            "TTT": 8.3,
             "RR1c": "0.00",
-            "Neff": "82.00"
+            "Neff": "83.00"
           },
           {
             "timestamp": "2025-10-05T21:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.9,
+            "WW": "3.00",
+            "TTT": 8.1,
             "RR1c": "0.00",
-            "Neff": "83.00"
+            "Neff": "85.00"
           }
         ]
       },
       {
         "period": "Spät Abends",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
         "avg": {
-          "WW": 2.5,
-          "TTT": 7.5,
+          "WW": 3.0,
+          "TTT": 7.6,
           "RR1c": 0.0,
-          "Neff": 79.0
+          "Neff": 84.2
         },
         "details": [
           {
             "timestamp": "2025-10-05T22:00:00+02:00",
-            "WW": "2.00",
+            "WW": "3.00",
             "TTT": 7.8,
             "RR1c": "0.00",
-            "Neff": "82.00"
+            "Neff": "86.00"
           },
           {
             "timestamp": "2025-10-05T23:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.5,
+            "TTT": 7.6,
             "RR1c": "0.00",
-            "Neff": "80.00"
+            "Neff": "86.00"
           },
           {
             "timestamp": "2025-10-06T00:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.4,
+            "TTT": 7.5,
             "RR1c": "0.00",
-            "Neff": "78.00"
+            "Neff": "84.00"
           },
           {
             "timestamp": "2025-10-06T01:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.2,
+            "WW": "3.00",
+            "TTT": 7.4,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "81.00"
           }
         ]
       }
@@ -340,39 +333,39 @@
         "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
         "label": "Bewölkung unverändert",
         "avg": {
-          "WW": 2.2,
+          "WW": 3.0,
           "TTT": 7.0,
           "RR1c": 0.0,
-          "Neff": 74.2
+          "Neff": 78.8
         },
         "details": [
           {
             "timestamp": "2025-10-06T02:00:00+02:00",
-            "WW": "2.00",
+            "WW": "3.00",
             "TTT": 7.1,
             "RR1c": "0.00",
-            "Neff": "72.00"
+            "Neff": "78.00"
           },
           {
             "timestamp": "2025-10-06T03:00:00+02:00",
             "WW": "3.00",
             "TTT": 7.0,
             "RR1c": "0.00",
-            "Neff": "73.00"
+            "Neff": "78.00"
           },
           {
             "timestamp": "2025-10-06T04:00:00+02:00",
-            "WW": "2.00",
+            "WW": "3.00",
             "TTT": 6.8,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-06T05:00:00+02:00",
-            "WW": "2.00",
+            "WW": "3.00",
             "TTT": 6.7,
             "RR1c": "0.00",
-            "Neff": "77.00"
+            "Neff": "80.00"
           }
         ]
       },
@@ -382,38 +375,38 @@
         "label": "Bewölkung zunehmend",
         "avg": {
           "WW": 3.0,
-          "TTT": 6.9,
+          "TTT": 6.8,
           "RR1c": 0.0,
-          "Neff": 85.0
+          "Neff": 87.0
         },
         "details": [
           {
             "timestamp": "2025-10-06T06:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.6,
+            "TTT": 6.5,
             "RR1c": "0.00",
-            "Neff": "83.00"
+            "Neff": "85.00"
           },
           {
             "timestamp": "2025-10-06T07:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.5,
+            "TTT": 6.4,
             "RR1c": "0.00",
-            "Neff": "84.00"
+            "Neff": "87.00"
           },
           {
             "timestamp": "2025-10-06T08:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.8,
+            "TTT": 6.7,
             "RR1c": "0.00",
-            "Neff": "86.00"
+            "Neff": "87.00"
           },
           {
             "timestamp": "2025-10-06T09:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.4,
+            "TTT": 7.2,
             "RR1c": "0.00",
-            "Neff": "87.00"
+            "Neff": "89.00"
           }
         ]
       },
@@ -423,38 +416,38 @@
         "label": "Leichter Regen",
         "avg": {
           "WW": 46.5,
-          "TTT": 9.0,
-          "RR1c": 0.2,
-          "Neff": 89.8
+          "TTT": 8.7,
+          "RR1c": 0.4,
+          "Neff": 91.5
         },
         "details": [
           {
             "timestamp": "2025-10-06T10:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.9,
+            "TTT": 7.6,
             "RR1c": "0.00",
-            "Neff": "87.00"
+            "Neff": "89.00"
           },
           {
             "timestamp": "2025-10-06T11:00:00+02:00",
             "WW": "61.00",
-            "TTT": 8.6,
+            "TTT": 8.3,
             "RR1c": "0.20",
-            "Neff": "89.00"
+            "Neff": "91.00"
           },
           {
             "timestamp": "2025-10-06T12:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.2,
-            "RR1c": "0.00",
-            "Neff": "90.00"
+            "TTT": 9.0,
+            "RR1c": "0.10",
+            "Neff": "92.00"
           },
           {
             "timestamp": "2025-10-06T13:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.9,
-            "RR1c": "0.00",
-            "Neff": "93.00"
+            "TTT": 9.5,
+            "RR1c": "0.10",
+            "Neff": "94.00"
           }
         ]
       },
@@ -464,38 +457,38 @@
         "label": "Leichter Regen",
         "avg": {
           "WW": 61.0,
-          "TTT": 10.8,
-          "RR1c": 0.3,
-          "Neff": 93.0
+          "TTT": 10.5,
+          "RR1c": 0.5,
+          "Neff": 93.2
         },
         "details": [
           {
             "timestamp": "2025-10-06T14:00:00+02:00",
             "WW": "61.00",
-            "TTT": 10.5,
+            "TTT": 10.2,
             "RR1c": "0.20",
             "Neff": "94.00"
           },
           {
             "timestamp": "2025-10-06T15:00:00+02:00",
             "WW": "61.00",
-            "TTT": 10.8,
+            "TTT": 10.4,
             "RR1c": "0.10",
             "Neff": "93.00"
           },
           {
             "timestamp": "2025-10-06T16:00:00+02:00",
             "WW": "61.00",
-            "TTT": 11.0,
-            "RR1c": "0.00",
+            "TTT": 10.6,
+            "RR1c": "0.10",
             "Neff": "93.00"
           },
           {
             "timestamp": "2025-10-06T17:00:00+02:00",
             "WW": "61.00",
-            "TTT": 10.8,
-            "RR1c": "0.00",
-            "Neff": "92.00"
+            "TTT": 10.6,
+            "RR1c": "0.10",
+            "Neff": "93.00"
           }
         ]
       },
@@ -505,37 +498,37 @@
         "label": "Leichter Regen",
         "avg": {
           "WW": 61.0,
-          "TTT": 10.0,
+          "TTT": 9.8,
           "RR1c": 0.7,
-          "Neff": 93.0
+          "Neff": 92.8
         },
         "details": [
           {
             "timestamp": "2025-10-06T18:00:00+02:00",
             "WW": "61.00",
-            "TTT": 10.4,
+            "TTT": 10.2,
             "RR1c": "0.10",
-            "Neff": "93.00"
+            "Neff": "92.00"
           },
           {
             "timestamp": "2025-10-06T19:00:00+02:00",
             "WW": "61.00",
-            "TTT": 10.1,
+            "TTT": 9.8,
             "RR1c": "0.10",
             "Neff": "92.00"
           },
           {
             "timestamp": "2025-10-06T20:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.7,
-            "RR1c": "0.10",
+            "TTT": 9.6,
+            "RR1c": "0.20",
             "Neff": "93.00"
           },
           {
             "timestamp": "2025-10-06T21:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.5,
-            "RR1c": "0.40",
+            "TTT": 9.3,
+            "RR1c": "0.30",
             "Neff": "94.00"
           }
         ]
@@ -546,37 +539,37 @@
         "label": "Leichter Regen",
         "avg": {
           "WW": 61.0,
-          "TTT": 9.4,
-          "RR1c": 1.0,
-          "Neff": 95.5
+          "TTT": 9.2,
+          "RR1c": 1.4,
+          "Neff": 94.8
         },
         "details": [
           {
             "timestamp": "2025-10-06T22:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.5,
+            "TTT": 9.2,
             "RR1c": "0.40",
-            "Neff": "94.00"
+            "Neff": "93.00"
           },
           {
             "timestamp": "2025-10-06T23:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.3,
-            "RR1c": "0.60",
-            "Neff": "96.00"
+            "TTT": 9.2,
+            "RR1c": "0.40",
+            "Neff": "95.00"
           },
           {
             "timestamp": "2025-10-07T00:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.3,
-            "RR1c": "0.00",
-            "Neff": "96.00"
+            "TTT": 9.1,
+            "RR1c": "0.30",
+            "Neff": "95.00"
           },
           {
             "timestamp": "2025-10-07T01:00:00+02:00",
             "WW": "61.00",
-            "TTT": 9.2,
-            "RR1c": "0.00",
+            "TTT": 9.0,
+            "RR1c": "0.30",
             "Neff": "96.00"
           }
         ]
@@ -585,40 +578,40 @@
     "Tue, 07.10.": [
       {
         "period": "Nacht",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
-        "label": "Bewölkung zunehmend",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light rain.png",
+        "label": "Leichter Regen",
         "avg": {
-          "WW": 3.0,
-          "TTT": 9.1,
-          "RR1c": 0.0,
-          "Neff": 94.5
+          "WW": 17.5,
+          "TTT": 9.0,
+          "RR1c": 0.2,
+          "Neff": 95.2
         },
         "details": [
           {
             "timestamp": "2025-10-07T02:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.1,
-            "RR1c": "0.00",
-            "Neff": "95.00"
+            "WW": "61.00",
+            "TTT": 8.9,
+            "RR1c": "0.20",
+            "Neff": "96.00"
           },
           {
             "timestamp": "2025-10-07T03:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.1,
+            "TTT": 9.0,
             "RR1c": "0.00",
-            "Neff": "95.00"
+            "Neff": "96.00"
           },
           {
             "timestamp": "2025-10-07T04:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.1,
+            "TTT": 8.9,
             "RR1c": "0.00",
-            "Neff": "94.00"
+            "Neff": "95.00"
           },
           {
             "timestamp": "2025-10-07T05:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.1,
+            "TTT": 8.9,
             "RR1c": "0.00",
             "Neff": "94.00"
           }
@@ -630,38 +623,534 @@
         "label": "Bewölkung zunehmend",
         "avg": {
           "WW": 3.0,
-          "TTT": 9.5,
+          "TTT": 9.2,
           "RR1c": 0.0,
-          "Neff": 93.5
+          "Neff": 93.2
         },
         "details": [
           {
             "timestamp": "2025-10-07T06:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.2,
+            "TTT": 8.9,
             "RR1c": "0.00",
             "Neff": "95.00"
           },
           {
             "timestamp": "2025-10-07T07:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.2,
+            "TTT": 8.9,
             "RR1c": "0.00",
-            "Neff": "94.00"
+            "Neff": "92.00"
           },
           {
             "timestamp": "2025-10-07T08:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.4,
+            "TTT": 9.3,
             "RR1c": "0.00",
             "Neff": "93.00"
           },
           {
             "timestamp": "2025-10-07T09:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.8,
+            "TTT": 9.6,
+            "RR1c": "0.00",
+            "Neff": "93.00"
+          }
+        ]
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
+        "avg": {
+          "WW": 3.0,
+          "TTT": 11.8,
+          "RR1c": 0.0,
+          "Neff": 92.2
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-07T10:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 10.6,
+            "RR1c": "0.00",
+            "Neff": "94.00"
+          },
+          {
+            "timestamp": "2025-10-07T11:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 11.4,
+            "RR1c": "0.00",
+            "Neff": "93.00"
+          },
+          {
+            "timestamp": "2025-10-07T12:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 12.2,
             "RR1c": "0.00",
             "Neff": "92.00"
+          },
+          {
+            "timestamp": "2025-10-07T13:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 12.9,
+            "RR1c": "0.00",
+            "Neff": "90.00"
+          }
+        ]
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
+        "avg": {
+          "WW": 3.0,
+          "TTT": 13.7,
+          "RR1c": 0.0,
+          "Neff": 81.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-07T14:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 13.5,
+            "RR1c": "0.00",
+            "Neff": "86.00"
+          },
+          {
+            "timestamp": "2025-10-07T15:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 13.8,
+            "RR1c": "0.00",
+            "Neff": "82.00"
+          },
+          {
+            "timestamp": "2025-10-07T16:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 13.9,
+            "RR1c": "0.00",
+            "Neff": "81.00"
+          },
+          {
+            "timestamp": "2025-10-07T17:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 13.5,
+            "RR1c": "0.00",
+            "Neff": "77.00"
+          }
+        ]
+      },
+      {
+        "period": "Abend",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.8,
+          "TTT": 12.0,
+          "RR1c": 0.0,
+          "Neff": 68.8
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-07T18:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 13.0,
+            "RR1c": "0.00",
+            "Neff": "73.00"
+          },
+          {
+            "timestamp": "2025-10-07T19:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 12.5,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-07T20:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 11.5,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-07T21:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 10.9,
+            "RR1c": "0.00",
+            "Neff": "64.00"
+          }
+        ]
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 9.4,
+          "RR1c": 0.0,
+          "Neff": 65.8
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-07T22:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 10.2,
+            "RR1c": "0.00",
+            "Neff": "65.00"
+          },
+          {
+            "timestamp": "2025-10-07T23:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.7,
+            "RR1c": "0.00",
+            "Neff": "64.00"
+          },
+          {
+            "timestamp": "2025-10-08T00:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.1,
+            "RR1c": "0.00",
+            "Neff": "67.00"
+          },
+          {
+            "timestamp": "2025-10-08T01:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.5,
+            "RR1c": "0.00",
+            "Neff": "67.00"
+          }
+        ]
+      }
+    ],
+    "Wed, 08.10.": [
+      {
+        "period": "Nacht",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
+        "label": "Nebel",
+        "avg": {
+          "WW": 23.8,
+          "TTT": 8.0,
+          "RR1c": 0.0,
+          "Neff": 74.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-08T02:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.3,
+            "RR1c": "0.00",
+            "Neff": "68.00"
+          },
+          {
+            "timestamp": "2025-10-08T03:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 8.1,
+            "RR1c": "0.00",
+            "Neff": "72.00"
+          },
+          {
+            "timestamp": "2025-10-08T04:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 7.8,
+            "RR1c": "0.00",
+            "Neff": "78.00"
+          },
+          {
+            "timestamp": "2025-10-08T05:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 7.7,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          }
+        ]
+      },
+      {
+        "period": "Früh",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
+        "label": "Nebel",
+        "avg": {
+          "WW": 45.0,
+          "TTT": 7.9,
+          "RR1c": 0.0,
+          "Neff": 87.2
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-08T06:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 7.5,
+            "RR1c": "0.00",
+            "Neff": "83.00"
+          },
+          {
+            "timestamp": "2025-10-08T07:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 7.6,
+            "RR1c": "0.00",
+            "Neff": "87.00"
+          },
+          {
+            "timestamp": "2025-10-08T08:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 7.9,
+            "RR1c": "0.00",
+            "Neff": "89.00"
+          },
+          {
+            "timestamp": "2025-10-08T09:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 8.5,
+            "RR1c": "0.00",
+            "Neff": "90.00"
+          }
+        ]
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
+        "label": "Nebel",
+        "avg": {
+          "WW": 13.5,
+          "TTT": 11.1,
+          "RR1c": 0.0,
+          "Neff": 86.0
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-08T10:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 9.3,
+            "RR1c": "0.00",
+            "Neff": "89.00"
+          },
+          {
+            "timestamp": "2025-10-08T11:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 10.5,
+            "RR1c": "0.00",
+            "Neff": "89.00"
+          },
+          {
+            "timestamp": "2025-10-08T12:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 11.7,
+            "RR1c": "0.00",
+            "Neff": "85.00"
+          },
+          {
+            "timestamp": "2025-10-08T13:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 12.7,
+            "RR1c": "0.00",
+            "Neff": "81.00"
+          }
+        ]
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.5,
+          "TTT": 14.2,
+          "RR1c": 0.0,
+          "Neff": 75.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-08T14:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 13.6,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-08T15:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 14.3,
+            "RR1c": "0.00",
+            "Neff": "78.00"
+          },
+          {
+            "timestamp": "2025-10-08T16:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 14.6,
+            "RR1c": "0.00",
+            "Neff": "73.00"
+          },
+          {
+            "timestamp": "2025-10-08T17:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 14.5,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          }
+        ]
+      },
+      {
+        "period": "Abend",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 12.6,
+          "RR1c": 0.0,
+          "Neff": 67.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-08T18:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 13.8,
+            "RR1c": "0.00",
+            "Neff": "65.00"
+          },
+          {
+            "timestamp": "2025-10-08T19:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 13.0,
+            "RR1c": "0.00",
+            "Neff": "67.00"
+          },
+          {
+            "timestamp": "2025-10-08T20:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.1,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-08T21:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 11.2,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          }
+        ]
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.8,
+          "TTT": 10.0,
+          "RR1c": 0.0,
+          "Neff": 68.2
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-08T22:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 10.6,
+            "RR1c": "0.00",
+            "Neff": "68.00"
+          },
+          {
+            "timestamp": "2025-10-08T23:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 10.1,
+            "RR1c": "0.00",
+            "Neff": "68.00"
+          },
+          {
+            "timestamp": "2025-10-09T00:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 9.8,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-09T01:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 9.5,
+            "RR1c": "0.00",
+            "Neff": "68.00"
+          }
+        ]
+      }
+    ],
+    "Thu, 09.10.": [
+      {
+        "period": "Nacht",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
+        "label": "Nebel",
+        "avg": {
+          "WW": 24.0,
+          "TTT": 9.1,
+          "RR1c": 0.0,
+          "Neff": 76.2
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-09T02:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 9.3,
+            "RR1c": "0.00",
+            "Neff": "70.00"
+          },
+          {
+            "timestamp": "2025-10-09T03:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 9.1,
+            "RR1c": "0.00",
+            "Neff": "74.00"
+          },
+          {
+            "timestamp": "2025-10-09T04:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 8.9,
+            "RR1c": "0.00",
+            "Neff": "78.00"
+          },
+          {
+            "timestamp": "2025-10-09T05:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 8.9,
+            "RR1c": "0.00",
+            "Neff": "83.00"
+          }
+        ]
+      },
+      {
+        "period": "Früh",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
+        "label": "Nebel",
+        "avg": {
+          "WW": 34.5,
+          "TTT": 9.1,
+          "RR1c": 0.0,
+          "Neff": 86.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-09T06:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 8.8,
+            "RR1c": "0.00",
+            "Neff": "85.00"
+          },
+          {
+            "timestamp": "2025-10-09T07:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 8.8,
+            "RR1c": "0.00",
+            "Neff": "86.00"
+          },
+          {
+            "timestamp": "2025-10-09T08:00:00+02:00",
+            "WW": "45.00",
+            "TTT": 9.1,
+            "RR1c": "0.00",
+            "Neff": "87.00"
+          },
+          {
+            "timestamp": "2025-10-09T09:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 9.6,
+            "RR1c": "0.00",
+            "Neff": "88.00"
           }
         ]
       },
@@ -673,532 +1162,36 @@
           "WW": 3.0,
           "TTT": 12.1,
           "RR1c": 0.0,
-          "Neff": 88.2
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-07T10:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.7,
-            "RR1c": "0.00",
-            "Neff": "91.00"
-          },
-          {
-            "timestamp": "2025-10-07T11:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 11.5,
-            "RR1c": "0.00",
-            "Neff": "90.00"
-          },
-          {
-            "timestamp": "2025-10-07T12:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 12.5,
-            "RR1c": "0.00",
-            "Neff": "87.00"
-          },
-          {
-            "timestamp": "2025-10-07T13:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 13.4,
-            "RR1c": "0.00",
-            "Neff": "85.00"
-          }
-        ]
-      },
-      {
-        "period": "Nachmittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 14.5,
-          "RR1c": 0.0,
-          "Neff": 74.8
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-07T14:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 14.2,
-            "RR1c": "0.00",
-            "Neff": "80.00"
-          },
-          {
-            "timestamp": "2025-10-07T15:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 14.5,
-            "RR1c": "0.00",
-            "Neff": "75.00"
-          },
-          {
-            "timestamp": "2025-10-07T16:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 14.7,
-            "RR1c": "0.00",
-            "Neff": "73.00"
-          },
-          {
-            "timestamp": "2025-10-07T17:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 14.4,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          }
-        ]
-      },
-      {
-        "period": "Abend",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.2,
-          "TTT": 12.7,
-          "RR1c": 0.0,
-          "Neff": 68.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-07T18:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 13.8,
-            "RR1c": "0.00",
-            "Neff": "70.00"
-          },
-          {
-            "timestamp": "2025-10-07T19:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 13.3,
-            "RR1c": "0.00",
-            "Neff": "69.00"
-          },
-          {
-            "timestamp": "2025-10-07T20:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.2,
-            "RR1c": "0.00",
-            "Neff": "69.00"
-          },
-          {
-            "timestamp": "2025-10-07T21:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 11.3,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          }
-        ]
-      },
-      {
-        "period": "Spät Abends",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 9.8,
-          "RR1c": 0.0,
-          "Neff": 66.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-07T22:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.6,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          },
-          {
-            "timestamp": "2025-10-07T23:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.1,
-            "RR1c": "0.00",
-            "Neff": "65.00"
-          },
-          {
-            "timestamp": "2025-10-08T00:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 9.5,
-            "RR1c": "0.00",
-            "Neff": "67.00"
-          },
-          {
-            "timestamp": "2025-10-08T01:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.9,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          }
-        ]
-      }
-    ],
-    "Wed, 08.10.": [
-      {
-        "period": "Nacht",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
-        "label": "Nebel",
-        "avg": {
-          "WW": 13.2,
-          "TTT": 8.4,
-          "RR1c": 0.0,
-          "Neff": 72.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-08T02:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.7,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          },
-          {
-            "timestamp": "2025-10-08T03:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 8.4,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          },
-          {
-            "timestamp": "2025-10-08T04:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 8.2,
-            "RR1c": "0.00",
-            "Neff": "75.00"
-          },
-          {
-            "timestamp": "2025-10-08T05:00:00+02:00",
-            "WW": "45.00",
-            "TTT": 8.1,
-            "RR1c": "0.00",
-            "Neff": "78.00"
-          }
-        ]
-      },
-      {
-        "period": "Früh",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
-        "label": "Nebel",
-        "avg": {
-          "WW": 45.0,
-          "TTT": 8.2,
-          "RR1c": 0.0,
-          "Neff": 81.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-08T06:00:00+02:00",
-            "WW": "45.00",
-            "TTT": 7.8,
-            "RR1c": "0.00",
-            "Neff": "79.00"
-          },
-          {
-            "timestamp": "2025-10-08T07:00:00+02:00",
-            "WW": "45.00",
-            "TTT": 7.9,
-            "RR1c": "0.00",
-            "Neff": "82.00"
-          },
-          {
-            "timestamp": "2025-10-08T08:00:00+02:00",
-            "WW": "45.00",
-            "TTT": 8.3,
-            "RR1c": "0.00",
-            "Neff": "82.00"
-          },
-          {
-            "timestamp": "2025-10-08T09:00:00+02:00",
-            "WW": "45.00",
-            "TTT": 8.9,
-            "RR1c": "0.00",
-            "Neff": "83.00"
-          }
-        ]
-      },
-      {
-        "period": "Mittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png",
-        "label": "Nebel",
-        "avg": {
-          "WW": 13.5,
-          "TTT": 11.7,
-          "RR1c": 0.0,
-          "Neff": 80.8
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-08T10:00:00+02:00",
-            "WW": "45.00",
-            "TTT": 9.8,
-            "RR1c": "0.00",
-            "Neff": "83.00"
-          },
-          {
-            "timestamp": "2025-10-08T11:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 11.1,
-            "RR1c": "0.00",
-            "Neff": "82.00"
-          },
-          {
-            "timestamp": "2025-10-08T12:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 12.3,
-            "RR1c": "0.00",
-            "Neff": "79.00"
-          },
-          {
-            "timestamp": "2025-10-08T13:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 13.3,
-            "RR1c": "0.00",
-            "Neff": "79.00"
-          }
-        ]
-      },
-      {
-        "period": "Nachmittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.2,
-          "TTT": 15.1,
-          "RR1c": 0.0,
-          "Neff": 71.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-08T14:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 14.3,
-            "RR1c": "0.00",
-            "Neff": "76.00"
-          },
-          {
-            "timestamp": "2025-10-08T15:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 15.1,
-            "RR1c": "0.00",
-            "Neff": "74.00"
-          },
-          {
-            "timestamp": "2025-10-08T16:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 15.5,
-            "RR1c": "0.00",
-            "Neff": "69.00"
-          },
-          {
-            "timestamp": "2025-10-08T17:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 15.5,
-            "RR1c": "0.00",
-            "Neff": "67.00"
-          }
-        ]
-      },
-      {
-        "period": "Abend",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 13.5,
-          "RR1c": 0.0,
-          "Neff": 61.2
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-08T18:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 14.7,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-08T19:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 14.0,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-08T20:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 13.0,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-08T21:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.0,
-            "RR1c": "0.00",
-            "Neff": "62.00"
-          }
-        ]
-      },
-      {
-        "period": "Spät Abends",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 11.0,
-          "RR1c": 0.0,
-          "Neff": 62.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-08T22:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 11.5,
-            "RR1c": "0.00",
-            "Neff": "63.00"
-          },
-          {
-            "timestamp": "2025-10-08T23:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 11.0,
-            "RR1c": "0.00",
-            "Neff": "62.00"
-          },
-          {
-            "timestamp": "2025-10-09T00:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.7,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-09T01:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.4,
-            "RR1c": "0.00",
-            "Neff": "62.00"
-          }
-        ]
-      }
-    ],
-    "Thu, 09.10.": [
-      {
-        "period": "Nacht",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 10.0,
-          "RR1c": 0.0,
-          "Neff": 68.2
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-09T02:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.2,
-            "RR1c": "0.00",
-            "Neff": "62.00"
-          },
-          {
-            "timestamp": "2025-10-09T03:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.0,
-            "RR1c": "0.00",
-            "Neff": "65.00"
-          },
-          {
-            "timestamp": "2025-10-09T04:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.8,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          },
-          {
-            "timestamp": "2025-10-09T05:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.7,
-            "RR1c": "0.00",
-            "Neff": "75.00"
-          }
-        ]
-      },
-      {
-        "period": "Früh",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
-        "label": "Bewölkung zunehmend",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 10.0,
-          "RR1c": 0.0,
-          "Neff": 82.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-09T06:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.6,
-            "RR1c": "0.00",
-            "Neff": "78.00"
-          },
-          {
-            "timestamp": "2025-10-09T07:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.7,
-            "RR1c": "0.00",
-            "Neff": "81.00"
-          },
-          {
-            "timestamp": "2025-10-09T08:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.9,
-            "RR1c": "0.00",
-            "Neff": "84.00"
-          },
-          {
-            "timestamp": "2025-10-09T09:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.4,
-            "RR1c": "0.00",
-            "Neff": "85.00"
-          }
-        ]
-      },
-      {
-        "period": "Mittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
-        "label": "Bewölkung zunehmend",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 12.6,
-          "RR1c": 0.0,
-          "Neff": 82.2
+          "Neff": 85.8
         },
         "details": [
           {
             "timestamp": "2025-10-09T10:00:00+02:00",
             "WW": "3.00",
-            "TTT": 11.2,
+            "TTT": 10.5,
             "RR1c": "0.00",
-            "Neff": "84.00"
+            "Neff": "87.00"
           },
           {
             "timestamp": "2025-10-09T11:00:00+02:00",
             "WW": "3.00",
-            "TTT": 12.1,
+            "TTT": 11.5,
             "RR1c": "0.00",
-            "Neff": "84.00"
+            "Neff": "87.00"
           },
           {
             "timestamp": "2025-10-09T12:00:00+02:00",
             "WW": "3.00",
-            "TTT": 13.1,
+            "TTT": 12.7,
             "RR1c": "0.00",
-            "Neff": "84.00"
+            "Neff": "86.00"
           },
           {
             "timestamp": "2025-10-09T13:00:00+02:00",
             "WW": "3.00",
-            "TTT": 13.8,
+            "TTT": 13.4,
             "RR1c": "0.00",
-            "Neff": "77.00"
+            "Neff": "83.00"
           }
         ]
       },
@@ -1207,39 +1200,39 @@
         "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
         "label": "Bewölkung unverändert",
         "avg": {
-          "WW": 2.5,
-          "TTT": 14.8,
+          "WW": 3.0,
+          "TTT": 14.2,
           "RR1c": 0.0,
-          "Neff": 75.5
+          "Neff": 79.8
         },
         "details": [
           {
             "timestamp": "2025-10-09T14:00:00+02:00",
             "WW": "3.00",
-            "TTT": 14.2,
+            "TTT": 13.7,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "81.00"
           },
           {
             "timestamp": "2025-10-09T15:00:00+02:00",
             "WW": "3.00",
-            "TTT": 14.9,
+            "TTT": 14.4,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "80.00"
           },
           {
             "timestamp": "2025-10-09T16:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 15.0,
+            "WW": "3.00",
+            "TTT": 14.5,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-09T17:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 14.8,
+            "WW": "3.00",
+            "TTT": 14.3,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "79.00"
           }
         ]
       },
@@ -1248,39 +1241,39 @@
         "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
         "label": "Bewölkung unverändert",
         "avg": {
-          "WW": 2.5,
-          "TTT": 12.7,
+          "WW": 3.0,
+          "TTT": 12.2,
           "RR1c": 0.0,
-          "Neff": 73.2
+          "Neff": 75.2
         },
         "details": [
           {
             "timestamp": "2025-10-09T18:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 14.1,
+            "WW": "3.00",
+            "TTT": 13.6,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "78.00"
           },
           {
             "timestamp": "2025-10-09T19:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 13.2,
+            "WW": "3.00",
+            "TTT": 12.7,
             "RR1c": "0.00",
             "Neff": "76.00"
           },
           {
             "timestamp": "2025-10-09T20:00:00+02:00",
             "WW": "3.00",
-            "TTT": 12.1,
+            "TTT": 11.5,
             "RR1c": "0.00",
-            "Neff": "70.00"
+            "Neff": "74.00"
           },
           {
             "timestamp": "2025-10-09T21:00:00+02:00",
             "WW": "3.00",
-            "TTT": 11.3,
+            "TTT": 10.8,
             "RR1c": "0.00",
-            "Neff": "71.00"
+            "Neff": "73.00"
           }
         ]
       },
@@ -1290,38 +1283,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 9.8,
+          "TTT": 9.4,
           "RR1c": 0.0,
-          "Neff": 70.2
+          "Neff": 71.5
         },
         "details": [
           {
             "timestamp": "2025-10-09T22:00:00+02:00",
             "WW": "3.00",
-            "TTT": 10.5,
+            "TTT": 10.1,
             "RR1c": "0.00",
-            "Neff": "70.00"
+            "Neff": "72.00"
           },
           {
             "timestamp": "2025-10-09T23:00:00+02:00",
             "WW": "3.00",
-            "TTT": 10.0,
+            "TTT": 9.5,
             "RR1c": "0.00",
-            "Neff": "70.00"
+            "Neff": "71.00"
           },
           {
             "timestamp": "2025-10-10T00:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.5,
+            "TTT": 9.1,
             "RR1c": "0.00",
-            "Neff": "70.00"
+            "Neff": "71.00"
           },
           {
             "timestamp": "2025-10-10T01:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.1,
+            "TTT": 8.7,
             "RR1c": "0.00",
-            "Neff": "71.00"
+            "Neff": "72.00"
           }
         ]
       }
@@ -1333,38 +1326,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 8.2,
+          "TTT": 8.1,
           "RR1c": 0.0,
-          "Neff": 71.2
+          "Neff": 72.5
         },
         "details": [
           {
             "timestamp": "2025-10-10T02:00:00+02:00",
             "WW": "3.00",
-            "TTT": 8.7,
+            "TTT": 8.4,
             "RR1c": "0.00",
-            "Neff": "71.00"
+            "Neff": "72.00"
           },
           {
             "timestamp": "2025-10-10T03:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 8.4,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          },
-          {
-            "timestamp": "2025-10-10T04:00:00+02:00",
             "WW": "3.00",
             "TTT": 8.1,
             "RR1c": "0.00",
             "Neff": "72.00"
           },
           {
+            "timestamp": "2025-10-10T04:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 7.9,
+            "RR1c": "0.00",
+            "Neff": "73.00"
+          },
+          {
             "timestamp": "2025-10-10T05:00:00+02:00",
             "WW": "3.00",
-            "TTT": 8.0,
+            "TTT": 7.7,
             "RR1c": "0.00",
-            "Neff": "71.00"
+            "Neff": "73.00"
           }
         ]
       },
@@ -1374,7 +1367,7 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 8.0,
+          "TTT": 7.8,
           "RR1c": 0.0,
           "Neff": 75.8
         },
@@ -1382,30 +1375,30 @@
           {
             "timestamp": "2025-10-10T06:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.8,
+            "TTT": 7.6,
             "RR1c": "0.00",
-            "Neff": "72.00"
+            "Neff": "73.00"
           },
           {
             "timestamp": "2025-10-10T07:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.7,
+            "TTT": 7.5,
             "RR1c": "0.00",
-            "Neff": "74.00"
+            "Neff": "75.00"
           },
           {
             "timestamp": "2025-10-10T08:00:00+02:00",
             "WW": "3.00",
-            "TTT": 8.0,
+            "TTT": 7.8,
             "RR1c": "0.00",
-            "Neff": "78.00"
+            "Neff": "77.00"
           },
           {
             "timestamp": "2025-10-10T09:00:00+02:00",
             "WW": "3.00",
-            "TTT": 8.5,
+            "TTT": 8.3,
             "RR1c": "0.00",
-            "Neff": "79.00"
+            "Neff": "78.00"
           }
         ]
       },
@@ -1415,38 +1408,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 11.2,
+          "TTT": 11.0,
           "RR1c": 0.0,
-          "Neff": 75.0
+          "Neff": 74.5
         },
         "details": [
           {
             "timestamp": "2025-10-10T10:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.5,
-            "RR1c": "0.00",
-            "Neff": "77.00"
-          },
-          {
-            "timestamp": "2025-10-10T11:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.8,
+            "TTT": 9.3,
             "RR1c": "0.00",
             "Neff": "76.00"
           },
           {
-            "timestamp": "2025-10-10T12:00:00+02:00",
+            "timestamp": "2025-10-10T11:00:00+02:00",
             "WW": "3.00",
-            "TTT": 11.8,
+            "TTT": 10.5,
             "RR1c": "0.00",
             "Neff": "75.00"
           },
           {
+            "timestamp": "2025-10-10T12:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 11.6,
+            "RR1c": "0.00",
+            "Neff": "74.00"
+          },
+          {
             "timestamp": "2025-10-10T13:00:00+02:00",
             "WW": "3.00",
-            "TTT": 12.7,
+            "TTT": 12.5,
             "RR1c": "0.00",
-            "Neff": "72.00"
+            "Neff": "73.00"
           }
         ]
       },
@@ -1456,38 +1449,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 2.0,
-          "TTT": 13.7,
+          "TTT": 13.4,
           "RR1c": 0.0,
-          "Neff": 70.0
+          "Neff": 69.0
         },
         "details": [
           {
             "timestamp": "2025-10-10T14:00:00+02:00",
             "WW": "2.00",
-            "TTT": 13.4,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          },
-          {
-            "timestamp": "2025-10-10T15:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 13.6,
+            "TTT": 13.0,
             "RR1c": "0.00",
             "Neff": "72.00"
           },
           {
-            "timestamp": "2025-10-10T16:00:00+02:00",
+            "timestamp": "2025-10-10T15:00:00+02:00",
             "WW": "2.00",
-            "TTT": 13.8,
+            "TTT": 13.4,
             "RR1c": "0.00",
             "Neff": "70.00"
           },
           {
-            "timestamp": "2025-10-10T17:00:00+02:00",
+            "timestamp": "2025-10-10T16:00:00+02:00",
             "WW": "2.00",
             "TTT": 13.6,
             "RR1c": "0.00",
-            "Neff": "67.00"
+            "Neff": "68.00"
+          },
+          {
+            "timestamp": "2025-10-10T17:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 13.3,
+            "RR1c": "0.00",
+            "Neff": "66.00"
           }
         ]
       },
@@ -1497,38 +1490,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 2.0,
-          "TTT": 11.9,
+          "TTT": 11.7,
           "RR1c": 0.0,
-          "Neff": 61.8
+          "Neff": 63.8
         },
         "details": [
           {
             "timestamp": "2025-10-10T18:00:00+02:00",
             "WW": "2.00",
-            "TTT": 13.0,
+            "TTT": 12.7,
             "RR1c": "0.00",
             "Neff": "64.00"
           },
           {
             "timestamp": "2025-10-10T19:00:00+02:00",
             "WW": "2.00",
-            "TTT": 12.3,
+            "TTT": 12.1,
             "RR1c": "0.00",
             "Neff": "64.00"
           },
           {
             "timestamp": "2025-10-10T20:00:00+02:00",
             "WW": "2.00",
-            "TTT": 11.3,
+            "TTT": 11.2,
             "RR1c": "0.00",
-            "Neff": "62.00"
+            "Neff": "66.00"
           },
           {
             "timestamp": "2025-10-10T21:00:00+02:00",
             "WW": "2.00",
-            "TTT": 10.7,
+            "TTT": 10.4,
             "RR1c": "0.00",
-            "Neff": "57.00"
+            "Neff": "61.00"
           }
         ]
       },
@@ -1538,38 +1531,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 2.0,
-          "TTT": 9.2,
+          "TTT": 9.1,
           "RR1c": 0.0,
-          "Neff": 61.0
+          "Neff": 64.8
         },
         "details": [
           {
             "timestamp": "2025-10-10T22:00:00+02:00",
             "WW": "2.00",
-            "TTT": 10.0,
-            "RR1c": "0.00",
-            "Neff": "57.00"
-          },
-          {
-            "timestamp": "2025-10-10T23:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 9.3,
-            "RR1c": "0.00",
-            "Neff": "62.00"
-          },
-          {
-            "timestamp": "2025-10-11T00:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.9,
+            "TTT": 9.8,
             "RR1c": "0.00",
             "Neff": "63.00"
           },
           {
+            "timestamp": "2025-10-10T23:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.2,
+            "RR1c": "0.00",
+            "Neff": "64.00"
+          },
+          {
+            "timestamp": "2025-10-11T00:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.8,
+            "RR1c": "0.00",
+            "Neff": "66.00"
+          },
+          {
             "timestamp": "2025-10-11T01:00:00+02:00",
             "WW": "2.00",
-            "TTT": 8.5,
+            "TTT": 8.4,
             "RR1c": "0.00",
-            "Neff": "62.00"
+            "Neff": "66.00"
           }
         ]
       }
@@ -1583,7 +1576,7 @@
           "WW": 2.5,
           "TTT": 7.5,
           "RR1c": 0.0,
-          "Neff": 69.2
+          "Neff": 70.5
         },
         "details": [
           {
@@ -1591,28 +1584,28 @@
             "WW": "2.00",
             "TTT": 7.8,
             "RR1c": "0.00",
-            "Neff": "67.00"
+            "Neff": "69.00"
           },
           {
             "timestamp": "2025-10-11T03:00:00+02:00",
             "WW": "2.00",
             "TTT": 7.5,
             "RR1c": "0.00",
-            "Neff": "68.00"
+            "Neff": "69.00"
           },
           {
             "timestamp": "2025-10-11T04:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.5,
+            "TTT": 7.4,
             "RR1c": "0.00",
-            "Neff": "70.00"
+            "Neff": "71.00"
           },
           {
             "timestamp": "2025-10-11T05:00:00+02:00",
             "WW": "3.00",
             "TTT": 7.2,
             "RR1c": "0.00",
-            "Neff": "72.00"
+            "Neff": "73.00"
           }
         ]
       },
@@ -1622,38 +1615,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 7.0,
+          "TTT": 7.1,
           "RR1c": 0.0,
-          "Neff": 74.8
+          "Neff": 78.0
         },
         "details": [
           {
             "timestamp": "2025-10-11T06:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.9,
+            "TTT": 7.0,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "76.00"
           },
           {
             "timestamp": "2025-10-11T07:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.8,
+            "TTT": 6.9,
             "RR1c": "0.00",
-            "Neff": "73.00"
+            "Neff": "77.00"
           },
           {
             "timestamp": "2025-10-11T08:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.9,
+            "TTT": 7.0,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-11T09:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.4,
+            "TTT": 7.5,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "80.00"
           }
         ]
       },
@@ -1663,286 +1656,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 2.5,
-          "TTT": 9.8,
+          "TTT": 9.9,
           "RR1c": 0.0,
-          "Neff": 73.5
+          "Neff": 77.2
         },
         "details": [
           {
             "timestamp": "2025-10-11T10:00:00+02:00",
             "WW": "3.00",
-            "TTT": 8.3,
+            "TTT": 8.4,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "80.00"
           },
           {
             "timestamp": "2025-10-11T11:00:00+02:00",
             "WW": "3.00",
-            "TTT": 9.4,
+            "TTT": 9.5,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "78.00"
           },
           {
             "timestamp": "2025-10-11T12:00:00+02:00",
             "WW": "2.00",
-            "TTT": 10.2,
+            "TTT": 10.3,
             "RR1c": "0.00",
-            "Neff": "73.00"
+            "Neff": "77.00"
           },
           {
             "timestamp": "2025-10-11T13:00:00+02:00",
             "WW": "2.00",
-            "TTT": 11.0,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          }
-        ]
-      },
-      {
-        "period": "Nachmittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 12.7,
-          "RR1c": 0.0,
-          "Neff": 66.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-11T14:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 11.9,
-            "RR1c": "0.00",
-            "Neff": "68.00"
-          },
-          {
-            "timestamp": "2025-10-11T15:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.8,
-            "RR1c": "0.00",
-            "Neff": "67.00"
-          },
-          {
-            "timestamp": "2025-10-11T16:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 13.0,
-            "RR1c": "0.00",
-            "Neff": "65.00"
-          },
-          {
-            "timestamp": "2025-10-11T17:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.8,
-            "RR1c": "0.00",
-            "Neff": "64.00"
-          }
-        ]
-      },
-      {
-        "period": "Abend",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 10.7,
-          "RR1c": 0.0,
-          "Neff": 61.8
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-11T18:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.1,
-            "RR1c": "0.00",
-            "Neff": "63.00"
-          },
-          {
-            "timestamp": "2025-10-11T19:00:00+02:00",
-            "WW": "2.00",
             "TTT": 11.2,
             "RR1c": "0.00",
-            "Neff": "62.00"
-          },
-          {
-            "timestamp": "2025-10-11T20:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.1,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-11T21:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 9.3,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          }
-        ]
-      },
-      {
-        "period": "Spät Abends",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 8.0,
-          "RR1c": 0.0,
-          "Neff": 62.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-11T22:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.7,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-11T23:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.1,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-12T00:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.6,
-            "RR1c": "0.00",
-            "Neff": "62.00"
-          },
-          {
-            "timestamp": "2025-10-12T01:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.3,
-            "RR1c": "0.00",
-            "Neff": "64.00"
-          }
-        ]
-      }
-    ],
-    "Sun, 12.10.": [
-      {
-        "period": "Nacht",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.5,
-          "TTT": 6.7,
-          "RR1c": 0.0,
-          "Neff": 68.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-12T02:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.0,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          },
-          {
-            "timestamp": "2025-10-12T03:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 6.7,
-            "RR1c": "0.00",
-            "Neff": "68.00"
-          },
-          {
-            "timestamp": "2025-10-12T04:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.5,
-            "RR1c": "0.00",
-            "Neff": "69.00"
-          },
-          {
-            "timestamp": "2025-10-12T05:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.4,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          }
-        ]
-      },
-      {
-        "period": "Früh",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 6.6,
-          "RR1c": 0.0,
-          "Neff": 73.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-12T06:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.3,
-            "RR1c": "0.00",
-            "Neff": "72.00"
-          },
-          {
-            "timestamp": "2025-10-12T07:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.3,
-            "RR1c": "0.00",
-            "Neff": "73.00"
-          },
-          {
-            "timestamp": "2025-10-12T08:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.6,
-            "RR1c": "0.00",
-            "Neff": "73.00"
-          },
-          {
-            "timestamp": "2025-10-12T09:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 7.1,
-            "RR1c": "0.00",
             "Neff": "74.00"
-          }
-        ]
-      },
-      {
-        "period": "Mittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.8,
-          "TTT": 9.6,
-          "RR1c": 0.0,
-          "Neff": 72.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-12T10:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 8.0,
-            "RR1c": "0.00",
-            "Neff": "74.00"
-          },
-          {
-            "timestamp": "2025-10-12T11:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.0,
-            "RR1c": "0.00",
-            "Neff": "73.00"
-          },
-          {
-            "timestamp": "2025-10-12T12:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.0,
-            "RR1c": "0.00",
-            "Neff": "72.00"
-          },
-          {
-            "timestamp": "2025-10-12T13:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 11.2,
-            "RR1c": "0.00",
-            "Neff": "71.00"
           }
         ]
       },
@@ -1954,284 +1699,36 @@
           "WW": 2.0,
           "TTT": 12.8,
           "RR1c": 0.0,
-          "Neff": 67.8
+          "Neff": 68.8
         },
         "details": [
           {
-            "timestamp": "2025-10-12T14:00:00+02:00",
+            "timestamp": "2025-10-11T14:00:00+02:00",
             "WW": "2.00",
-            "TTT": 12.3,
-            "RR1c": "0.00",
-            "Neff": "70.00"
-          },
-          {
-            "timestamp": "2025-10-12T15:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.8,
+            "TTT": 12.1,
             "RR1c": "0.00",
             "Neff": "68.00"
           },
           {
-            "timestamp": "2025-10-12T16:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 13.1,
-            "RR1c": "0.00",
-            "Neff": "67.00"
-          },
-          {
-            "timestamp": "2025-10-12T17:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.8,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          }
-        ]
-      },
-      {
-        "period": "Abend",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 10.9,
-          "RR1c": 0.0,
-          "Neff": 63.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-12T18:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.2,
-            "RR1c": "0.00",
-            "Neff": "65.00"
-          },
-          {
-            "timestamp": "2025-10-12T19:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 11.3,
-            "RR1c": "0.00",
-            "Neff": "64.00"
-          },
-          {
-            "timestamp": "2025-10-12T20:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.4,
-            "RR1c": "0.00",
-            "Neff": "64.00"
-          },
-          {
-            "timestamp": "2025-10-12T21:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 9.4,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          }
-        ]
-      },
-      {
-        "period": "Spät Abends",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.0,
-          "TTT": 8.1,
-          "RR1c": 0.0,
-          "Neff": 62.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-12T22:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.7,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-12T23:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.2,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-13T00:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.8,
-            "RR1c": "0.00",
-            "Neff": "61.00"
-          },
-          {
-            "timestamp": "2025-10-13T01:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.4,
-            "RR1c": "0.00",
-            "Neff": "65.00"
-          }
-        ]
-      }
-    ],
-    "Mon, 13.10.": [
-      {
-        "period": "Nacht",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.8,
-          "TTT": 6.9,
-          "RR1c": 0.0,
-          "Neff": 69.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-13T02:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.2,
-            "RR1c": "0.00",
-            "Neff": "67.00"
-          },
-          {
-            "timestamp": "2025-10-13T03:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.9,
-            "RR1c": "0.00",
-            "Neff": "69.00"
-          },
-          {
-            "timestamp": "2025-10-13T04:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.8,
-            "RR1c": "0.00",
-            "Neff": "70.00"
-          },
-          {
-            "timestamp": "2025-10-13T05:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.6,
-            "RR1c": "0.00",
-            "Neff": "72.00"
-          }
-        ]
-      },
-      {
-        "period": "Früh",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 6.8,
-          "RR1c": 0.0,
-          "Neff": 74.0
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-13T06:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.5,
-            "RR1c": "0.00",
-            "Neff": "73.00"
-          },
-          {
-            "timestamp": "2025-10-13T07:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.5,
-            "RR1c": "0.00",
-            "Neff": "74.00"
-          },
-          {
-            "timestamp": "2025-10-13T08:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.7,
-            "RR1c": "0.00",
-            "Neff": "74.00"
-          },
-          {
-            "timestamp": "2025-10-13T09:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 7.3,
-            "RR1c": "0.00",
-            "Neff": "75.00"
-          }
-        ]
-      },
-      {
-        "period": "Mittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 3.0,
-          "TTT": 9.6,
-          "RR1c": 0.0,
-          "Neff": 73.8
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-13T10:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 8.0,
-            "RR1c": "0.00",
-            "Neff": "75.00"
-          },
-          {
-            "timestamp": "2025-10-13T11:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 9.0,
-            "RR1c": "0.00",
-            "Neff": "74.00"
-          },
-          {
-            "timestamp": "2025-10-13T12:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 10.1,
-            "RR1c": "0.00",
-            "Neff": "74.00"
-          },
-          {
-            "timestamp": "2025-10-13T13:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 11.1,
-            "RR1c": "0.00",
-            "Neff": "72.00"
-          }
-        ]
-      },
-      {
-        "period": "Nachmittag",
-        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
-        "label": "Bewölkung unverändert",
-        "avg": {
-          "WW": 2.2,
-          "TTT": 12.7,
-          "RR1c": 0.0,
-          "Neff": 69.5
-        },
-        "details": [
-          {
-            "timestamp": "2025-10-13T14:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 12.0,
-            "RR1c": "0.00",
-            "Neff": "71.00"
-          },
-          {
-            "timestamp": "2025-10-13T15:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 12.7,
-            "RR1c": "0.00",
-            "Neff": "70.00"
-          },
-          {
-            "timestamp": "2025-10-13T16:00:00+02:00",
+            "timestamp": "2025-10-11T15:00:00+02:00",
             "WW": "2.00",
             "TTT": 12.9,
             "RR1c": "0.00",
-            "Neff": "69.00"
+            "Neff": "70.00"
           },
           {
-            "timestamp": "2025-10-13T17:00:00+02:00",
+            "timestamp": "2025-10-11T16:00:00+02:00",
             "WW": "2.00",
-            "TTT": 12.8,
+            "TTT": 13.1,
             "RR1c": "0.00",
             "Neff": "68.00"
+          },
+          {
+            "timestamp": "2025-10-11T17:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 13.0,
+            "RR1c": "0.00",
+            "Neff": "69.00"
           }
         ]
       },
@@ -2247,30 +1744,30 @@
         },
         "details": [
           {
-            "timestamp": "2025-10-13T18:00:00+02:00",
+            "timestamp": "2025-10-11T18:00:00+02:00",
             "WW": "2.00",
-            "TTT": 12.2,
+            "TTT": 12.3,
             "RR1c": "0.00",
             "Neff": "67.00"
           },
           {
-            "timestamp": "2025-10-13T19:00:00+02:00",
+            "timestamp": "2025-10-11T19:00:00+02:00",
             "WW": "2.00",
-            "TTT": 11.2,
-            "RR1c": "0.00",
-            "Neff": "67.00"
-          },
-          {
-            "timestamp": "2025-10-13T20:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 10.2,
+            "TTT": 11.4,
             "RR1c": "0.00",
             "Neff": "66.00"
           },
           {
-            "timestamp": "2025-10-13T21:00:00+02:00",
+            "timestamp": "2025-10-11T20:00:00+02:00",
             "WW": "2.00",
-            "TTT": 9.6,
+            "TTT": 10.3,
+            "RR1c": "0.00",
+            "Neff": "67.00"
+          },
+          {
+            "timestamp": "2025-10-11T21:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.4,
             "RR1c": "0.00",
             "Neff": "66.00"
           }
@@ -2282,38 +1779,534 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 2.0,
-          "TTT": 8.5,
+          "TTT": 8.1,
           "RR1c": 0.0,
-          "Neff": 67.2
+          "Neff": 67.8
         },
         "details": [
           {
-            "timestamp": "2025-10-13T22:00:00+02:00",
+            "timestamp": "2025-10-11T22:00:00+02:00",
             "WW": "2.00",
-            "TTT": 9.1,
-            "RR1c": "0.00",
-            "Neff": "66.00"
-          },
-          {
-            "timestamp": "2025-10-13T23:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 8.6,
+            "TTT": 8.8,
             "RR1c": "0.00",
             "Neff": "67.00"
           },
           {
-            "timestamp": "2025-10-14T00:00:00+02:00",
+            "timestamp": "2025-10-11T23:00:00+02:00",
             "WW": "2.00",
             "TTT": 8.2,
             "RR1c": "0.00",
             "Neff": "67.00"
           },
           {
-            "timestamp": "2025-10-14T01:00:00+02:00",
+            "timestamp": "2025-10-12T00:00:00+02:00",
             "WW": "2.00",
-            "TTT": 7.9,
+            "TTT": 7.7,
+            "RR1c": "0.00",
+            "Neff": "68.00"
+          },
+          {
+            "timestamp": "2025-10-12T01:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 7.4,
             "RR1c": "0.00",
             "Neff": "69.00"
+          }
+        ]
+      }
+    ],
+    "Sun, 12.10.": [
+      {
+        "period": "Nacht",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.8,
+          "TTT": 6.6,
+          "RR1c": 0.0,
+          "Neff": 74.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-12T02:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 6.9,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          },
+          {
+            "timestamp": "2025-10-12T03:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.6,
+            "RR1c": "0.00",
+            "Neff": "74.00"
+          },
+          {
+            "timestamp": "2025-10-12T04:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.5,
+            "RR1c": "0.00",
+            "Neff": "75.00"
+          },
+          {
+            "timestamp": "2025-10-12T05:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.3,
+            "RR1c": "0.00",
+            "Neff": "78.00"
+          }
+        ]
+      },
+      {
+        "period": "Früh",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
+        "avg": {
+          "WW": 3.0,
+          "TTT": 6.5,
+          "RR1c": 0.0,
+          "Neff": 80.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-12T06:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.2,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-12T07:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.2,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-12T08:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.5,
+            "RR1c": "0.00",
+            "Neff": "81.00"
+          },
+          {
+            "timestamp": "2025-10-12T09:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 7.0,
+            "RR1c": "0.00",
+            "Neff": "81.00"
+          }
+        ]
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
+        "avg": {
+          "WW": 2.8,
+          "TTT": 9.5,
+          "RR1c": 0.0,
+          "Neff": 80.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-12T10:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 7.9,
+            "RR1c": "0.00",
+            "Neff": "82.00"
+          },
+          {
+            "timestamp": "2025-10-12T11:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 8.9,
+            "RR1c": "0.00",
+            "Neff": "81.00"
+          },
+          {
+            "timestamp": "2025-10-12T12:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 10.0,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-12T13:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 10.8,
+            "RR1c": "0.00",
+            "Neff": "79.00"
+          }
+        ]
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 12.6,
+          "RR1c": 0.0,
+          "Neff": 74.0
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-12T14:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.0,
+            "RR1c": "0.00",
+            "Neff": "77.00"
+          },
+          {
+            "timestamp": "2025-10-12T15:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.6,
+            "RR1c": "0.00",
+            "Neff": "75.00"
+          },
+          {
+            "timestamp": "2025-10-12T16:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.9,
+            "RR1c": "0.00",
+            "Neff": "73.00"
+          },
+          {
+            "timestamp": "2025-10-12T17:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.7,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          }
+        ]
+      },
+      {
+        "period": "Abend",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 10.7,
+          "RR1c": 0.0,
+          "Neff": 69.0
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-12T18:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.1,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          },
+          {
+            "timestamp": "2025-10-12T19:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 11.1,
+            "RR1c": "0.00",
+            "Neff": "70.00"
+          },
+          {
+            "timestamp": "2025-10-12T20:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 10.2,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-12T21:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.3,
+            "RR1c": "0.00",
+            "Neff": "66.00"
+          }
+        ]
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 8.0,
+          "RR1c": 0.0,
+          "Neff": 66.8
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-12T22:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.6,
+            "RR1c": "0.00",
+            "Neff": "66.00"
+          },
+          {
+            "timestamp": "2025-10-12T23:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.1,
+            "RR1c": "0.00",
+            "Neff": "66.00"
+          },
+          {
+            "timestamp": "2025-10-13T00:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 7.7,
+            "RR1c": "0.00",
+            "Neff": "66.00"
+          },
+          {
+            "timestamp": "2025-10-13T01:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 7.3,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          }
+        ]
+      }
+    ],
+    "Mon, 13.10.": [
+      {
+        "period": "Nacht",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.5,
+          "TTT": 6.9,
+          "RR1c": 0.0,
+          "Neff": 74.2
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-13T02:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 7.1,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          },
+          {
+            "timestamp": "2025-10-13T03:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 6.9,
+            "RR1c": "0.00",
+            "Neff": "73.00"
+          },
+          {
+            "timestamp": "2025-10-13T04:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.7,
+            "RR1c": "0.00",
+            "Neff": "76.00"
+          },
+          {
+            "timestamp": "2025-10-13T05:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.6,
+            "RR1c": "0.00",
+            "Neff": "77.00"
+          }
+        ]
+      },
+      {
+        "period": "Früh",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
+        "avg": {
+          "WW": 3.0,
+          "TTT": 6.7,
+          "RR1c": 0.0,
+          "Neff": 81.0
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-13T06:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.5,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-13T07:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.5,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-13T08:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.6,
+            "RR1c": "0.00",
+            "Neff": "82.00"
+          },
+          {
+            "timestamp": "2025-10-13T09:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 7.1,
+            "RR1c": "0.00",
+            "Neff": "82.00"
+          }
+        ]
+      },
+      {
+        "period": "Mittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png",
+        "label": "Bewölkung zunehmend",
+        "avg": {
+          "WW": 3.0,
+          "TTT": 9.5,
+          "RR1c": 0.0,
+          "Neff": 80.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-13T10:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 7.9,
+            "RR1c": "0.00",
+            "Neff": "82.00"
+          },
+          {
+            "timestamp": "2025-10-13T11:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 8.9,
+            "RR1c": "0.00",
+            "Neff": "81.00"
+          },
+          {
+            "timestamp": "2025-10-13T12:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 9.9,
+            "RR1c": "0.00",
+            "Neff": "80.00"
+          },
+          {
+            "timestamp": "2025-10-13T13:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 11.0,
+            "RR1c": "0.00",
+            "Neff": "79.00"
+          }
+        ]
+      },
+      {
+        "period": "Nachmittag",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.5,
+          "TTT": 12.5,
+          "RR1c": 0.0,
+          "Neff": 74.5
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-13T14:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 11.9,
+            "RR1c": "0.00",
+            "Neff": "77.00"
+          },
+          {
+            "timestamp": "2025-10-13T15:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 12.5,
+            "RR1c": "0.00",
+            "Neff": "75.00"
+          },
+          {
+            "timestamp": "2025-10-13T16:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.8,
+            "RR1c": "0.00",
+            "Neff": "74.00"
+          },
+          {
+            "timestamp": "2025-10-13T17:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.7,
+            "RR1c": "0.00",
+            "Neff": "72.00"
+          }
+        ]
+      },
+      {
+        "period": "Abend",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 10.8,
+          "RR1c": 0.0,
+          "Neff": 69.8
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-13T18:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.1,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          },
+          {
+            "timestamp": "2025-10-13T19:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 11.1,
+            "RR1c": "0.00",
+            "Neff": "70.00"
+          },
+          {
+            "timestamp": "2025-10-13T20:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 10.2,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-13T21:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.5,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          }
+        ]
+      },
+      {
+        "period": "Spät Abends",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 8.4,
+          "RR1c": 0.0,
+          "Neff": 70.2
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-13T22:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 9.0,
+            "RR1c": "0.00",
+            "Neff": "69.00"
+          },
+          {
+            "timestamp": "2025-10-13T23:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.5,
+            "RR1c": "0.00",
+            "Neff": "70.00"
+          },
+          {
+            "timestamp": "2025-10-14T00:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.1,
+            "RR1c": "0.00",
+            "Neff": "71.00"
+          },
+          {
+            "timestamp": "2025-10-14T01:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 8.0,
+            "RR1c": "0.00",
+            "Neff": "71.00"
           }
         ]
       }
@@ -2324,39 +2317,39 @@
         "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
         "label": "Bewölkung unverändert",
         "avg": {
-          "WW": 2.5,
-          "TTT": 7.1,
+          "WW": 2.8,
+          "TTT": 7.2,
           "RR1c": 0.0,
-          "Neff": 72.8
+          "Neff": 74.8
         },
         "details": [
           {
             "timestamp": "2025-10-14T02:00:00+02:00",
             "WW": "2.00",
-            "TTT": 7.5,
+            "TTT": 7.6,
             "RR1c": "0.00",
-            "Neff": "70.00"
+            "Neff": "73.00"
           },
           {
             "timestamp": "2025-10-14T03:00:00+02:00",
-            "WW": "2.00",
-            "TTT": 7.2,
-            "RR1c": "0.00",
-            "Neff": "72.00"
-          },
-          {
-            "timestamp": "2025-10-14T04:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.9,
+            "TTT": 7.3,
             "RR1c": "0.00",
             "Neff": "74.00"
           },
           {
+            "timestamp": "2025-10-14T04:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 7.1,
+            "RR1c": "0.00",
+            "Neff": "76.00"
+          },
+          {
             "timestamp": "2025-10-14T05:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.7,
+            "TTT": 6.9,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "76.00"
           }
         ]
       },
@@ -2366,38 +2359,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 6.7,
+          "TTT": 6.9,
           "RR1c": 0.0,
-          "Neff": 77.2
+          "Neff": 78.5
         },
         "details": [
           {
             "timestamp": "2025-10-14T06:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.6,
-            "RR1c": "0.00",
-            "Neff": "76.00"
-          },
-          {
-            "timestamp": "2025-10-14T07:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 6.3,
+            "TTT": 6.8,
             "RR1c": "0.00",
             "Neff": "77.00"
           },
           {
-            "timestamp": "2025-10-14T08:00:00+02:00",
+            "timestamp": "2025-10-14T07:00:00+02:00",
             "WW": "3.00",
-            "TTT": 6.5,
+            "TTT": 6.6,
             "RR1c": "0.00",
             "Neff": "78.00"
           },
           {
+            "timestamp": "2025-10-14T08:00:00+02:00",
+            "WW": "3.00",
+            "TTT": 6.8,
+            "RR1c": "0.00",
+            "Neff": "79.00"
+          },
+          {
             "timestamp": "2025-10-14T09:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.0,
+            "TTT": 7.3,
             "RR1c": "0.00",
-            "Neff": "78.00"
+            "Neff": "80.00"
           }
         ]
       },
@@ -2407,38 +2400,38 @@
         "label": "Bewölkung unverändert",
         "avg": {
           "WW": 3.0,
-          "TTT": 9.2,
+          "TTT": 9.8,
           "RR1c": 0.0,
-          "Neff": 75.2
+          "Neff": 78.8
         },
         "details": [
           {
             "timestamp": "2025-10-14T10:00:00+02:00",
             "WW": "3.00",
-            "TTT": 7.8,
+            "TTT": 8.1,
             "RR1c": "0.00",
-            "Neff": "77.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-14T11:00:00+02:00",
             "WW": "3.00",
-            "TTT": 8.8,
+            "TTT": 9.2,
             "RR1c": "0.00",
-            "Neff": "76.00"
+            "Neff": "79.00"
           },
           {
             "timestamp": "2025-10-14T12:00:00+02:00",
             "WW": "3.00",
-            "TTT": 10.2,
+            "TTT": 10.5,
             "RR1c": "0.00",
-            "Neff": "75.00"
+            "Neff": "78.00"
           },
           {
             "timestamp": "2025-10-14T13:00:00+02:00",
             "WW": "3.00",
-            "TTT": 10.4,
+            "TTT": 11.2,
             "RR1c": "0.00",
-            "Neff": "73.00"
+            "Neff": "79.00"
           }
         ]
       },
@@ -2447,46 +2440,65 @@
         "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png",
         "label": "Bewölkung unverändert",
         "avg": {
-          "WW": 2.2,
-          "TTT": 11.9,
+          "WW": 2.0,
+          "TTT": 12.8,
           "RR1c": 0.0,
-          "Neff": 67.8
+          "Neff": 74.2
         },
         "details": [
           {
             "timestamp": "2025-10-14T14:00:00+02:00",
-            "WW": "3.00",
-            "TTT": 11.5,
+            "WW": "2.00",
+            "TTT": 12.4,
             "RR1c": "0.00",
-            "Neff": "71.00"
+            "Neff": "77.00"
           },
           {
             "timestamp": "2025-10-14T15:00:00+02:00",
             "WW": "2.00",
-            "TTT": 11.9,
+            "TTT": 12.9,
             "RR1c": "0.00",
-            "Neff": "69.00"
+            "Neff": "75.00"
           },
           {
             "timestamp": "2025-10-14T16:00:00+02:00",
             "WW": "2.00",
-            "TTT": 12.1,
+            "TTT": 13.0,
             "RR1c": "0.00",
-            "Neff": "66.00"
+            "Neff": "73.00"
           },
           {
             "timestamp": "2025-10-14T17:00:00+02:00",
             "WW": "2.00",
-            "TTT": 11.8,
+            "TTT": 12.7,
             "RR1c": "0.00",
-            "Neff": "65.00"
+            "Neff": "72.00"
+          }
+        ]
+      },
+      {
+        "period": "Abend",
+        "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png",
+        "label": "Bewölkung unverändert",
+        "avg": {
+          "WW": 2.0,
+          "TTT": 12.1,
+          "RR1c": 0.0,
+          "Neff": 71.0
+        },
+        "details": [
+          {
+            "timestamp": "2025-10-14T18:00:00+02:00",
+            "WW": "2.00",
+            "TTT": 12.1,
+            "RR1c": "0.00",
+            "Neff": "71.00"
           }
         ]
       }
     ]
   },
   "timeSteps": [
-    "2025-10-04T16:00:00+00:00",
     "2025-10-04T17:00:00+00:00",
     "2025-10-04T18:00:00+00:00",
     "2025-10-04T19:00:00+00:00",
@@ -2725,14 +2737,14 @@
     "2025-10-14T12:00:00+00:00",
     "2025-10-14T13:00:00+00:00",
     "2025-10-14T14:00:00+00:00",
-    "2025-10-14T15:00:00+00:00"
+    "2025-10-14T15:00:00+00:00",
+    "2025-10-14T16:00:00+00:00"
   ],
   "parameters": {
     "WW": [
       "61.00",
       "61.00",
       "61.00",
-      "61.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2753,18 +2765,18 @@
       "80.00",
       "80.00",
       "80.00",
-      "2.00",
-      "2.00",
-      "2.00",
-      "2.00",
-      "2.00",
-      "3.00",
-      "3.00",
+      "80.00",
       "2.00",
       "2.00",
       "3.00",
-      "2.00",
-      "2.00",
+      "3.00",
+      "3.00",
+      "3.00",
+      "3.00",
+      "3.00",
+      "3.00",
+      "3.00",
+      "3.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2785,6 +2797,9 @@
       "61.00",
       "61.00",
       "61.00",
+      "61.00",
+      "3.00",
+      "3.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2802,15 +2817,11 @@
       "3.00",
       "3.00",
       "2.00",
-      "3.00",
       "2.00",
       "2.00",
       "2.00",
       "2.00",
       "2.00",
-      "2.00",
-      "2.00",
-      "3.00",
       "3.00",
       "45.00",
       "45.00",
@@ -2818,14 +2829,12 @@
       "45.00",
       "45.00",
       "45.00",
+      "45.00",
       "3.00",
       "3.00",
       "3.00",
       "3.00",
-      "2.00",
-      "2.00",
-      "2.00",
-      "2.00",
+      "3.00",
       "2.00",
       "2.00",
       "2.00",
@@ -2838,6 +2847,11 @@
       "3.00",
       "3.00",
       "3.00",
+      "45.00",
+      "45.00",
+      "45.00",
+      "45.00",
+      "45.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2847,10 +2861,6 @@
       "3.00",
       "3.00",
       "3.00",
-      "2.00",
-      "2.00",
-      "2.00",
-      "2.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2869,6 +2879,8 @@
       "3.00",
       "3.00",
       "3.00",
+      "3.00",
+      "3.00",
       "2.00",
       "2.00",
       "2.00",
@@ -2906,7 +2918,7 @@
       "2.00",
       "2.00",
       "2.00",
-      "2.00",
+      "3.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2930,6 +2942,7 @@
       "2.00",
       "2.00",
       "2.00",
+      "2.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2942,7 +2955,6 @@
       "3.00",
       "3.00",
       "3.00",
-      "2.00",
       "2.00",
       "2.00",
       "2.00",
@@ -2954,7 +2966,6 @@
       "2.00",
       "2.00",
       "2.00",
-      "2.00",
       "3.00",
       "3.00",
       "3.00",
@@ -2966,254 +2977,255 @@
       "3.00",
       "3.00",
       "3.00",
+      "2.00",
+      "2.00",
       "2.00",
       "2.00",
       "2.00"
     ],
     "TTT": [
-      "285.95",
       "284.75",
-      "283.65",
-      "282.75",
-      "282.25",
+      "283.75",
+      "282.85",
+      "282.35",
       "281.95",
       "281.55",
       "281.35",
-      "281.05",
+      "281.15",
       "280.95",
       "280.85",
-      "280.55",
-      "280.45",
-      "280.45",
       "280.65",
-      "281.15",
+      "280.45",
+      "280.35",
+      "280.55",
+      "281.05",
       "281.45",
       "282.25",
       "282.75",
+      "283.05",
+      "283.15",
       "282.95",
       "283.05",
-      "282.95",
-      "282.95",
       "282.85",
       "282.55",
       "281.95",
-      "281.35",
-      "281.05",
+      "281.45",
+      "281.25",
       "280.95",
+      "280.75",
       "280.65",
       "280.55",
-      "280.35",
       "280.25",
       "280.15",
       "279.95",
-      "279.85",
-      "279.75",
-      "279.65",
-      "279.95",
-      "280.55",
-      "281.05",
-      "281.75",
-      "282.35",
-      "283.05",
-      "283.65",
-      "283.95",
-      "284.15",
-      "283.95",
-      "283.55",
-      "283.25",
-      "282.85",
-      "282.65",
-      "282.65",
-      "282.45",
-      "282.45",
-      "282.35",
-      "282.25",
-      "282.25",
-      "282.25",
-      "282.25",
-      "282.35",
-      "282.35",
-      "282.55",
-      "282.95",
-      "283.85",
-      "284.65",
-      "285.65",
-      "286.55",
-      "287.35",
-      "287.65",
-      "287.85",
-      "287.55",
-      "286.95",
-      "286.45",
-      "285.35",
-      "284.45",
-      "283.75",
-      "283.25",
-      "282.65",
-      "282.05",
-      "281.85",
-      "281.55",
-      "281.35",
-      "281.25",
-      "280.95",
-      "281.05",
-      "281.45",
-      "282.05",
-      "282.95",
-      "284.25",
-      "285.45",
-      "286.45",
-      "287.45",
-      "288.25",
-      "288.65",
-      "288.65",
-      "287.85",
-      "287.15",
-      "286.15",
-      "285.15",
-      "284.65",
-      "284.15",
-      "283.85",
-      "283.55",
-      "283.35",
-      "283.15",
-      "282.95",
-      "282.85",
-      "282.75",
-      "282.85",
-      "283.05",
-      "283.55",
-      "284.35",
-      "285.25",
-      "286.25",
-      "286.95",
-      "287.35",
-      "288.05",
-      "288.15",
-      "287.95",
-      "287.25",
-      "286.35",
-      "285.25",
-      "284.45",
-      "283.65",
-      "283.15",
-      "282.65",
-      "282.25",
-      "281.85",
-      "281.55",
-      "281.25",
-      "281.15",
-      "280.95",
-      "280.85",
-      "281.15",
-      "281.65",
-      "282.65",
-      "283.95",
-      "284.95",
-      "285.85",
-      "286.55",
-      "286.75",
-      "286.95",
-      "286.75",
-      "286.15",
-      "285.45",
-      "284.45",
-      "283.85",
-      "283.15",
-      "282.45",
-      "282.05",
-      "281.65",
-      "280.95",
-      "280.65",
-      "280.65",
-      "280.35",
-      "280.05",
-      "279.95",
-      "280.05",
-      "280.55",
-      "281.45",
-      "282.55",
-      "283.35",
-      "284.15",
-      "285.05",
-      "285.95",
-      "286.15",
-      "285.95",
-      "285.25",
-      "284.35",
-      "283.25",
-      "282.45",
-      "281.85",
-      "281.25",
-      "280.75",
-      "280.45",
-      "280.15",
       "279.85",
       "279.65",
       "279.55",
-      "279.45",
-      "279.45",
-      "279.75",
-      "280.25",
-      "281.15",
+      "279.85",
+      "280.35",
+      "280.75",
+      "281.45",
       "282.15",
-      "283.15",
-      "284.35",
-      "285.45",
-      "285.95",
-      "286.25",
-      "285.95",
-      "285.35",
-      "284.45",
+      "282.65",
+      "283.35",
       "283.55",
-      "282.55",
-      "281.85",
-      "281.35",
+      "283.75",
+      "283.75",
+      "283.35",
+      "282.95",
+      "282.75",
+      "282.45",
+      "282.35",
+      "282.35",
+      "282.25",
+      "282.15",
+      "282.05",
+      "282.15",
+      "282.05",
+      "282.05",
+      "282.05",
+      "282.05",
+      "282.45",
+      "282.75",
+      "283.75",
+      "284.55",
+      "285.35",
+      "286.05",
+      "286.65",
+      "286.95",
+      "287.05",
+      "286.65",
+      "286.15",
+      "285.65",
+      "284.65",
+      "284.05",
+      "283.35",
+      "282.85",
+      "282.25",
+      "281.65",
+      "281.45",
+      "281.25",
       "280.95",
+      "280.85",
+      "280.65",
+      "280.75",
+      "281.05",
+      "281.65",
+      "282.45",
+      "283.65",
+      "284.85",
+      "285.85",
+      "286.75",
+      "287.45",
+      "287.75",
+      "287.65",
+      "286.95",
+      "286.15",
+      "285.25",
+      "284.35",
+      "283.75",
+      "283.25",
+      "282.95",
+      "282.65",
+      "282.45",
+      "282.25",
+      "282.05",
+      "282.05",
+      "281.95",
+      "281.95",
+      "282.25",
+      "282.75",
+      "283.65",
+      "284.65",
+      "285.85",
+      "286.55",
+      "286.85",
+      "287.55",
+      "287.65",
+      "287.45",
+      "286.75",
+      "285.85",
+      "284.65",
+      "283.95",
+      "283.25",
+      "282.65",
+      "282.25",
+      "281.85",
+      "281.55",
+      "281.25",
+      "281.05",
+      "280.85",
+      "280.75",
+      "280.65",
+      "280.95",
+      "281.45",
+      "282.45",
+      "283.65",
+      "284.75",
+      "285.65",
+      "286.15",
+      "286.55",
+      "286.75",
+      "286.45",
+      "285.85",
+      "285.25",
+      "284.35",
+      "283.55",
+      "282.95",
+      "282.35",
+      "281.95",
+      "281.55",
+      "280.95",
+      "280.65",
       "280.55",
       "280.35",
+      "280.15",
+      "280.05",
+      "280.15",
+      "280.65",
+      "281.55",
+      "282.65",
+      "283.45",
+      "284.35",
+      "285.25",
+      "286.05",
+      "286.25",
+      "286.15",
+      "285.45",
+      "284.55",
+      "283.45",
+      "282.55",
+      "281.95",
+      "281.35",
+      "280.85",
+      "280.55",
+      "280.05",
+      "279.75",
+      "279.65",
+      "279.45",
+      "279.35",
+      "279.35",
+      "279.65",
+      "280.15",
+      "281.05",
+      "282.05",
+      "283.15",
+      "283.95",
+      "285.15",
+      "285.75",
+      "286.05",
+      "285.85",
+      "285.25",
+      "284.25",
+      "283.35",
+      "282.45",
+      "281.75",
+      "281.25",
+      "280.85",
+      "280.45",
+      "280.25",
+      "280.05",
+      "279.85",
+      "279.75",
+      "279.65",
+      "279.65",
+      "279.75",
+      "280.25",
+      "281.05",
+      "282.05",
+      "283.05",
+      "284.15",
+      "285.05",
+      "285.65",
+      "285.95",
+      "285.85",
+      "285.25",
+      "284.25",
+      "283.35",
+      "282.65",
+      "282.15",
+      "281.65",
+      "281.25",
+      "281.15",
+      "280.75",
+      "280.45",
+      "280.25",
       "280.05",
       "279.95",
       "279.75",
-      "279.65",
-      "279.65",
-      "279.85",
+      "279.95",
       "280.45",
-      "281.15",
-      "282.15",
-      "283.25",
-      "284.25",
-      "285.15",
-      "285.85",
-      "286.05",
-      "285.95",
-      "285.35",
+      "281.25",
+      "282.35",
+      "283.65",
       "284.35",
-      "283.35",
-      "282.75",
-      "282.25",
-      "281.75",
-      "281.35",
-      "281.05",
-      "280.65",
-      "280.35",
-      "280.05",
-      "279.85",
-      "279.75",
-      "279.45",
-      "279.65",
-      "280.15",
-      "280.95",
-      "281.95",
-      "283.35",
-      "283.55",
-      "284.65",
-      "285.05",
-      "285.25",
-      "284.95"
+      "285.55",
+      "286.05",
+      "286.15",
+      "285.85",
+      "285.25"
     ],
     "RR1c": [
-      "0.40",
       "0.30",
       "0.20",
       "0.80",
@@ -3237,7 +3249,7 @@
       "0.20",
       "0.30",
       "0.30",
-      "0.00",
+      "0.20",
       "0.00",
       "0.00",
       "0.00",
@@ -3255,20 +3267,21 @@
       "0.00",
       "0.00",
       "0.20",
-      "0.00",
-      "0.00",
+      "0.10",
+      "0.10",
       "0.20",
       "0.10",
-      "0.00",
-      "0.00",
       "0.10",
       "0.10",
       "0.10",
+      "0.10",
+      "0.20",
+      "0.30",
       "0.40",
       "0.40",
-      "0.60",
-      "0.00",
-      "0.00",
+      "0.30",
+      "0.30",
+      "0.20",
       "0.00",
       "0.00",
       "0.00",
@@ -3455,246 +3468,246 @@
       "0.00"
     ],
     "Neff": [
-      "80.00",
       "76.00",
+      "79.00",
+      "78.00",
       "77.00",
       "76.00",
-      "76.00",
-      "75.00",
       "74.00",
+      "74.00",
+      "76.00",
+      "77.00",
+      "76.00",
       "75.00",
-      "77.00",
-      "77.00",
-      "77.00",
       "76.00",
-      "76.00",
-      "76.00",
+      "77.00",
       "79.00",
       "79.00",
-      "79.00",
+      "80.00",
       "81.00",
-      "82.00",
+      "83.00",
       "85.00",
       "86.00",
       "84.00",
       "82.00",
-      "81.00",
-      "75.00",
-      "77.00",
       "82.00",
-      "83.00",
-      "82.00",
-      "80.00",
       "78.00",
-      "76.00",
-      "72.00",
-      "73.00",
-      "75.00",
-      "77.00",
+      "79.00",
       "83.00",
-      "84.00",
+      "85.00",
       "86.00",
+      "86.00",
+      "84.00",
+      "81.00",
+      "78.00",
+      "78.00",
+      "79.00",
+      "80.00",
+      "85.00",
       "87.00",
       "87.00",
       "89.00",
-      "90.00",
-      "93.00",
-      "94.00",
-      "93.00",
-      "93.00",
-      "92.00",
-      "93.00",
-      "92.00",
-      "93.00",
-      "94.00",
-      "94.00",
-      "96.00",
-      "96.00",
-      "96.00",
-      "95.00",
-      "95.00",
-      "94.00",
-      "94.00",
-      "95.00",
-      "94.00",
-      "93.00",
-      "92.00",
+      "89.00",
       "91.00",
+      "92.00",
+      "94.00",
+      "94.00",
+      "93.00",
+      "93.00",
+      "93.00",
+      "92.00",
+      "92.00",
+      "93.00",
+      "94.00",
+      "93.00",
+      "95.00",
+      "95.00",
+      "96.00",
+      "96.00",
+      "96.00",
+      "95.00",
+      "94.00",
+      "95.00",
+      "92.00",
+      "93.00",
+      "93.00",
+      "94.00",
+      "93.00",
+      "92.00",
       "90.00",
-      "87.00",
-      "85.00",
-      "80.00",
-      "75.00",
-      "73.00",
-      "71.00",
-      "70.00",
-      "69.00",
-      "69.00",
-      "66.00",
-      "66.00",
-      "65.00",
-      "67.00",
-      "66.00",
-      "66.00",
-      "71.00",
-      "75.00",
-      "78.00",
-      "79.00",
+      "86.00",
       "82.00",
-      "82.00",
-      "83.00",
-      "83.00",
-      "82.00",
-      "79.00",
-      "79.00",
-      "76.00",
-      "74.00",
-      "69.00",
-      "67.00",
-      "61.00",
-      "61.00",
-      "61.00",
-      "62.00",
-      "63.00",
-      "62.00",
-      "61.00",
-      "62.00",
-      "62.00",
-      "65.00",
-      "71.00",
-      "75.00",
-      "78.00",
       "81.00",
-      "84.00",
-      "85.00",
-      "84.00",
-      "84.00",
-      "84.00",
       "77.00",
-      "76.00",
-      "75.00",
-      "76.00",
-      "75.00",
-      "76.00",
-      "76.00",
-      "70.00",
-      "71.00",
-      "70.00",
-      "70.00",
-      "70.00",
-      "71.00",
-      "71.00",
-      "71.00",
+      "73.00",
+      "69.00",
+      "69.00",
+      "64.00",
+      "65.00",
+      "64.00",
+      "67.00",
+      "67.00",
+      "68.00",
       "72.00",
+      "78.00",
+      "80.00",
+      "83.00",
+      "87.00",
+      "89.00",
+      "90.00",
+      "89.00",
+      "89.00",
+      "85.00",
+      "81.00",
+      "80.00",
+      "78.00",
+      "73.00",
       "71.00",
-      "72.00",
+      "65.00",
+      "67.00",
+      "69.00",
+      "69.00",
+      "68.00",
+      "68.00",
+      "69.00",
+      "68.00",
+      "70.00",
       "74.00",
+      "78.00",
+      "83.00",
+      "85.00",
+      "86.00",
+      "87.00",
+      "88.00",
+      "87.00",
+      "87.00",
+      "86.00",
+      "83.00",
+      "81.00",
+      "80.00",
+      "79.00",
+      "79.00",
+      "78.00",
+      "76.00",
+      "74.00",
+      "73.00",
+      "72.00",
+      "71.00",
+      "71.00",
+      "72.00",
+      "72.00",
+      "72.00",
+      "73.00",
+      "73.00",
+      "73.00",
+      "75.00",
+      "77.00",
+      "78.00",
+      "76.00",
+      "75.00",
+      "74.00",
+      "73.00",
+      "72.00",
+      "70.00",
+      "68.00",
+      "66.00",
+      "64.00",
+      "64.00",
+      "66.00",
+      "61.00",
+      "63.00",
+      "64.00",
+      "66.00",
+      "66.00",
+      "69.00",
+      "69.00",
+      "71.00",
+      "73.00",
+      "76.00",
+      "77.00",
+      "79.00",
+      "80.00",
+      "80.00",
+      "78.00",
+      "77.00",
+      "74.00",
+      "68.00",
+      "70.00",
+      "68.00",
+      "69.00",
+      "67.00",
+      "66.00",
+      "67.00",
+      "66.00",
+      "67.00",
+      "67.00",
+      "68.00",
+      "69.00",
+      "71.00",
+      "74.00",
+      "75.00",
+      "78.00",
+      "80.00",
+      "80.00",
+      "81.00",
+      "81.00",
+      "82.00",
+      "81.00",
+      "80.00",
+      "79.00",
+      "77.00",
+      "75.00",
+      "73.00",
+      "71.00",
+      "71.00",
+      "70.00",
+      "69.00",
+      "66.00",
+      "66.00",
+      "66.00",
+      "66.00",
+      "69.00",
+      "71.00",
+      "73.00",
+      "76.00",
+      "77.00",
+      "80.00",
+      "80.00",
+      "82.00",
+      "82.00",
+      "82.00",
+      "81.00",
+      "80.00",
+      "79.00",
+      "77.00",
+      "75.00",
+      "74.00",
+      "72.00",
+      "71.00",
+      "70.00",
+      "69.00",
+      "69.00",
+      "69.00",
+      "70.00",
+      "71.00",
+      "71.00",
+      "73.00",
+      "74.00",
+      "76.00",
+      "76.00",
+      "77.00",
+      "78.00",
+      "79.00",
+      "80.00",
+      "79.00",
+      "79.00",
       "78.00",
       "79.00",
       "77.00",
-      "76.00",
-      "75.00",
-      "72.00",
-      "71.00",
-      "72.00",
-      "70.00",
-      "67.00",
-      "64.00",
-      "64.00",
-      "62.00",
-      "57.00",
-      "57.00",
-      "62.00",
-      "63.00",
-      "62.00",
-      "67.00",
-      "68.00",
-      "70.00",
-      "72.00",
       "75.00",
       "73.00",
-      "75.00",
-      "76.00",
-      "75.00",
-      "75.00",
-      "73.00",
-      "71.00",
-      "68.00",
-      "67.00",
-      "65.00",
-      "64.00",
-      "63.00",
-      "62.00",
-      "61.00",
-      "61.00",
-      "61.00",
-      "61.00",
-      "62.00",
-      "64.00",
-      "66.00",
-      "68.00",
-      "69.00",
-      "71.00",
       "72.00",
-      "73.00",
-      "73.00",
-      "74.00",
-      "74.00",
-      "73.00",
-      "72.00",
-      "71.00",
-      "70.00",
-      "68.00",
-      "67.00",
-      "66.00",
-      "65.00",
-      "64.00",
-      "64.00",
-      "61.00",
-      "61.00",
-      "61.00",
-      "61.00",
-      "65.00",
-      "67.00",
-      "69.00",
-      "70.00",
-      "72.00",
-      "73.00",
-      "74.00",
-      "74.00",
-      "75.00",
-      "75.00",
-      "74.00",
-      "74.00",
-      "72.00",
-      "71.00",
-      "70.00",
-      "69.00",
-      "68.00",
-      "67.00",
-      "67.00",
-      "66.00",
-      "66.00",
-      "66.00",
-      "67.00",
-      "67.00",
-      "69.00",
-      "70.00",
-      "72.00",
-      "74.00",
-      "75.00",
-      "76.00",
-      "77.00",
-      "78.00",
-      "78.00",
-      "77.00",
-      "76.00",
-      "75.00",
-      "73.00",
-      "71.00",
-      "69.00",
-      "66.00",
-      "65.00"
+      "71.00"
     ]
   }
 }

@@ -5,6 +5,16 @@
   <title>Aktuelle Messwerte</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <!-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -112,7 +122,7 @@
   <!-- Footer -->
   <footer>
     <p>
-      Wetterdaten (Sonnenauf- und untergang) von <a href="https://open-meteo.com/">Open-Meteo.com</a>, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
+      Sonnenauf- und Untergangszeiten werden lokal berechnet mittels <a href="https://github.com/mourner/suncalc" target="_blank">SunCalc</a>.
     </p>
     <p>
       UV-Index-Daten von <a href="https://currentuvindex.com" target="_blank" rel="noopener noreferrer">currentuvindex.com</a>, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
@@ -159,47 +169,35 @@
     async function fetchWeather(lat, lon) {
         const proxy = 'https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev';
         
+        // URLs für Wetter und UV (Sonnen-URL brauchen wir nicht mehr)
         const targetUrlBrightsky = `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${DateTime.now().toFormat('yyyy-MM-dd')}`;
-        const targetUrlSun = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto`;
         const targetUrlUv = `https://currentuvindex.com/api/v1/uvi?latitude=${lat}&longitude=${lon}`;
         
         const url = `${proxy}?url=${encodeURIComponent(targetUrlBrightsky)}`;
-        const url_sun = `${proxy}?url=${encodeURIComponent(targetUrlSun)}`;
         const url_uv = `${proxy}?url=${encodeURIComponent(targetUrlUv)}`;
     
-        // --- NEU: 1. Variablen mit Standardwerten initialisieren ---
+        // --- TEIL 1: Sonnenaufgang/-untergang BERECHNEN (statt API) ---
         let sunriseFormatted = "Keine Daten";
         let sunsetFormatted = "Keine Daten";
     
         try {
-            // --- NEU: 2. Eigener try...catch-Block NUR für Sonnen-Daten ---
-            try {
-                const res_sun = await fetch(url_sun, { headers: { 'Accept': 'application/json' } });
-                if (res_sun.ok) {
-                    const data_sun = await res_sun.json();
-                    
-                    // Zusätzliche Prüfung, ob die Datenstruktur wie erwartet ist
-                    if (data_sun?.daily?.sunrise?.[0] && data_sun?.daily?.sunset?.[0]) {
-                        const sunriseISO = data_sun.daily.sunrise[0];
-                        const sunsetISO = data_sun.daily.sunset[0];
-                        const locale = navigator.language || 'de-DE';
-                        const tmFmt = new Intl.DateTimeFormat(locale, { timeStyle: 'short' });
+            // SunCalc berechnet die Zeiten basierend auf Datum & Koordinaten
+            const times = SunCalc.getTimes(new Date(), lat, lon);
     
-                        sunriseFormatted = tmFmt.format(new Date(sunriseISO));
-                        sunsetFormatted = tmFmt.format(new Date(sunsetISO));
-                    }
-                } else {
-                    // Fehler loggen, aber nicht die ganze Funktion abbrechen
-                    console.warn('API-Fehler bei Sonnen-Daten: ' + res_sun.status);
-                }
-            } catch (e) {
-                // Fehler loggen, aber weitermachen
-                console.warn("Fehler beim Laden der Sonnenauf-/untergangsdaten:", e);
+            // Die Ergebnisse sind JavaScript Date-Objekte. Wir formatieren sie mit Luxon.
+            if (times.sunrise && times.sunset) {
+                sunriseFormatted = DateTime.fromJSDate(times.sunrise).toFormat('HH:mm');
+                sunsetFormatted = DateTime.fromJSDate(times.sunset).toFormat('HH:mm');
             }
+        } catch (e) {
+            console.warn("Fehler bei der Sonnenstandsberechnung:", e);
+        }
     
-            // Wetterdaten (dieser Teil bleibt fast unverändert)
+        // --- TEIL 2: Wetterdaten laden (Brightsky) ---
+        try {
             const res = await fetch(url);
-            if (!res.ok) throw new Error('API-Fehler bei Brightsky: ' + res.status); // Fehler hier bricht weiterhin ab
+            if (!res.ok) throw new Error('API-Fehler bei Brightsky: ' + res.status);
+            
             const data = await res.json();
             const now = DateTime.now();
     
@@ -214,7 +212,7 @@
     
             source_id = currentHourData.source_id;
     
-            // UV-Index
+            // --- TEIL 3: UV-Index laden ---
             let uvIndexValue = null;
             try {
                 const res_uv = await fetch(url_uv, { headers: { 'Accept': 'application/json' } });
@@ -226,6 +224,7 @@
                 console.warn("Fehler beim Laden des UV-Index:", e);
             }
     
+            // --- Zusammenstellen der Daten ---
             const fields = {
                 "Zeitpunkt": formatValue(
                     DateTime.fromISO(currentHourData.timestamp, { zone: "utc" })
@@ -234,9 +233,11 @@
                 ),
                 "Temperatur": formatValue(currentHourData.temperature?.toFixed(1), "°C"),
                 "Niederschlag": formatValue(currentHourData.precipitation, " mm"),
-                // --- NEU: 3. Die vorbereiteten Variablen hier einsetzen ---
+                
+                // Hier nutzen wir jetzt die berechneten Werte
                 "Sonnenaufgang": sunriseFormatted,
                 "Sonnenuntergang": sunsetFormatted,
+                
                 "Sonnenscheindauer": formatValue(currentHourData.sunshine, " min"),
                 "UV-Index": formatValue(uvIndexValue),
                 "Bewölkung": formatValue(currentHourData.cloud_cover, "%"),

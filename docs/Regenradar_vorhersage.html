@@ -140,7 +140,10 @@
 
               const data = [];
               const features = xmlDoc.querySelectorAll('feature');
-
+              /* pdf mit infos über features von konrad: 
+              https://www.dwd.de/EN/ourservices/radar_products/format_konrad3d.pdf?__blob=publicationFile
+              pdf name ist KONRAD3D XML file format description
+              */
               features.forEach((feature, index) => {
                   try {
                       const row = { cell_id: index + 1 };
@@ -158,6 +161,12 @@
                       const severity_int = parseFloat(getText(feature, 'intensity > severity'));
                       const severity_decimal = parseFloat(getText(feature, 'intensity > severity_decimal'));
                       row.severity = severity_int + severity_decimal;
+                      row.hail_flag = parseInt(getText(feature, 'intensity > hail_flag'));
+                      row.max_wind_gusts = parseFloat(getText(feature, 'intensity > maximum_estimated_wind_gust'));
+                      row.heavy_rain = parseFloat(getText(feature, 'intensity > heavy_rain_potential'));
+                      row.heavy_rain_time = parseFloat(getText(feature, 'intensity > heavy_rain_potential_accumulation_time'));
+                      row.heavy_rain_data_quality = parseFloat(getText(feature, 'intensity > heavy_rain_potential_quality'))
+
                       
                       const forecastNode = feature.querySelector('centroid_forecasts > centroid_forecast');
                       if (forecastNode) {
@@ -311,16 +320,37 @@
               return `${value.toFixed(decimals)} ${unit}`;
           };
 
+          const rain_data_quality_text = cell.heavy_rain_data_quality === 0 ? 'Schlecht. Keine Daten' : (cell.heavy_rain_data_quality === 1 ? 'Beschränkt. <20% Valider Pixel ' : 'Gut');
+          const hailText = cell.hail_flag === 0 ? 'Unwahrscheinlich' : (cell.hail_flag === 1 ? 'Wahrscheinlich' : 'Sehr wahrscheinlich');
+          const growthPercent = (cell.area_growth_rate !== null && !isNaN(cell.area_growth_rate))
+                      ? (cell.area_growth_rate - 1) * 100
+                      : null;
+
+          /* Wegen übersicht herausgenommenes element:
+          <strong>Zelluntergrenze:</strong> ${format(cell.bottom_of_cell, 'm ü. M.', 0)}<br> */
           return `
-              <div style="font-family: sans-serif; font-size: 12px; line-height: 1.5;">
-                  <b>Stärke:</b> ${format(cell.severity, '', 2)}<br>
-                  <hr style="margin: 2px 0;">
+              <div style="font-family: sans-serif; font-size: 12px; line-height: 1.5; min-width: 200px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+                      <b>Stärke:</b> 
+                      <span>${format(cell.severity, '', 2)}</span>
+                  </div>
+                  <meter 
+                      min="0" max="4" 
+                      low="1.5" high="3" optimum="0" 
+                      value="${cell.severity || 0}" 
+                      style="width: 100%; height: 12px; margin-bottom: 4px;"
+                      title="Skala von 0 bis 3.99">
+                  </meter>
+                  <hr style="margin: 4px 0;">
                   <strong>Vert. Ausdehnung:</strong> ${format(cell.vertical_extent, 'm', 0)}<br>
-                  <strong>Zelluntergrenze:</strong> ${format(cell.bottom_of_cell, 'm ü. M.', 0)}<br>
-                  <strong>Wachstumsrate:</strong> ${format(cell.area_growth_rate, '/5min', 2)}
+                  <strong>Wachstumsrate:</strong> ${format(growthPercent, '%/5min', 0)}<br>
+                  <strong>Hagel Wahrsch.:</strong> ${hailText}<br>
+                  <strong>Max. Böen:</strong> ${format(cell.max_wind_gusts, 'km/h', 1)}<br>
+                  <strong>Starkregenmenge:</strong> ${format(cell.heavy_rain, 'mm', 1)} in ${format(cell.heavy_rain_time, 'min', 0)}<br>
+                  <strong>Datenqual. Regenmenge:</strong> ${rain_data_quality_text}
               </div>
           `;
-      }
+            }
 
       /**
        * Stellt die KONRAD3D-Daten für den gegebenen Frame-Index dar.

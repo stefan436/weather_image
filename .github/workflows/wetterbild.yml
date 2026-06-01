@@ -1,0 +1,60 @@
+name: Wetterbild 48std Generator
+
+# on:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '45 * * * *'
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Repository klonen
+        uses: actions/checkout@v3
+
+      - name: 🐍 Python einrichten
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 🔧 Abhängigkeiten installieren
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: ▶️ Skript ausführen
+        run: python main48.py
+
+      - name: 📤 Artefakt hochladen (Bild)
+        uses: actions/upload-artifact@v4
+        with:
+          name: wetterbild 48 std updaten
+          path: Wettervorhersage large widget MUENCHEN STADT.png        
+
+      - name: 📤 Artefakt hochladen (Bild)
+        uses: actions/upload-artifact@v4
+        with:
+          name: wetterbild 24 std updaten
+          path: Wettervorhersage MUENCHEN STADT.png  
+
+      - name: 📤 Move HTML to docs
+        run: |
+          mkdir -p docs
+          mv map_wettervorhersage.html docs/index.html
+
+      - name: 🔁 Bild und html in Repository committen
+        run: |
+          git config user.name "Stefan436"
+          git config user.email "stefwiedemann0103@web.de"
+          git pull origin main
+          git add "Wettervorhersage large widget MUENCHEN STADT.png"
+          git commit -m "Update Wetterbild 48h automatisch [CI]" || echo "No changes to commit"
+          git add "Wettervorhersage MUENCHEN STADT.png"
+          git commit -m "Update Wetterbild automatisch [CI]" || echo "No changes to commit"
+          git add docs/index.html
+          git commit -m "Deploy HTML"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

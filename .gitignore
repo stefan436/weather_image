@@ -1,1 +1,3 @@
-docs/data/*.bin
+docs/data/data_gft.bin
+docs/data/data_uvh.bin
+docs/data/data_uvi.bin

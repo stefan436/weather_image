@@ -32,15 +32,19 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
           git add docs/data/latitudes_gft.json
           git add docs/data/longitudes_gft.json
           git add docs/data/latitudes_uv.json
           git add docs/data/longitudes_uv.json
-          git add docs/data/data_uvi.bin
-          git add docs/data/data_uvh.bin
-          git add docs/data/data_gft.bin
           git add docs/data/gft_forecast_times.json
           git add docs/data/uvi_forecast_times.json
+          
+          # BIN-Dateien (mit -f erzwingen, da sie in der .gitignore stehen)
+          git add -f docs/data/data_uvi.bin
+          git add -f docs/data/data_uvh.bin
+          git add -f docs/data/data_gft.bin
+          
           git commit -m "Update DWD forecast data [skip ci]" || echo "No changes to commit"
           git push
         env:

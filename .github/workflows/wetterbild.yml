@@ -1,7 +1,7 @@
 name: Wetterbild 48std Generator
 
-# on:
-#   workflow_dispatch:
+on:
+  workflow_dispatch:
 #   schedule:
 #     - cron: '45 * * * *'
 

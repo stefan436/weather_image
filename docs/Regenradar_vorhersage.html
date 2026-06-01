@@ -41,26 +41,28 @@
   <div id="map"></div>
 
   <div id="legend" class="legend" style="display:none;">
-    <div class="scale"></div>
-    <div class="labels">
-      <span id="minLabel">1 mm/h</span>
-      <span id="maxLabel">30 mm/h</span>
+    <div id="legend-hint" style="font-size:12px; color:#444; margin-bottom: 6px;">
+      ℹ️ Tippe auf den Regen für Details
     </div>
-    <div id="legend-hover" style="margin-top:6px; font-size:14px; display:none;">
-      <span id="hoverColorBox" style="display:inline-block; width:16px; height:12px; border:1px solid #ccc; vertical-align:middle; margin-right:6px;"></span>
-      <span id="hoverValue"></span>
+    
+    <div id="legend-click" style="font-size:14px; display:none; margin-bottom: 6px;">
+      <span id="clickColorBox" style="display:inline-block; width:16px; height:16px; border:1px solid #ccc; vertical-align:middle; margin-right:6px;"></span>
+      <span id="clickValue" style="font-weight:bold;"></span>
     </div>
-    <div style="font-size:10px; margin-top:6px; color:#444;">
+    <div style="font-size:10px; margin-top:8px; color:#444;">
       Quelle: Deutscher Wetterdienst, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
     </div>
   </div>
 
+
   <script>
       // --- Initialisierung der Karte ---
       const map = L.map('map').setView([48.1373, 11.57577], 10);
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>-Mitwirkende',
-        maxZoom: 18
+        maxZoom: 18,
+        className: 'muted-osm'
       }).addTo(map);
       
       // --- Problem 1: Layering-Problem lösen ---
@@ -68,16 +70,60 @@
       map.createPane('contourPane');
       map.getPane('contourPane').style.zIndex = 450;
       map.getPane('contourPane').style.mixBlendMode = 'multiply';
+
       // NEU: Pane für KONRAD-Daten (oben)
       map.createPane('konradPane');
       map.getPane('konradPane').style.zIndex = 460;
-
+      
       const mapEl = document.getElementById('map');
       new ResizeObserver(() => map.invalidateSize()).observe(mapEl);
-      
-      // --- Globale Variablen ---
-      const colorScale = chroma.scale(['#00007F','#0000FF','#007FFF','#00FF00','#FFFF00','#FF7F00','#FF0000']).domain([0,30]);
-      const contourLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+
+      // Schließt die Intensitätsanzeige, wenn auf eine freie Kartenfläche geklickt wird
+      map.on('click', () => {
+          document.getElementById('legend-click').style.display = 'none';
+      });
+
+      // Setzt die Legende zurück, wenn auf eine freie Kartenfläche geklickt wird
+      map.on('click', () => {
+          const hint = document.getElementById('legend-hint');
+          const clickPanel = document.getElementById('legend-click');
+          
+          if (hint && clickPanel) {
+              hint.style.display = 'block';
+              clickPanel.style.display = 'none';
+          }
+      });
+
+      // --- Globale Variablen & Diskrete Farbskala ---
+      const radarLevels = [
+          { min: 100.0, color: '#7A007A', label: '> 100 mm/h' },
+          { min: 60.0,  color: '#A00040', label: '60 - 100 mm/h' },
+          { min: 40.0,  color: '#E60000', label: '40 - 60 mm/h' },
+          { min: 25.0,  color: '#FF5000', label: '25 - 40 mm/h' },
+          { min: 20.0,  color: '#FF8C00', label: '20 - 25 mm/h' },
+          { min: 15.0,  color: '#FFC800', label: '15 - 20 mm/h' },
+          { min: 10.0,  color: '#FFFF00', label: '10 - 15 mm/h' },
+          { min: 7.5,   color: '#80FF00', label: '7.5 - 10 mm/h'},
+          { min: 5.0,   color: '#00D000', label: '5 - 7.5 mm/h' },
+          { min: 2.5,   color: '#00A0A0', label: '2.5 - 5 mm/h' }, 
+          { min: 1.0,   color: '#105CFF', label: '1 - 2.5 mm/h' }, 
+          { min: 0.5,   color: '#4E8CFF', label: '0.5 - 1 mm/h' }, 
+          { min: 0.25,  color: '#8CBDFF', label: '0.25 - 0.5 mm/h' }
+      ];
+
+      // D3 braucht die Werte aufsteigend [0.12, 0.25, 0.5, ...]
+      const contourLevels = radarLevels.map(l => l.min).reverse();
+
+      function getRadarColor(value) {
+          for (let level of radarLevels) {
+              if (value >= level.min) return level.color;
+          }
+          return 'transparent';
+      }
+
+      // NEU: Ein einzelner Canvas-Renderer für das gesamte Radar (Der Performance-Boost!)
+      const canvasRenderer = L.canvas({ pane: 'contourPane' });
+
       const ROWS_TO_KEEP = 450;
       
       let frames = [];
@@ -211,15 +257,29 @@
         const dataSet = file.get("/dataset1/data1/data");
         const shape = dataSet.shape;
         const raw = dataSet.to_array();
+
+        // Metadaten-Gruppe laden
         const what = file.get("/dataset1/data1/what");
         const nodata = what.attrs['nodata'].value;
+
+        // --- DYNAMISCHES AUSLESEN AUS DEM HEADER ---
+        // Holt den 'gain'-Wert (PR / Datengenauigkeit) aus der Datei. Fallback: 0.01. Wert aus Dokumentation
+        const gain = what.attrs['gain'] ? what.attrs['gain'].value : 0.01;
+        // Holt den 'offset'-Wert aus der Datei (falls vorhanden, sonst 0)
+        const offset = what.attrs['offset'] ? what.attrs['offset'].value : 0;
+
         forecastTime = file.get("what").attrs['time'].value;
 
         file.close();
 
         const startRow = shape[0] - ROWS_TO_KEEP;
         const sliced = raw.slice(startRow).map(row =>
-          row.map(v => (v === nodata ? 0 : (v * 0.01) * 12))
+          row.map(v => {
+            if (v === nodata) {
+              return 0;
+            }
+            return ((v * gain) + offset) * 12;
+          })
         );
 
         return { data: sliced };
@@ -273,27 +333,46 @@
 
         for (let idx = 0; idx < frames.length; idx++) {
           const raster = frames[idx];
+          
           const contours = d3.contours()
             .size([raster[0].length, raster.length])
             .thresholds(contourLevels)
             (raster.flat());
 
           const levelLayers = contours.flatMap(contour => {
-            const colorHex = colorScale(contour.value).hex();
+            const colorHex = getRadarColor(contour.value);
+            if (colorHex === 'transparent') return [];
+
             return contour.coordinates.flatMap(geom => {
               return geom.map(ring => {
                 const latlngs = convertIndicesToLatLon(ring, lat, lon);
                 if (latlngs.length < 3) return null;
-                return L.polygon(latlngs, {
-                  pane: 'contourPane',
+                
+                const poly = L.polygon(latlngs, {
+                  renderer: canvasRenderer,
                   fillColor: colorHex,
-                  fillOpacity: 0.6,
-                  color: colorHex,
-                  weight: 0
-                }).on('add', function() {
-                  attachContourEvents(this, contour.value);
+                  fillOpacity: 0.7,
+                  color: colorHex, 
+                  weight: 1, 
+                  interactive: true, // Aktiviert die Interaktivität auf dem Canvas
+                  pane: 'contourPane'
                 });
-              }).filter(p => p);
+
+                // Klick-Event für das Polygon registrieren
+                poly.on('click', function(e) {
+                    L.DomEvent.stopPropagation(e); // Verhindert Klick-Konflikte mit der Karte
+                    
+                    // Hinweis ausblenden, Werte einblenden
+                    document.getElementById('legend-hint').style.display = 'none';
+                    document.getElementById('legend-click').style.display = 'block';
+                    
+                    // Werte setzen
+                    document.getElementById('clickColorBox').style.backgroundColor = colorHex;
+                    document.getElementById('clickValue').textContent = `${contour.value.toFixed(1)} mm/h`;
+                });
+
+                return poly;
+              }).filter(p => p !== null);
             });
           });
 
@@ -306,6 +385,10 @@
           await new Promise(resolve => requestIdle(resolve));
         }
       }
+
+
+
+
 
       /**
        * Erstellt den HTML-Inhalt für das Pop-up einer Zelle.
@@ -322,9 +405,13 @@
 
           const rain_data_quality_text = cell.heavy_rain_data_quality === 0 ? 'Schlecht. Keine Daten' : (cell.heavy_rain_data_quality === 1 ? 'Beschränkt. <20% Valider Pixel ' : 'Gut');
           const hailText = cell.hail_flag === 0 ? 'Unwahrscheinlich' : (cell.hail_flag === 1 ? 'Wahrscheinlich' : 'Sehr wahrscheinlich');
-          const growthPercent = (cell.area_growth_rate !== null && !isNaN(cell.area_growth_rate))
-                      ? (cell.area_growth_rate - 1) * 100
-                      : null;
+          let growthText;
+              if (cell.area_growth_rate !== null && !isNaN(cell.area_growth_rate)) {
+                  const growthPercent = (cell.area_growth_rate - 1) * 100;
+                  growthText = format(growthPercent, '%/5min', 0);
+              } else {
+                  growthText = 'Neue Zelle';
+              }
 
           /* Wegen übersicht herausgenommenes element:
           <strong>Zelluntergrenze:</strong> ${format(cell.bottom_of_cell, 'm ü. M.', 0)}<br> */
@@ -343,7 +430,7 @@
                   </meter>
                   <hr style="margin: 4px 0;">
                   <strong>Vert. Ausdehnung:</strong> ${format(cell.vertical_extent, 'm', 0)}<br>
-                  <strong>Wachstumsrate:</strong> ${format(growthPercent, '%/5min', 0)}<br>
+                  <strong>Wachstumsrate:</strong> ${growthText}<br>
                   <strong>Hagel Wahrsch.:</strong> ${hailText}<br>
                   <strong>Max. Böen:</strong> ${format(cell.max_wind_gusts, 'km/h', 1)}<br>
                   <strong>Starkregenmenge:</strong> ${format(cell.heavy_rain, 'mm', 1)} in ${format(cell.heavy_rain_time, 'min', 0)}<br>

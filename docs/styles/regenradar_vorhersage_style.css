@@ -37,6 +37,10 @@ body, html {
     min-height: 0;
 }
 
+.muted-osm {
+  filter: grayscale(100%) contrast(80%) brightness(90%);
+}
+
 button, .btn {
     background: var(--primary);
     color: white;

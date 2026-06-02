@@ -414,7 +414,9 @@
               }
 
           /* Wegen übersicht herausgenommenes element:
-          <strong>Zelluntergrenze:</strong> ${format(cell.bottom_of_cell, 'm ü. M.', 0)}<br> */
+          <strong>Zelluntergrenze:</strong> ${format(cell.bottom_of_cell, 'm ü. M.', 0)}<br> 
+          das war noch bei max regensumme hinten dran:
+          in ${format(cell.heavy_rain_time, 'min', 0)} */
           return `
               <div style="font-family: sans-serif; font-size: 12px; line-height: 1.5; min-width: 200px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
@@ -433,7 +435,7 @@
                   <strong>Wachstumsrate:</strong> ${growthText}<br>
                   <strong>Hagel Wahrsch.:</strong> ${hailText}<br>
                   <strong>Max. Böen:</strong> ${format(cell.max_wind_gusts, 'km/h', 1)}<br>
-                  <strong>Starkregenmenge:</strong> ${format(cell.heavy_rain, 'mm', 1)} in ${format(cell.heavy_rain_time, 'min', 0)}<br>
+                  <strong>Max. Regensumme:</strong> ${format(cell.heavy_rain, 'mm', 1)}<br>
                   <strong>Datenqual. Regenmenge:</strong> ${rain_data_quality_text}
               </div>
           `;

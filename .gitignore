@@ -1,4 +1,19 @@
-docs/data/*.bin
-docs/data/*.json
+docs/data/latitudes_gft.json
+docs/data/longitudes_gft.json
+
+docs/data/latitudes_uv.json
+docs/data/longitudes_uv.json
+
+docs/data/data_gft.bin
+docs/data/data_uvi.bin
+docs/data/data_uvh.bin
+
+docs/data/gft_forecast_times.json
+docs/data/uvi_forecast_times.json
+
+
+docs/data/weather-summary.json
+
+
 
 downloads/

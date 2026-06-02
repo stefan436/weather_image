@@ -70,10 +70,6 @@ def main():
     # Dateien herunterladen
     file_paths = download_all_dwd_types(download_folder)
 
-
-
-
-
     if all(file_paths.values()):
         # Dateien mit xarray öffnen
         gft = xr.open_dataset(file_paths["gft"], engine='cfgrib')

@@ -204,9 +204,8 @@
                       row.angle = parseFloat(getText(feature, 'centroid_3d uncertainty_ellipse > angle'));
                       row.polygon_latitudes = getText(feature, 'polygons_projected geodetic_coordinates polygon > latitudes');
                       row.polygon_longitudes = getText(feature, 'polygons_projected geodetic_coordinates polygon > longitudes');
-                      const severity_int = parseFloat(getText(feature, 'intensity > severity'));
-                      const severity_decimal = parseFloat(getText(feature, 'intensity > severity_decimal'));
-                      row.severity = severity_int + severity_decimal;
+                      row.severity = parseFloat(getText(feature, 'intensity > severity_decimal'));
+                      row.severity_trend_cat = parseInt(getText(feature, 'intensity > trends > severity_trend_category'));
                       row.hail_flag = parseInt(getText(feature, 'intensity > hail_flag'));
                       row.max_wind_gusts = parseFloat(getText(feature, 'intensity > maximum_estimated_wind_gust'));
                       row.heavy_rain = parseFloat(getText(feature, 'intensity > heavy_rain_potential'));
@@ -403,6 +402,11 @@
               return `${value.toFixed(decimals)} ${unit}`;
           };
 
+          const severityTrendText = cell.severity_trend_cat === -2 ? '⬇️' :
+                                     cell.severity_trend_cat === -1 ? '↘️' :
+                                     cell.severity_trend_cat === 0  ? '➡️' :
+                                     cell.severity_trend_cat === 1  ? '↗️' :
+                                     cell.severity_trend_cat === 2  ? '⬆️' : '';
           const rain_data_quality_text = cell.heavy_rain_data_quality === 0 ? 'Schlecht. Keine Daten' : (cell.heavy_rain_data_quality === 1 ? 'Beschränkt. <20% Valider Pixel ' : 'Gut');
           const hailText = cell.hail_flag === 0 ? 'Unwahrscheinlich' : (cell.hail_flag === 1 ? 'Wahrscheinlich' : 'Sehr wahrscheinlich');
           let growthText;
@@ -420,15 +424,15 @@
           return `
               <div style="font-family: sans-serif; font-size: 12px; line-height: 1.5; min-width: 200px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
-                      <b>Stärke:</b> 
+                      <b>Stärke: ${severityTrendText}</b> 
                       <span>${format(cell.severity, '', 2)}</span>
                   </div>
                   <meter 
-                      min="0" max="4" 
+                      min="0" max="3" 
                       low="1.5" high="3" optimum="0" 
                       value="${cell.severity || 0}" 
                       style="width: 100%; height: 12px; margin-bottom: 4px;"
-                      title="Skala von 0 bis 3.99">
+                      title="Skala von 0 bis 3">
                   </meter>
                   <hr style="margin: 4px 0;">
                   <strong>Vert. Ausdehnung:</strong> ${format(cell.vertical_extent, 'm', 0)}<br>

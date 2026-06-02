@@ -122,7 +122,7 @@ def build_summary(timeSteps, forecasts, name, description):
 
     entries = []
     for i, ts in enumerate(timeSteps):
-        dateObj = datetime.fromisoformat(ts)
+        dateObj = datetime.fromisoformat(ts.replace("Z", "+00:00"))
         # In Berliner Zeit konvertieren
         dateObj = dateObj.astimezone(ZoneInfo("Europe/Berlin"))
 

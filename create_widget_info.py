@@ -271,7 +271,7 @@ def build_summary(timeSteps, forecasts, name, description):
             })
 
     # Zusätzliche Daten im Ergebnis ergänzen
-    result["timeSteps"] = [datetime.fromisoformat(ts).isoformat() for ts in timeSteps]
+    result["timeSteps"] = [datetime.fromisoformat(ts.replace("Z", "+00:00")).isoformat() for ts in timeSteps]
     result["parameters"] = {
         "WW": forecasts.get("ww", []),
         "TTT": forecasts.get("TTT", []),

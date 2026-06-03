@@ -29,54 +29,54 @@ PERIOD_ORDER = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends
 # Mapping Wettercode → Label + Icon-URL (Platzhalter)
 WW_ICON_MAP = {
     # Gewitter
-    95: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/thunderstorm.png", "label": "Gewitter mit Regen/Schnee"},
+    95: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/thunderstorm.png", "label": "Gewitter mit Regen/Schnee"},
 
     # gefrierender Sprühregen/Regen
-    57: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy freeting rain.png", "label": "Starker gefrierender Sprühregen"},
-    56: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light freezing rain.png", "label": "Leichter gefrierender Sprühregen"},
-    67: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy freeting rain.png", "label": "Starker gefrierender Regen"},
-    66: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light freezing rain.png", "label": "Leichter gefrierender Regen"},
+    57: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy freeting rain.png", "label": "Starker gefrierender Sprühregen"},
+    56: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light freezing rain.png", "label": "Leichter gefrierender Sprühregen"},
+    67: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy freeting rain.png", "label": "Starker gefrierender Regen"},
+    66: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light freezing rain.png", "label": "Leichter gefrierender Regen"},
 
     # Schnee/Schneeschauer
-    86: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy snow.png", "label": "Starker Schneeschauer"},
-    85: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light snow.png", "label": "Leichter Schneeschauer"},
-    84: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy sleet.png", "label": "Starker Schneeregenschauer"},
-    83: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light sleet.png", "label": "Leichter Schneeregenschauer"},
-    75: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy snow.png", "label": "Starker Schneefall"},
-    73: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/moderate snow.png", "label": "Mäßiger Schneefall"},
-    71: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light snow.png", "label": "Leichter Schneefall"},
-    69: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy sleet.png", "label": "Starker Schneeregen"},
-    68: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light sleet.png", "label": "Leichter Schneeregen"},
+    86: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy snow.png", "label": "Starker Schneeschauer"},
+    85: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light snow.png", "label": "Leichter Schneeschauer"},
+    84: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy sleet.png", "label": "Starker Schneeregenschauer"},
+    83: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light sleet.png", "label": "Leichter Schneeregenschauer"},
+    75: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy snow.png", "label": "Starker Schneefall"},
+    73: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate snow.png", "label": "Mäßiger Schneefall"},
+    71: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light snow.png", "label": "Leichter Schneefall"},
+    69: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy sleet.png", "label": "Starker Schneeregen"},
+    68: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light sleet.png", "label": "Leichter Schneeregen"},
 
     # Regen/Schauer
-    82: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy rain.png", "label": "Heftiger Regenschauer"},
-    81: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/moderate rain.png", "label": "Starker Regenschauer"},
-    80: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light rain.png", "label": "Leichter Regenschauer"},
-    65: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy rain.png", "label": "Starker Regen"},
-    63: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/moderate rain.png", "label": "Mäßiger Regen"},
-    61: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light rain.png", "label": "Leichter Regen"},
+    82: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy rain.png", "label": "Heftiger Regenschauer"},
+    81: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate rain.png", "label": "Starker Regenschauer"},
+    80: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light rain.png", "label": "Leichter Regenschauer"},
+    65: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy rain.png", "label": "Starker Regen"},
+    63: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate rain.png", "label": "Mäßiger Regen"},
+    61: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light rain.png", "label": "Leichter Regen"},
 
     # Sprühregen
-    55: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/heavy rain.png", "label": "Starker Sprühregen"},
-    53: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/moderate rain.png", "label": "Mäßiger Sprühregen"},
-    51: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/light rain.png", "label": "Leichter Sprühregen"},
+    55: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy rain.png", "label": "Starker Sprühregen"},
+    53: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate rain.png", "label": "Mäßiger Sprühregen"},
+    51: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light rain.png", "label": "Leichter Sprühregen"},
 
     # Nebel
-    49: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png", "label": "Nebel mit Reif"},
-    45: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/fog.png", "label": "Nebel"},
+    49: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/fog.png", "label": "Nebel mit Reif"},
+    45: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/fog.png", "label": "Nebel"},
 
     # Bewölkung
-    3: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/total cloud cover.png", "label": "Bewölkung zunehmend"},
-    2: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover.png", "label": "Bewölkung unverändert"},
-    1: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/low cloud cover.png", "label": "Bewölkung abnehmend"},
-    0: {"icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear day.png", "label": "Klarer Himmel"}
+    3: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/total cloud cover.png", "label": "Bewölkung zunehmend"},
+    2: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/medium cloud cover.png", "label": "Bewölkung unverändert"},
+    1: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/low cloud cover.png", "label": "Bewölkung abnehmend"},
+    0: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/clear day.png", "label": "Klarer Himmel"}
 }
 
 # NEU HINZUGEFÜGT: Spezielle Icons für die Nacht
 WW_ICON_MAP_NIGHT = {
-    0: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/clear night.png", "label": "Klarer Himmel" },
-    1: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/low cloud cover night.png", "label": "Bewölkung abnehmend" },
-    2: { "icon": "https://raw.githubusercontent.com/stefan436/weather_image/main/docs/icons/medium cloud cover night.png", "label": "Bewölkung unverändert" }
+    0: { "icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/clear night.png", "label": "Klarer Himmel" },
+    1: { "icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/low cloud cover night.png", "label": "Bewölkung abnehmend" },
+    2: { "icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/medium cloud cover night.png", "label": "Bewölkung unverändert" }
 }
 
 

@@ -278,13 +278,13 @@
         "Niederschlagswahrscheinlichkeit",
         "Totale Niederschlagsmenge (mm)",
         "Gewitterwahrscheinlichkeit",
-        "Relative Luftfeuchtigkeit (%)",
-        "Bewölkung",  
+        "Bewölkung",
         "Windgeschwindigkeit (km/h)", 
         "Maximale Windböe",
         "Windrichtung",
         "Sichtweite",
         "Nebelwahrscheinlichkeit", 
+        "Relative Luftfeuchtigkeit (%)",  
         "Sonnenstunden-stündlich", 
         "Sonnenstunden",
         "UV-Index",
@@ -901,8 +901,8 @@
                 );
                 
                 // 3. Auf plausible Werte kappen und runden
-                rh = Math.max(0, Math.min(100, Math.round(rh * 10) / 10));
-                rh_err = Math.round(rh_err * 10) / 10;
+                rh = Math.round(rh * 10) / 10;
+                rh_err = Math.ceil(rh_err * 10) / 10;
                 
                 rhValues.push(rh);
                 rhErrorValues.push(rh_err);

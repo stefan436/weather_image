@@ -1,6 +1,6 @@
 # 🌤️ Wetterinfo
 
-Ein Web-Projekt zur automatisierten Verarbeitung und interaktiven Visualisierung von Wetterdaten. Die Anwendung greift auf Daten des Deutschen Wetterdienstes (DWD) zu, verarbeitet diese und stellt sie über ein statisches Web-Frontend (GitHub Pages) bereit.
+Ein Web-Projekt zur automatisierten Verarbeitung und interaktiven Visualisierung von Wetterdaten. Die Anwendung greift auf Daten des Deutschen Wetterdienstes (DWD) zu, verarbeitet diese und stellt sie über ein statisches Web-Frontend bereit.
 
 ## ✨ Features
 
@@ -14,9 +14,17 @@ Ein Web-Projekt zur automatisierten Verarbeitung und interaktiven Visualisierung
 
 Die Anwendung wird über **[GitHub Pages](https://stefan436.github.io/Wetterinfo/)** gehostet.
 
+## 🏗 Architektur & Automatisierung
+
+Das Projekt nutzt **GitHub Actions**, um zyklisch aktuelle Wetterdaten abzurufen, zu verarbeiten und die Webseite zu aktualisieren.
+
+* **Workflow (`deploy_weather_app.yml`):** Das Skript wird regelmäßig per Cron-Job ausgeführt. Es lädt die neuesten Rohdaten herunter, führt die Python-Verarbeitungsskripte aus und generiert die entsprechenden statischen Dateien im `docs/`-Ordner.
+* **Hosting (GitHub Pages):** Der `docs/`-Ordner wird nach der Generierung als Artefakt verpackt und direkt über GitHub Pages deployed. 
+
+
 ## 🛠️ Tech-Stack
 
-- **Frontend:** HTML5, CSS3, JavaScript (inkl. Marching Squares Algorithmus für Isolinien).
+- **Frontend:** HTML5, CSS3, JavaScript (Marching-Squares-Algorithmus für Isolinien und mehr).
 - **Backend Für Wetterzusammenfassung:** Python 3
 - **Datenquellen:** DWD Open Data (MOSMIX, Radar-Komposits), Currentuvindex.com (UV-Index Messung).
 - **CI/CD & Automatisierung:** GitHub Actions.
@@ -27,7 +35,7 @@ Das Repository ist in die Datenverarbeitung (Root) und die Web-Darstellung (`doc
 
 ```text
 📦 wetterinfo
- ┣ 📂 .github/workflows      # CI/CD Pipelines für automatische Updates (Regenradar, UV, Widgets)
+ ┣ 📂 .github/workflows      # CI/CD Pipelines für automatische Updates
  ┣ 📂 docs                   # Web-Frontend (GitHub Pages Root)
  ┃ ┣ 📂 data                 # Generierte JSON- und Binärdateien (Koordinaten, MOSMIX, etc.)
  ┃ ┣ 📂 icons                # Wetter-Icons
@@ -35,17 +43,10 @@ Das Repository ist in die Datenverarbeitung (Root) und die Web-Darstellung (`doc
  ┃ ┣ 📂 styles               # CSS-Stylesheets
  ┃ ┣ 📜 index.html           # Hauptseite
  ┃ ┣ 📜 Regenradar.html      # Regenradar-Ansicht
- ┃ ┗ 📜 ...                  # Weitere HTML-Ansichten (Temperatur, Brunnen, Impressum)
+ ┃ ┗ 📜 ...                  # Weitere HTML-Ansichten
  ┣ 📜 create_widget_info.py  # Python-Skript zur Widget-Generierung
- ┣ 📜 main48.py              # Hauptskript für DWD-Datenabruf und -verarbeitung (Veraltet)
  ┣ 📜 process_dwd_uv_and_pt.py # Skript zur UV-Index und PT-Berechnung
- ┗ 📜 requirements.txt       # Python-Abhängigkeiten
 ```
-
-## ⚙️ Automatisierung (GitHub Actions)
-
-Dieses Projekt nutzt GitHub Actions, um sich selbst aktuell zu halten. Die Workflows in `.github/workflows/` triggern in regelmäßigen Abständen die Python-Skripte, laden die neuesten DWD-Daten herunter, berechnen Vorhersagen neu und committen die Änderungen automatisch zurück in den `docs/data/` Ordner. 
-
 
 ## ⚖️ Lizenz & Nutzungsbedingungen
 

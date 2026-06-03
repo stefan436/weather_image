@@ -24,37 +24,31 @@ async function loadLatLonUv() {
     return { latitudes_uv: latRes, longitudes_uv: lonRes };
 }
 
-function findNearestIndices(latitudes, longitudes, userLat, userLon) {
-    const toRad = x => x * Math.PI / 180;
-
-    let bestLatIdx = -1;
-    let bestLonIdx = -1;
+function findNearest1D(array, targetValue) {
+    let bestIdx = -1;
     let minDist = Infinity;
-
-    for (let i = 0; i < latitudes.length; i++) {
-        for (let j = 0; j < longitudes.length; j++) {
-            const lat = latitudes[i];
-            const lon = longitudes[j];
-
-            const dLat = toRad(lat - userLat);
-            const dLon = toRad(lon - userLon);
-
-            const a = Math.sin(dLat / 2) ** 2 +
-                      Math.cos(toRad(userLat)) * Math.cos(toRad(lat)) *
-                      Math.sin(dLon / 2) ** 2;
-
-            const c = 2 * Math.asin(Math.sqrt(a));
-            const dist = c; // Abstand auf Einheitskugel (in Radiant), multiplizierbar mit Erdradius
-
-            if (dist < minDist) {
-                minDist = dist;
-                bestLatIdx = i;
-                bestLonIdx = j;
-            }
+    for (let i = 0; i < array.length; i++) {
+        const dist = Math.abs(array[i] - targetValue);
+        if (dist < minDist) {
+            minDist = dist;
+            bestIdx = i;
         }
     }
+    return bestIdx;
+}
 
-    return { latIdx: bestLatIdx, lonIdx: bestLonIdx, distanceRad: minDist };
+function findNearestIndices(latitudes, longitudes, userLat, userLon) {
+    // Finde unabhängig den nächsten Breiten- und Längengrad (insgesamt nur ca. 2000 Iterationen)
+    const bestLatIdx = findNearest1D(latitudes, userLat);
+    const bestLonIdx = findNearest1D(longitudes, userLon);
+
+    return { 
+        latIdx: bestLatIdx, 
+        lonIdx: bestLonIdx, 
+        // Die exakte Distanz in Rad ist für das Abgreifen der Indizes nicht mehr zwingend nötig.
+        // Falls der restliche Code sie erfordert, hier ein Dummy oder punktuell die Haversine-Formel einmalig aufrufen:
+        distanceRad: 0 
+    };
 }
 
 

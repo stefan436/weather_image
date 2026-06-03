@@ -274,20 +274,21 @@
 
       // gewünschte Reihenfolge
       const preferredOrder = [
-        "Temperatur",
+        "Temperatur (°C)",
         "Niederschlagswahrscheinlichkeit",
-        "Totale Niederschlagsmenge",
+        "Totale Niederschlagsmenge (mm)",
         "Gewitterwahrscheinlichkeit",
+        "Relative Luftfeuchtigkeit (%)",
         "Bewölkung",  
-        "Windgeschwindigkeit", 
+        "Windgeschwindigkeit (km/h)", 
         "Maximale Windböe",
         "Windrichtung",
         "Sichtweite",
         "Nebelwahrscheinlichkeit", 
         "Sonnenstunden-stündlich", 
-        "Sonnenstunden-täglich",
+        "Sonnenstunden",
         "UV-Index",
-        "Strahlungsintensität", 
+        "Strahlungsintensität (W/m^2)", 
         "reduzierter Oberflächendruck"
       ];
 
@@ -298,18 +299,18 @@
         "PSd00", "PSd30", "PSd60", "R101", "R102", "R103", "R105", "R107", "R110",
         "R120", "R130", "R150", "R600", "R602", "R610", "R650", "RRad1", "Rd00",
         "Rd02", "Rd10", "Rd50", "Rh00", "Rh02", "Rh10", "Rh50", "RR1o1", "RR1u1",
-        "RR1w1", "RR3c", "RR6c", "RRdc", "RRhc", "RRL1c", "RRS1c", "RRS3c", "RSunD",
-        "SunD3", "T5cm", "Td", "TG", "TM", "W1W2", "WPc11", "WPc31", "WPc61", "DRR1",
-        "WPcd1", "WPch1", "ww", "ww3", "wwC", "wwC6", "wwCh", "wwD", "wwD6", "wwDh",
-        "wwF", "wwF6", "wwFh", "wwL", "wwL6", "wwLh", "wwM6", "wwMd", "wwMh", "wwP6",
-        "wwPd", "wwPh", "wwS", "wwS6", "wwSh", "wwT6", "wwTd", "wwTh", "wwZ", "VV10",
+        "RR1w1", "RR3c", "RR6c", "RRdc", "RRhc", "RRL1c", "RRS1c", "RRS3c", "RSunD", "FX1",
+        "SunD3", "T5cm", "Td", "TG", "TM", "W1W2", "WPc11", "WPc31", "WPc61", "DRR1", "PPPP",
+        "WPcd1", "WPch1", "ww", "ww3", "wwC", "wwC6", "wwCh", "wwD", "wwD6", "wwDh", "SunD1",
+        "wwF", "wwF6", "wwFh", "wwL", "wwL6", "wwLh", "wwM6", "wwMd", "wwMh", "wwP6", "VV",
+        "wwPd", "wwPh", "wwS", "wwS6", "wwSh", "wwT6", "wwTd", "wwTh", "wwZ", "VV10", "wwT",
         "wwZ6", "wwZh", "FXh55", "N05", "Nh", "Nl", "Nlm", "Nm", "PEvap", "TX", "TN", "N", "Gefühlte Temperatur"
       ];
    
       // Kombinationen von Werten + ihren Fehlern
       const combinedParams = [
-        { value: "Temperatur", error: "Absolute error temperature 2m above surface" },
-        { value: "Windgeschwindigkeit", error: "Absolute error wind speed 10m above surface" },
+        { value: "Temperatur (°C)", error: "Absolute error temperature 2m above surface" },
+        { value: "Windgeschwindigkeit (km/h)", error: "Absolute error wind speed 10m above surface" },
         { value: "Windrichtung", error: "Absolute error wind direction" }
       ];
 
@@ -841,25 +842,80 @@
               console.warn("Fehler beim Laden von UV-Index und Gefühlter Temperatur:", e);
           }
 
-          setStatus("Finishing Data …");
-          for (const fc of forecasts) {
-            const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
-            const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
-            if (!elName || !valueNode) continue;
+          let tempC_array = [];
+          let tdC_array = [];
+          let errTemp_array = [];
+          let errTd_array = [];
 
-            const unit = elementUnitsMap[elName];
-            const converter = unitConversionMap[unit];
-            const values = valueNode.textContent.trim().split(/\s+/).map(v => {
-              if (v === "-" || v === "") return null;
-              const num = Number(v);
-              if (!Number.isFinite(num)) return v;
-              const converted = converter ? converter(num) : num;
-              return Math.round(converted * 100) / 100;
-            });
+          setStatus("Finishing Data …");
+          for (const fc of forecasts) {
+            const elName = fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
+            const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
+            if (!elName || !valueNode) continue;
 
-            const readableName = elementNamesMap[elName] || elName;
-            seriesMap[readableName] = values.slice(0, timeSteps.length);
-          }
+            const unit = elementUnitsMap[elName];
+            const converter = unitConversionMap[unit];
+            const values = valueNode.textContent.trim().split(/\s+/).map(v => {
+              if (v === "-" || v === "") return null;
+              const num = Number(v);
+              if (!Number.isFinite(num)) return v;
+              const converted = converter ? converter(num) : num;
+              return Math.round(converted * 100) / 100;
+            });
+
+            const readableName = elementNamesMap[elName] || elName;
+            seriesMap[readableName] = values.slice(0, timeSteps.length);
+
+            // Arrays für Temperatur, Taupunkt und deren Fehler abfangen
+            if (elName === "TTT") tempC_array = seriesMap[readableName];
+            if (elName === "Td")  tdC_array = seriesMap[readableName];
+            if (elName === "E_TTT") errTemp_array = seriesMap[readableName];
+            if (elName === "E_Td")  errTd_array = seriesMap[readableName];
+          }
+
+          // Relative Luftfeuchtigkeit inkl. Gaußscher Fehlerfortpflanzung berechnen
+          if (tempC_array.length > 0 && tdC_array.length > 0) {
+            const rhValues = [];
+            const rhErrorValues = [];
+            
+            const a = 17.625;
+            const b = 243.04;
+            const ab = a * b; // Vorberechnet für die Fehlerformel
+
+            for (let i = 0; i < timeSteps.length; i++) {
+              const T = tempC_array[i];
+              const Td = tdC_array[i];
+              const errT = errTemp_array[i] || 0; // Fallback, falls kein Fehler gesendet wird
+              const errTd = errTd_array[i] || 0;
+              
+              if (T !== null && Td !== null) {
+                // 1. Basiswert berechnen
+                const e = Math.exp((a * Td) / (b + Td));
+                const es = Math.exp((a * T) / (b + T));
+                let rh = (e / es) * 100;
+                
+                // 2. Fehler berechnen
+                let rh_err = rh * ab * Math.sqrt(
+                  Math.pow(errTd / Math.pow(b + Td, 2), 2) + 
+                  Math.pow(errT / Math.pow(b + T, 2), 2)
+                );
+                
+                // 3. Auf plausible Werte kappen und runden
+                rh = Math.max(0, Math.min(100, Math.round(rh * 10) / 10));
+                rh_err = Math.round(rh_err * 10) / 10;
+                
+                rhValues.push(rh);
+                rhErrorValues.push(rh_err);
+              } else {
+                rhValues.push(null);
+                rhErrorValues.push(null);
+              }
+            }
+            
+            seriesMap["Relative Luftfeuchtigkeit (%)"] = rhValues;
+            // WICHTIG: Die Benennung exakt mit "_error" beenden!
+            seriesMap["Relative Luftfeuchtigkeit (%)_error"] = rhErrorValues;
+          }
 
           // In konsole Werte ausgeben
           console.log("Parsed series:", seriesMap); 
@@ -920,7 +976,7 @@
           : filteredCols[0];
 
           if (defaultParam) {
-          renderPlot(defaultParam);
+            renderPlot(defaultParam);
           }
 
           setStatus("Fertig!");
@@ -1067,7 +1123,7 @@
           return;
         }
 
-        if (param.includes("Temperatur")) {
+        if (param.includes("Temperatur (°C)")) {
           const gft_time_step = result_uv_and_pt['gft_times']
           const gft_data = seriesMap["Gefühlte Temperatur"];
 
@@ -1090,10 +1146,41 @@
               type: "scatter",
               mode: "markers",
               marker: { size: 6, color: "rgb(120, 0, 0)" }, 
-              name: "Gefühlte Temperatur"
+              name: "Gefühlte Temperatur (°C)"
           });
 
         }
+
+        if (param.includes("Windgeschwindigkeit (km/h)")) {
+          const gust_data = seriesMap["Maximale Windböe"];
+          
+          // Prüfen, ob Daten für Böen vorhanden sind
+          if (gust_data) {
+            const gust_time_step = timeSteps.map(ts => new Date(ts));
+
+            // Linie Maximale Windböe (hier in einem passenden Blauton)
+            traces.push({
+              x: gust_time_step,
+              y: gust_data,
+              type: "scatter",
+              mode: "lines",
+              line: { width: 2, shape: "spline", color: "rgb(0, 150, 200)" },
+              connectgaps: true,
+              hoverinfo: "skip",
+              showlegend: false
+            });
+
+            // Marker Maximale Windböe (etwas dunkleres Blau)
+            traces.push({
+              x: gust_time_step,
+              y: gust_data,
+              type: "scatter",
+              mode: "markers",
+              marker: { size: 6, color: "rgb(0, 100, 150)" },
+              name: "Maximale Windböe"
+            });
+          }
+        }
 
         const xData = timeSteps.map(ts => new Date(ts));
         const yData = seriesMap[param].map(v => v == null ? null : v);
@@ -1162,7 +1249,40 @@
             });
           });
         }
-        if (param.includes("Sonnenstunden-täglich")) {
+
+        if (param.includes("Totale Niederschlagsmenge (mm)")) {
+          shapes.push(
+            {
+              type: 'rect',
+              xref: 'paper', // Geht von ganz links bis ganz rechts im Graph
+              yref: 'y',     // Nutzt die echten mm-Werte der Y-Achse
+              x0: 0, x1: 1,
+              y0: 0, y1: 0.5,
+              fillcolor: 'rgba(173, 216, 230, 0.25)', // Sanftes Hellblau (Leichter Regen)
+              line: { width: 0 }
+            },
+            {
+              type: 'rect',
+              xref: 'paper',
+              yref: 'y',
+              x0: 0, x1: 1,
+              y0: 0.5, y1: 2.5,
+              fillcolor: 'rgba(65, 105, 225, 0.2)', // Klassisches Blau (Mäßiger Regen)
+              line: { width: 0 }
+            },
+            {
+              type: 'rect',
+              xref: 'paper',
+              yref: 'y',
+              x0: 0, x1: 1,
+              y0: 2.5, y1: 5, // Obergrenze hoch ansetzen, damit es bei Starkregen mitwächst
+              fillcolor: 'rgba(25, 25, 112, 0.3)', // Dunkles Marineblau (Starker Schauer / Starkregen)
+              line: { width: 0 }
+            }
+          );
+        }
+
+        if (param.includes("Sonnenstunden")) {
           const xData = timeSteps.map(ts => {
             const date = new Date(ts);
             date.setDate(date.getDate() - 1); // Einen Tag abziehen
@@ -1243,6 +1363,33 @@
             range: [0, 360]
           };
         }
+
+        if (param.includes("Totale Niederschlagsmenge (mm)")) {
+          // Hole den exakten Zeitraum des Startausschnitts aus deinem Layout
+          const viewStart = layout.xaxis.range[0].getTime();
+          const viewEnd = layout.xaxis.range[1].getTime();
+
+          // Filtere nur die Datenpunkte, die in genau diesen Zeitraum fallen
+          const dataVals = seriesMap[param].filter((v, index) => {
+            const currentTime = new Date(timeSteps[index]).getTime();
+            return v !== null && !isNaN(v) && currentTime >= viewStart && currentTime <= viewEnd;
+          });
+          
+          if (dataVals.length > 0) {
+            const minData = Math.min(...dataVals);
+            const maxData = Math.max(...dataVals);
+            const diff = maxData - minData;
+            
+            if (diff === 0) {
+              // Wenn im Startzeitraum alles gleich ist (z.B. durchgehend 0 mm)
+              layout.yaxis.range = [-0.1, 2.0];
+            } else {
+              // Exakt 5% der Differenz als Polster
+              const padding = diff * 0.1;
+              layout.yaxis.range = [minData - padding, maxData + padding];
+            }
+          }
+        }
         
         Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
       }
@@ -1291,8 +1438,6 @@
           ]
         };
       }
-
-
 
       plotSel.addEventListener("change", e => renderPlot(e.target.value));
    </script>

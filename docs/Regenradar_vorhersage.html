@@ -402,11 +402,11 @@
               return `${value.toFixed(decimals)} ${unit}`;
           };
 
-          const severityTrendText = cell.severity_trend_cat === -2 ? '⬇️' :
-                                     cell.severity_trend_cat === -1 ? '↘️' :
-                                     cell.severity_trend_cat === 0  ? '➡️' :
-                                     cell.severity_trend_cat === 1  ? '↗️' :
-                                     cell.severity_trend_cat === 2  ? '⬆️' : '';
+          const severityTrendText = cell.severity_trend_cat === -2 ? '⬇\uFE0F' :
+                                    cell.severity_trend_cat === -1 ? '↘\uFE0F' :
+                                    cell.severity_trend_cat === 0  ? '➡\uFE0F' :
+                                    cell.severity_trend_cat === 1  ? '↗\uFE0F' :
+                                    cell.severity_trend_cat === 2  ? '⬆\uFE0F' : '';
           const rain_data_quality_text = cell.heavy_rain_data_quality === 0 ? 'Schlecht. Keine Daten' : (cell.heavy_rain_data_quality === 1 ? 'Beschränkt. <20% Valider Pixel ' : 'Gut');
           const hailText = cell.hail_flag === 0 ? 'Unwahrscheinlich' : (cell.hail_flag === 1 ? 'Wahrscheinlich' : 'Sehr wahrscheinlich');
           let growthText;

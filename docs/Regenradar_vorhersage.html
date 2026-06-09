@@ -136,6 +136,7 @@
       let isPlaying = false;
       let currentFrame = 0;
       let forecastTime = 0;
+      let userLocationMarker = null;
 
       // --- Standort-Funktionen ---
       function getLocation(callback) {
@@ -573,6 +574,24 @@
       // --- Hauptlogik zum Laden der Daten ---
       async function fetchAndProcessComposite(lat_pos, lon_pos) {
         map.setView([lat_pos, lon_pos], 10);
+        if (userLocationMarker) {
+            // Falls der Marker schon existiert, nur die Position updaten
+            userLocationMarker.setLatLng([lat_pos, lon_pos]);
+        } else {
+            // Neuen, blauen GPS-Punkt erstellen
+            userLocationMarker = L.circleMarker([lat_pos, lon_pos], {
+                radius: 6,              // Größe des Punkts
+                fillColor: "#0078ff",   // GPS-Blau
+                color: "#ffffff",       // Weißer Rand zur besseren Sichtbarkeit
+                weight: 2,              // Dicke des Rands
+                opacity: 0.8,
+                fillOpacity: 0.66,
+                pane: 'markerPane'      // Standard Leaflet-Pane für Marker (ganz oben)
+            }).addTo(map);
+            
+            // Optional: Ein kleines Pop-up beim Anklicken
+            userLocationMarker.bindPopup("<b>Dein Standort</b>");
+        }
         try {
           const konradPromise = fetchAndProcessKonrad();
 

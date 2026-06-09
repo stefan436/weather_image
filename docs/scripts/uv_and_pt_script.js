@@ -116,7 +116,7 @@ async function loadTimeStamps() {
     return { gft_times: gft_times_formatted, uvi_times: uvi_times_formatted };
 }
 
-async function runForecastUvAndPt(userLat, userLon) {
+export async function runForecastUvAndPt(userLat, userLon) {
     try {
     const { latitudes_gft, longitudes_gft } = await loadLatLonGft();
     const { latitudes_uv, longitudes_uv } = await loadLatLonUv();

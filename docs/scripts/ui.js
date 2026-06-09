@@ -1,0 +1,342 @@
+// ui.js
+import { periods, periodOrder, wwIconMap, wwIconMapNight } from "./config.js";
+
+export function setStatus(txt) {
+  const statusEl = document.getElementById("status");
+  statusEl.textContent = txt;
+  statusEl.style.display = txt ? "inline-block" : "none";
+}
+
+export function renderStationChoices(stations, onStationSelect) {
+  const stationEl = document.getElementById("station");
+  stationEl.innerHTML = `
+    <div class="station-info">
+      <b>Nächste Stationen gefunden:</b>
+      <div class="station-choices"></div>
+    </div>
+  `;
+
+  const container = stationEl.querySelector(".station-choices");
+
+  stations.forEach((st) => {
+    const btn = document.createElement("button");
+    btn.textContent = `${st.description} (${Math.round(st.distance)} m)`;
+    btn.className = "btn station-btn";
+    btn.onclick = () => {
+      // Wir rufen den übergebenen Callback aus der main.js auf
+      onStationSelect(st.station_id, st.distance);
+    };
+    container.appendChild(btn);
+  });
+}
+
+/**
+ * buildSummary: erstellt die Tag-Auswahl und rendert beim Klick die Summary-Karten
+ * Benötigt global: timeSteps (Array), seriesMap["Significant Weather"] (Array gleicher Länge), wwIconMap (Objekt)
+ */
+
+export function buildSummary(seriesMap, timeSteps) {
+  if (!seriesMap || !seriesMap["Significant Weather"]) {
+    console.warn("Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich");
+    return;
+  }
+
+  const container = document.getElementById("scroll-container");
+  // Um mehrfache Swipe-Listener bei wiederholtem Aufruf zu vermeiden, klonen wir den Selektor
+  const oldSelector = document.getElementById("day-selector");
+  const selector = oldSelector.cloneNode(false);
+  oldSelector.parentNode.replaceChild(selector, oldSelector);
+  
+  container.innerHTML = "";
+  selector.innerHTML = "";
+
+  const now = new Date();
+  now.setMinutes(0, 0, 0); // Minuten, Sekunden, Millisekunden auf 0 setzen
+
+  // ********* Schritt 1: Roh-Einträge vorbereiten *********
+  const entries = timeSteps.map((ts, i) => {
+    const dateObj = new Date(ts);
+    const code = parseInt(seriesMap["Significant Weather"][i]);
+    return { timestamp: dateObj, hour: dateObj.getHours(), code, index: i };
+  }); 
+
+  // ********* Schritt 2: nur zukünftige Einträge (ab jetzt) *********
+  const futureEntries = entries.filter((e) => e.timestamp >= now); 
+
+  // ********* Schritt 3: nach Tag (ISO YYYY-MM-DD) und Periode gruppieren *********
+  const daysMap = {};
+
+  for (const entry of futureEntries) {
+    const period = periods.find((p) => {
+      if (p.startHour < p.endHour) {
+        return entry.hour >= p.startHour && entry.hour < p.endHour;
+      } else {
+        return entry.hour >= p.startHour || entry.hour < p.endHour;
+      }
+    });
+    if (!period) continue;
+
+    const entryDate = new Date(entry.timestamp);
+    let groupDate = new Date(entryDate);
+    if (period.startHour > period.endHour && entry.hour < period.endHour) {
+      groupDate.setDate(groupDate.getDate() - 1);
+    }
+
+    const y = groupDate.getFullYear();
+    const m = String(groupDate.getMonth() + 1).padStart(2, "0");
+    const d = String(groupDate.getDate()).padStart(2, "0");
+    const dayIso = `${y}-${m}-${d}`;
+
+    const today = new Date();
+    const diffDays = Math.floor(
+      (groupDate -
+        new Date(today.getFullYear(), today.getMonth(), today.getDate())) /
+        (1000 * 60 * 60 * 24),
+    );
+
+    let displayDate;
+    if (diffDays === 0) {
+      displayDate = "Heute";
+    } else if (diffDays === 1) {
+      displayDate = "Morgen";
+    } else if (diffDays === 2) {
+      displayDate = "Übermorgen";
+    } else {
+      displayDate = groupDate.toLocaleDateString("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        timeZone: "Europe/Berlin",
+      });
+    }
+
+    if (!daysMap[dayIso]) daysMap[dayIso] = { displayDate, groups: {} };
+    if (!daysMap[dayIso].groups[period.name])
+      daysMap[dayIso].groups[period.name] = [];
+    daysMap[dayIso].groups[period.name].push(entry);
+  }
+
+  const dayKeys = Object.keys(daysMap).sort();
+  if (dayKeys.length === 0) {
+    container.innerHTML = `<div class="no-data">Keine zukünftigen Vorhersagen vorhanden.</div>`;
+    return;
+  } 
+
+  // ********* Schritt 4: Aktuellen Tag finden *********
+  const today = new Date();
+  const ty = today.getFullYear();
+  const tm = String(today.getMonth() + 1).padStart(2, "0");
+  const td = String(today.getDate()).padStart(2, "0");
+  const todayIso = `${ty}-${tm}-${td}`;
+
+  const sortedKeys = Object.keys(daysMap).sort();
+  let currentIndex = sortedKeys.findIndex((k) => k === todayIso);
+  if (currentIndex === -1) currentIndex = 0;
+
+  let animating = false; 
+
+  // ********* Schritt 5: Rendering eines einzelnen Tages *********
+  function updateDaySelector(index, direction = null) {
+    if (animating) return;
+
+    const iso = sortedKeys[index];
+    const displayText = daysMap[iso].displayDate;
+
+    const newWrapper = document.createElement("div");
+    newWrapper.className = "day-slide-wrapper";
+    newWrapper.innerHTML = `<strong>${displayText}</strong>`; 
+
+    if (direction === "left") {
+      newWrapper.style.transform = "translateX(100%)";
+    } else if (direction === "right") {
+      newWrapper.style.transform = "translateX(-100%)";
+    } else {
+      newWrapper.style.transform = "translateX(0)";
+    } 
+
+    const oldWrapper = selector.querySelector(".day-slide-wrapper");
+
+    if (!oldWrapper) {
+      selector.innerHTML = "";
+      selector.appendChild(newWrapper); 
+      newWrapper.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        newWrapper.style.transform = "translateX(0)";
+      }); 
+      renderDay(iso, direction);
+      document.getElementById("day-left").disabled = index <= 0;
+      document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+      return;
+    } 
+
+    animating = true; 
+    selector.appendChild(newWrapper); 
+
+    oldWrapper.style.transition = "transform 0.3s ease";
+    newWrapper.style.transition = "transform 0.3s ease"; 
+
+    oldWrapper.style.transform = "translateX(0)";
+    oldWrapper.getBoundingClientRect();
+    newWrapper.getBoundingClientRect(); 
+
+    const exitDir = direction === "left" ? "-100%" : "100%";
+    oldWrapper.style.transform = `translateX(${exitDir})`;
+    requestAnimationFrame(() => {
+      newWrapper.style.transform = "translateX(0)";
+    }); 
+
+    const onNewEnd = () => {
+      if (oldWrapper.parentNode === selector) selector.removeChild(oldWrapper);
+      newWrapper.removeEventListener("transitionend", onNewEnd);
+      animating = false;
+    };
+    newWrapper.addEventListener("transitionend", onNewEnd); 
+
+    renderDay(iso, direction);
+    document.getElementById("day-left").disabled = index <= 0;
+    document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+  }
+
+  // ********* Schritt 6: Einzeltag-Rendering *********
+  function renderDay(iso) {
+    container.innerHTML = "";
+    const day = daysMap[iso];
+
+    if (!day) {
+      container.innerHTML = `<div class="no-data">Keine Daten für den gewählten Tag.</div>`;
+      return;
+    }
+
+    periodOrder.forEach((periodName) => {
+      const entries = day.groups[periodName];
+      if (!entries || entries.length === 0) return;
+
+      const freq = {};
+      for (const e of entries) {
+        if (!isNaN(e.code)) freq[e.code] = (freq[e.code] || 0) + 1;
+      }
+
+      let dominantCode = Math.max(...entries.map((e) => Number(e.code)));
+
+      if ([0, 1, 2, 3].includes(Number(dominantCode))) {
+        const indices = [];
+        for (const e of entries) {
+          if (!isNaN(e.index)) indices.push(e.index);
+        }
+
+        const cloud_covers = [];
+        for (const i of indices) {
+          if (!isNaN(seriesMap["Bewölkung"]?.[i])) {
+            cloud_covers.push(seriesMap["Bewölkung"][i]);
+          }
+        }
+
+        if (cloud_covers.length === 0) {
+          console.warn("Warnung: cloud_cover ist leer, Durchschnitt wird auf 0 gesetzt.");
+        }
+
+        const avg_cloud_cover =
+          cloud_covers.length > 0
+            ? cloud_covers.reduce((acc, val) => acc + val, 0) / cloud_covers.length
+            : 0;
+
+        if (avg_cloud_cover <= 20) {
+          dominantCode = 0;
+        } else if (avg_cloud_cover <= 50) {
+          dominantCode = 1;
+        } else if (avg_cloud_cover <= 80) {
+          dominantCode = 2;
+        } else {
+          dominantCode = 3;
+        }
+      }
+
+      let info;
+      const isNightPeriod = ["Abend", "Spät Abends", "Nacht"].includes(periodName);
+
+      if (isNightPeriod && [0, 1, 2].includes(dominantCode)) {
+        info = wwIconMapNight[dominantCode] || {
+          icon: "unknown.png",
+          label: "unbekannt",
+        };
+      } else {
+        info = wwIconMap[dominantCode] || {
+          icon: "unknown.png",
+          label: "unbekannt",
+        };
+      }
+
+      const card = document.createElement("div");
+      card.className = "summary-card";
+      card.innerHTML = `
+            <img src="icons/${info.icon}" alt="${info.label}">
+            <div class="summary-text">
+            <strong>${periodName}</strong>
+            <span class="label">${info.label}</span>
+            </div>
+        `;
+      container.appendChild(card);
+    });
+
+    if (container.children.length === 0) {
+      container.innerHTML = `<div class="no-data">Für diesen Tag liegen keine Vorhersagedaten vor.</div>`;
+    }
+  } 
+
+  // ********* Schritt 7: Event-Listener für Pfeile *********
+  const oldLeftBtn = document.getElementById("day-left");
+  const oldRightBtn = document.getElementById("day-right");
+
+  // Knöpfe klonen, um alte Event-Listener von vorherigen Suchanfragen zu entfernen
+  const leftBtn = oldLeftBtn.cloneNode(true);
+  const rightBtn = oldRightBtn.cloneNode(true);
+  oldLeftBtn.parentNode.replaceChild(leftBtn, oldLeftBtn);
+  oldRightBtn.parentNode.replaceChild(rightBtn, oldRightBtn);
+
+  leftBtn.addEventListener("click", () => {
+    if (animating || currentIndex <= 0) return;
+    currentIndex--;
+    updateDaySelector(currentIndex, "right");
+  });
+
+  rightBtn.addEventListener("click", () => {
+    if (animating || currentIndex >= sortedKeys.length - 1) return;
+    currentIndex++;
+    updateDaySelector(currentIndex, "left");
+  }); 
+
+  // ********* Initialisierung *********
+  updateDaySelector(currentIndex); 
+
+  // ********* Schritt 8: Swipe-Gesten *********
+  let touchStartX = null;
+  let touchEndX = null;
+  const swipeThreshold = 50; 
+
+  selector.addEventListener("touchstart", function (e) {
+      touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  selector.addEventListener("touchend", function (e) {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipeGesture();
+  }, { passive: true });
+
+  function handleSwipeGesture() {
+    if (animating) return;
+    if (touchStartX === null || touchEndX === null) return;
+    const diffX = touchEndX - touchStartX;
+
+    if (Math.abs(diffX) > swipeThreshold) {
+      if (diffX < 0 && currentIndex < sortedKeys.length - 1) {
+        currentIndex++;
+        updateDaySelector(currentIndex, "left");
+      } else if (diffX > 0 && currentIndex > 0) {
+        currentIndex--;
+        updateDaySelector(currentIndex, "right");
+      }
+    }
+    touchStartX = null;
+    touchEndX = null;
+  }
+}

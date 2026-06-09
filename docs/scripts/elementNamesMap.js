@@ -1,5 +1,5 @@
 // elementNamesMap.js
-window.elementNamesMap = {
+export const elementNamesMap = {
     "TTT": "Temperatur (°C)",
     "Td": "Dewpoint 2m above surface",
     "TX": "Maximum temperature - within the last 12 hours",

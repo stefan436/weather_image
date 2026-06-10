@@ -1,4 +1,4 @@
-export const USE_MOSMIX_S = false;
+export const USE_MOSMIX_S = true;
 
 export const periodOrder = [
   "Nacht",

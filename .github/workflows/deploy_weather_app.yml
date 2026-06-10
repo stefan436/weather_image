@@ -47,6 +47,9 @@ jobs:
           mkdir -p downloads
           python process_dwd_uv_and_pt.py
 
+      - name: ▶️ MOSMIX-S Daten generieren
+        run: python process_mosmix_s.py
+
       - name: 📤 Setup Pages
         uses: actions/configure-pages@v4
 

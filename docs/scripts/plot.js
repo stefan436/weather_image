@@ -5,6 +5,7 @@ function getConfig() {
   return {
     responsive: true,
     displaylogo: false,
+    displayModeBar: true,
     modeBarButtonsToRemove: [
       "toImage",
       "select2d",
@@ -15,6 +16,27 @@ function getConfig() {
       "resetScale2d",
     ],
   };
+}
+
+function enforcePanAfterZoom(plotlyDiv) {
+  if (plotlyDiv.removeAllListeners) {
+    plotlyDiv.removeAllListeners('plotly_relayout');
+  }
+
+  plotlyDiv.on('plotly_relayout', function(eventData) {
+    if (!eventData) return;
+    
+    const keys = Object.keys(eventData);
+    // Genauerer Filter: Wir reagieren nur auf echte Bereichs-Änderungen der X/Y-Achse
+    const isZoom = keys.some(k => k.includes('xaxis.range') || k.includes('yaxis.range') || k.includes('autorange'));
+    
+    if (isZoom && plotlyDiv.layout && plotlyDiv.layout.dragmode !== 'pan') {
+      // 150ms geben Plotly die nötige Zeit, seine eigenen SVG-Klassen zu aktualisieren
+      setTimeout(() => {
+        Plotly.relayout(plotlyDiv, { dragmode: 'pan' });
+      }, 100);
+    }
+  });
 }
 
 // getLayout braucht jetzt timeSteps als Parameter!
@@ -147,7 +169,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
       ],
     };
 
-    Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
     return;
   }
 
@@ -302,7 +324,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
         x0: 0,
         x1: 1,
         y0: 0.5,
-        y1: 2.5,
+        y1: 1.5,
         fillcolor: "rgba(65, 105, 225, 0.2)",
         line: { width: 0 },
       },
@@ -312,7 +334,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
         yref: "y",
         x0: 0,
         x1: 1,
-        y0: 2.5,
+        y0: 1.5,
         y1: 5,
         fillcolor: "rgba(25, 25, 112, 0.3)",
         line: { width: 0 },
@@ -358,8 +380,60 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
       shapes: shapes,
     };
 
-    Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
     return;
+  }
+
+  // --- Detaillierte Niederschlagswahrscheinlichkeiten ---
+  if (param === "Niederschlagswahrscheinlichkeit") {
+    // 1. Die Hauptlinie (Gesamtwahrscheinlichkeit wwP)
+    traces.push({
+      x: xData,
+      y: yData, // Das ist bereits seriesMap["Niederschlagswahrscheinlichkeit"]
+      type: "scatter",
+      mode: "lines+markers",
+      line: { width: 3, shape: "spline", color: "rgba(17, 24, 39, 1)" },
+      marker: { size: 6, color: "rgba(17, 24, 39, 1)" },
+      name: "Gesamt",
+      hoverinfo: "y+name",
+    });
+
+    // 2. Zusätzliche Kurven definieren (Farben sind Vorschläge, gerne anpassen)
+    const extraProbs = [
+      { key: "Nieselregen-Wahrscheinlichkeit", name: "Nieselregen", color: "rgb(156, 163, 175)" },   // Grau
+      { key: "Frontregen-Wahrscheinlichkeit", name: "Frontregen", color: "rgb(37, 99, 235)" },       // Blau
+      { key: "Konvektionsregen-Wahrscheinlichkeit", name: "Konvektion", color: "rgb(147, 51, 234)" },// Lila
+      { key: "Gewitter-Wahrscheinlichkeit", name: "Gewitter", color: "rgb(234, 179, 8)" }             // Gelb/Orange
+    ];
+
+    // 3. Zusätzliche Kurven zum Plot hinzufügen, falls Daten vorhanden sind
+    extraProbs.forEach(ep => {
+      if (seriesMap[ep.key]) {
+        const epData = seriesMap[ep.key].map(v => (v == null ? null : v));
+        traces.push({
+          x: xData,
+          y: epData,
+          type: "scatter",
+          mode: "lines",
+          line: { width: 2, shape: "spline", color: ep.color, dash: "dot" }, // Gestrichelt zur besseren Unterscheidung
+          name: ep.name,
+          hoverinfo: "y+name",
+        });
+      }
+    });
+
+    const layout = {
+      ...getLayout(param, timeSteps),
+      shapes: shapes, // Die Nacht-Rechtecke übernehmen wir
+      yaxis: { 
+        title: "Wahrscheinlichkeit (%)", 
+        range: [-5, 105], // Macht den Graphen stabil (Wahrscheinlichkeiten sind immer 0-100%)
+        automargin: true 
+      }
+    };
+
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
+    return; // Bricht hier ab, damit der "Standard Plot" nicht auch noch gezeichnet wird
   }
 
   // Standard Plot für alles andere (Linie)
@@ -434,5 +508,5 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     }
   }
 
-  Plotly.newPlot(plotlyDiv, traces, layout, getConfig());
+  Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
 }

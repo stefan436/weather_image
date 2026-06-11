@@ -4,6 +4,8 @@ unter 30 wolkenlos, zwischen 30 und 60 leicht bewölkt,
 zwischen 60 und 80 mittel bewölkt, über 80 stark bewölkt */
 export const cloudCoverThresholds = [30, 60, 80];
 
+export const previewHours = 48; // Anzahl Stunden, die anfangs im Plot angezeigt werden
+
 export const periodOrder = [
   "Nacht",
   "Früh",

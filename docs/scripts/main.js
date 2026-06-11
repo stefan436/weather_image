@@ -16,6 +16,7 @@ const appState = {
   timeSteps: [],
   result_uv_and_pt: null,
   minDistance: Infinity,
+  timeZoneId: "UTC", // Standard-Fallback
 };
 
 // --- Geocoding Event-Handler ---
@@ -108,6 +109,10 @@ async function handleStationSelection(stationId, distance) {
     appState.minDistance = distance;
     setStatus(`Station ${stationId} gewählt – lade KMZ …`);
 
+    // Zeitzone aus den genutzten Koordinaten ermitteln
+    appState.timeZoneId = tzlookup(userLat, userLon);
+    console.log("Lokale Zeitzone der Station:", appState.timeZoneId);
+
     // 1. Daten asynchron parsen lassen
     const data = await loadMosmixData(stationId, userLat, userLon);
 
@@ -141,11 +146,12 @@ async function handleStationSelection(stationId, distance) {
         appState.seriesMap,
         appState.timeSteps,
         appState.result_uv_and_pt,
+        appState.timeZoneId,
       );
     }
 
     // 6. Wetterzusammenfassung generieren
-    buildSummary(appState.seriesMap, appState.timeSteps);
+    buildSummary(appState.seriesMap, appState.timeSteps, appState.timeZoneId);
     document.getElementById("search-section").style.display = "none";
     document.getElementById("station-choices-container").style.display = "none";
 
@@ -176,5 +182,6 @@ document.getElementById("plotSelect").addEventListener("change", (e) => {
     appState.seriesMap,
     appState.timeSteps,
     appState.result_uv_and_pt,
+    appState.timeZoneId,
   );
 });

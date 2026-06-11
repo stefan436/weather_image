@@ -7,6 +7,8 @@ import {
   wwIconMapNight,
 } from "./config.js";
 
+import { getStationTime } from "./geoService.js";
+
 export function setStatus(txt) {
   const statusEl = document.getElementById("status");
   statusEl.textContent = txt;
@@ -41,7 +43,7 @@ export function renderStationChoices(stations, onStationSelect) {
  * Benötigt global: timeSteps (Array), seriesMap["Significant Weather"] (Array gleicher Länge), wwIconMap (Objekt)
  */
 
-export function buildSummary(seriesMap, timeSteps) {
+export function buildSummary(seriesMap, timeSteps, timeZoneId) {
   if (!seriesMap || !seriesMap["Significant Weather"]) {
     console.warn(
       "Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich",
@@ -70,11 +72,15 @@ export function buildSummary(seriesMap, timeSteps) {
     // Der ww code um 14:00 Uhr beschreibt die Wetterbedingungen von 13:00-13:59 Uhr, daher dieser Shift.
     const realDateObj = new Date(originalDate.getTime() - 60 * 60 * 1000);
 
+    // Wandle das bereinigte Datum in die korrekte Zeitzone um
+    const stTime = getStationTime(realDateObj, timeZoneId);
+
     const code = parseInt(seriesMap["Significant Weather"][i]);
     return {
-      timestamp: realDateObj,
-      hour: realDateObj.getHours(),
-      code,
+      timestamp: realDateObj, 
+      stTime: stTime, 
+      hour: stTime.hour, // Stunde in der Ziel-Zeitzone
+      code: parseInt(seriesMap["Significant Weather"][i]),
       index: i,
     };
   });
@@ -84,6 +90,10 @@ export function buildSummary(seriesMap, timeSteps) {
 
   // ********* Schritt 3: nach Tag (ISO YYYY-MM-DD) und Periode gruppieren *********
   const daysMap = {};
+  // Für die Referenztage (Heute, Morgen) nutzen wir nun auch die Stations-Zeitzone
+  const todayIso = getStationTime(now, timeZoneId).dayIso;
+  const tomorrowIso = getStationTime(new Date(now.getTime() + 86400000), timeZoneId).dayIso;
+  const dayAfterTomorrowIso = getStationTime(new Date(now.getTime() + 2 * 86400000), timeZoneId).dayIso;
 
   for (const entry of futureEntries) {
     const period = periods.find((p) => {
@@ -98,36 +108,28 @@ export function buildSummary(seriesMap, timeSteps) {
     if (!period) continue;
 
     const entryDate = new Date(entry.timestamp);
-    let groupDate = new Date(entryDate);
+    let groupDate = new Date(entry.timestamp);
     if (period.startHour > period.endHour && entry.hour < period.endHour) {
-      groupDate.setDate(groupDate.getDate() - 1);
+      groupDate = new Date(groupDate.getTime() - 86400000);
     }
 
-    const y = groupDate.getFullYear();
-    const m = String(groupDate.getMonth() + 1).padStart(2, "0");
-    const d = String(groupDate.getDate()).padStart(2, "0");
-    const dayIso = `${y}-${m}-${d}`;
-
-    const today = new Date();
-    const diffDays = Math.floor(
-      (groupDate -
-        new Date(today.getFullYear(), today.getMonth(), today.getDate())) /
-        (1000 * 60 * 60 * 24),
-    );
+    const bGroup = getStationTime(groupDate, timeZoneId);
+    const dayIso = bGroup.dayIso;
 
     let displayDate;
-    if (diffDays === 0) {
+    if (dayIso === todayIso) {
       displayDate = "Heute";
-    } else if (diffDays === 1) {
+    } else if (dayIso === tomorrowIso) {
       displayDate = "Morgen";
-    } else if (diffDays === 2) {
+    } else if (dayIso === dayAfterTomorrowIso) {
       displayDate = "Übermorgen";
     } else {
-      displayDate = groupDate.toLocaleDateString("de-DE", {
+      // Anzeige zwingend in Stations-Zeitzone formatieren
+      displayDate = bGroup.d.toLocaleDateString("de-DE", {
+        timeZone: timeZoneId,
         weekday: "short",
         day: "2-digit",
-        month: "short",
-        timeZone: "Europe/Berlin",
+        month: "short"
       });
     }
 
@@ -144,12 +146,6 @@ export function buildSummary(seriesMap, timeSteps) {
   }
 
   // ********* Schritt 4: Aktuellen Tag finden *********
-  const today = new Date();
-  const ty = today.getFullYear();
-  const tm = String(today.getMonth() + 1).padStart(2, "0");
-  const td = String(today.getDate()).padStart(2, "0");
-  const todayIso = `${ty}-${tm}-${td}`;
-
   const sortedKeys = Object.keys(daysMap).sort();
   let currentIndex = sortedKeys.findIndex((k) => k === todayIso);
   if (currentIndex === -1) currentIndex = 0;

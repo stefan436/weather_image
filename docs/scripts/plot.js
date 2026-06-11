@@ -1,6 +1,9 @@
 // plot.js
 // getLayout und getConfig werden NICHT exportiert, da sie nur intern in dieser Datei genutzt werden.
 
+import { getStationTime } from "./geoService.js";
+import { previewHours } from "./config.js";
+
 function getConfig() {
   return {
     responsive: true,
@@ -20,37 +23,58 @@ function getConfig() {
 
 function enforcePanAfterZoom(plotlyDiv) {
   if (plotlyDiv.removeAllListeners) {
-    plotlyDiv.removeAllListeners('plotly_relayout');
+    plotlyDiv.removeAllListeners("plotly_relayout");
   }
 
-  plotlyDiv.on('plotly_relayout', function(eventData) {
+  plotlyDiv.on("plotly_relayout", function (eventData) {
     if (!eventData) return;
-    
+
     const keys = Object.keys(eventData);
     // Genauerer Filter: Wir reagieren nur auf echte Bereichs-Änderungen der X/Y-Achse
-    const isZoom = keys.some(k => k.includes('xaxis.range') || k.includes('yaxis.range') || k.includes('autorange'));
-    
-    if (isZoom && plotlyDiv.layout && plotlyDiv.layout.dragmode !== 'pan') {
+    const isZoom = keys.some(
+      (k) =>
+        k.includes("xaxis.range") ||
+        k.includes("yaxis.range") ||
+        k.includes("autorange"),
+    );
+
+    if (isZoom && plotlyDiv.layout && plotlyDiv.layout.dragmode !== "pan") {
       // 150ms geben Plotly die nötige Zeit, seine eigenen SVG-Klassen zu aktualisieren
       setTimeout(() => {
-        Plotly.relayout(plotlyDiv, { dragmode: 'pan' });
+        Plotly.relayout(plotlyDiv, { dragmode: "pan" });
       }, 100);
     }
   });
 }
 
 // getLayout braucht jetzt timeSteps als Parameter!
-function getLayout(param, timeSteps) {
-  const xData = timeSteps.map((ts) => new Date(ts));
+function getLayout(param, timeSteps, timeZoneId) {
+  const xData = timeSteps.map(
+    (ts) => getStationTime(ts, timeZoneId).plotlyString,
+  );
   let xRange = null;
-  if (xData.length > 0) {
-    const start = xData[0];
-    const end = new Date(start.getTime() + 60 * 3600 * 1000);
-    xRange = [start, end];
+
+  if (timeSteps.length > 0) {
+    // 1. Originales Datum für die Mathematik nutzen
+    const startObj = new Date(timeSteps[0]);
+
+    // 2. 60 Stunden (in Millisekunden) addieren
+    const endObj = new Date(startObj.getTime() + previewHours * 3600 * 1000);
+
+    // 3. Beide Zeitpunkte sauber formatiert als Strings an Plotly übergeben
+    xRange = [
+      getStationTime(startObj, timeZoneId).plotlyString,
+      getStationTime(endObj, timeZoneId).plotlyString,
+    ];
   }
   return {
     margin: { l: 50, r: 20, t: 30, b: 70 },
-    xaxis: { title: "Zeit", automargin: true, range: xRange, hoverformat: "%a, %d.%b, %H:%M"},
+    xaxis: {
+      title: "Zeit",
+      automargin: true,
+      range: xRange,
+      hoverformat: "%a, %d.%b, %H:%M",
+    },
     yaxis: { title: param, automargin: true },
     hovermode: "x",
     autosize: true,
@@ -60,7 +84,13 @@ function getLayout(param, timeSteps) {
 }
 
 // HAUPTFUNKTION: Rendert den Plot (wird in main.js importiert)
-export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
+export function renderPlot(
+  param,
+  seriesMap,
+  timeSteps,
+  result_uv_and_pt,
+  timeZoneId,
+) {
   // Das Element lokal holen, statt global vorauszusetzen
   const plotlyDiv = document.getElementById("plotlyDiv");
 
@@ -80,7 +110,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     const timeStep_uv = day_strings.map((date, i) => {
       const newDate = new Date(date); // Kopie erstellen
       newDate.setUTCHours(hours[i], 0, 0, 0); // Nur UTC-Hours setzen
-      return newDate;
+      return getStationTime(newDate, timeZoneId).plotlyString;
     });
 
     const xData = timeStep_uv;
@@ -109,7 +139,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     });
 
     const layout = {
-      ...getLayout(param, timeSteps),
+      ...getLayout(param, timeSteps, timeZoneId),
       shapes: [
         {
           type: "rect",
@@ -169,13 +199,17 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
       ],
     };
 
-    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() =>
+      enforcePanAfterZoom(plotlyDiv),
+    );
     return;
   }
 
   // Gefühlte Temperatur Plot
   if (param.includes("Temperatur (°C)")) {
-    const gft_time_step = result_uv_and_pt["gft_times"];
+    const gft_time_step = result_uv_and_pt["gft_times"].map(
+      (ts) => getStationTime(ts, timeZoneId).plotlyString,
+    );
     const gft_data = seriesMap["Gefühlte Temperatur"];
 
     // Linie Gefühlte Temperatur in rot
@@ -207,7 +241,9 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
 
     // Prüfen, ob Daten für Böen vorhanden sind
     if (gust_data) {
-      const gust_time_step = timeSteps.map((ts) => new Date(ts));
+      const gust_time_step = timeSteps.map(
+        (ts) => getStationTime(ts, timeZoneId).plotlyString,
+      );
 
       // Linie Maximale Windböe (hier in einem passenden Blauton)
       traces.push({
@@ -233,7 +269,9 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     }
   }
 
-  const xData = timeSteps.map((ts) => new Date(ts));
+  const xData = timeSteps.map(
+    (ts) => getStationTime(ts, timeZoneId).plotlyString,
+  );
   const yData = seriesMap[param].map((v) => (v == null ? null : v));
 
   // Fehlerbereich Plot
@@ -269,18 +307,18 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     const nightColor = "rgba(241, 241, 241, 0.75)"; // hellgrau
     const datesSet = new Set();
 
-    xData.forEach((dt) => {
-      const dateStr = dt.toISOString().split("T")[0]; // "YYYY-MM-DD"
+    timeSteps.forEach((ts) => {
+      const bTime = getStationTime(ts, timeZoneId);
 
-      if (datesSet.has(dateStr)) return; // Nur ein Rechteck pro Datum
-      datesSet.add(dateStr); // Rechteck von 00:00 bis 08:00
+      if (datesSet.has(bTime.dayIso)) return;
+      datesSet.add(bTime.dayIso);
 
       shapes.push({
         type: "rect",
         xref: "x",
         yref: "paper",
-        x0: new Date(dateStr + "T00:00:00Z"),
-        x1: new Date(dateStr + "T06:00:00Z"),
+        x0: `${bTime.dayIso} 00:00:00`,
+        x1: `${bTime.dayIso} 06:00:00`,
         y0: 0,
         y1: 1,
         fillcolor: nightColor,
@@ -293,8 +331,8 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
         type: "rect",
         xref: "x",
         yref: "paper",
-        x0: new Date(dateStr + "T18:00:00Z"),
-        x1: new Date(new Date(dateStr + "T23:59:59Z").getTime() + 1000), // leicht drüber hinaus
+        x0: `${bTime.dayIso} 18:00:00`,
+        x1: `${bTime.dayIso} 23:59:59`,
         y0: 0,
         y1: 1,
         fillcolor: nightColor,
@@ -347,8 +385,9 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     const xDataSun = timeSteps.map((ts) => {
       const date = new Date(ts);
       date.setDate(date.getDate() - 1); // Einen Tag abziehen
-      date.setUTCHours(12, 0, 0, 0); // Uhrzeit auf 10:00:00.000 UTC setzen
-      return date;
+      const prevDay = getStationTime(date, timeZoneId);
+      // Wir erzwingen unabhängig von der Zeitzone exakt 12:00 Uhr mittags als String
+      return `${prevDay.dayIso} 12:00:00`;
     });
     const yDataSun = seriesMap[param].map((v) => (v == null ? null : v / 60));
 
@@ -376,11 +415,13 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     });
 
     const layout = {
-      ...getLayout(param, timeSteps),
+      ...getLayout(param, timeSteps, timeZoneId),
       shapes: shapes,
     };
 
-    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() =>
+      enforcePanAfterZoom(plotlyDiv),
+    );
     return;
   }
 
@@ -399,16 +440,32 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
 
     // 2. Zusätzliche Kurven definieren (Farben sind Vorschläge, gerne anpassen)
     const extraProbs = [
-      { key: "Nieselregen-Wahrscheinlichkeit", name: "Nieselregen", color: "rgb(156, 163, 175)" },   // Grau
-      { key: "Frontregen-Wahrscheinlichkeit", name: "Frontregen", color: "rgb(37, 99, 235)" },       // Blau
-      { key: "Konvektionsregen-Wahrscheinlichkeit", name: "Konvektion", color: "rgb(147, 51, 234)" },// Lila
-      { key: "Gewitter-Wahrscheinlichkeit", name: "Gewitter", color: "rgb(234, 179, 8)" }             // Gelb/Orange
+      {
+        key: "Nieselregen-Wahrscheinlichkeit",
+        name: "Nieselregen",
+        color: "rgb(156, 163, 175)",
+      }, // Grau
+      {
+        key: "Frontregen-Wahrscheinlichkeit",
+        name: "Frontregen",
+        color: "rgb(37, 99, 235)",
+      }, // Blau
+      {
+        key: "Konvektionsregen-Wahrscheinlichkeit",
+        name: "Konvektion",
+        color: "rgb(147, 51, 234)",
+      }, // Lila
+      {
+        key: "Gewitter-Wahrscheinlichkeit",
+        name: "Gewitter",
+        color: "rgb(234, 179, 8)",
+      }, // Gelb/Orange
     ];
 
     // 3. Zusätzliche Kurven zum Plot hinzufügen, falls Daten vorhanden sind
-    extraProbs.forEach(ep => {
+    extraProbs.forEach((ep) => {
       if (seriesMap[ep.key]) {
-        const epData = seriesMap[ep.key].map(v => (v == null ? null : v));
+        const epData = seriesMap[ep.key].map((v) => (v == null ? null : v));
         traces.push({
           x: xData,
           y: epData,
@@ -421,16 +478,18 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     });
 
     const layout = {
-      ...getLayout(param, timeSteps),
+      ...getLayout(param, timeSteps, timeZoneId),
       shapes: shapes, // Die Nacht-Rechtecke übernehmen wir
-      yaxis: { 
-        title: "Wahrscheinlichkeit (%)", 
+      yaxis: {
+        title: "Wahrscheinlichkeit (%)",
         range: [-5, 105], // Macht den Graphen stabil (Wahrscheinlichkeiten sind immer 0-100%)
-        automargin: true 
-      }
+        automargin: true,
+      },
     };
 
-    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() =>
+      enforcePanAfterZoom(plotlyDiv),
+    );
     return; // Bricht hier ab, damit der "Standard Plot" nicht auch noch gezeichnet wird
   }
 
@@ -458,7 +517,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
   });
 
   const layout = {
-    ...getLayout(param, timeSteps),
+    ...getLayout(param, timeSteps, timeZoneId),
     shapes: shapes,
   };
 
@@ -475,9 +534,9 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
 
   // Niederschlag Auto-Zoom
   if (param.includes("Totale Niederschlagsmenge (mm)")) {
-    // Hole den exakten Zeitraum des Startausschnitts aus deinem Layout
-    const viewStart = layout.xaxis.range[0].getTime();
-    const viewEnd = layout.xaxis.range[1].getTime();
+    // Da das Layout nun aus Strings besteht, berechnen wir das Fenster direkt aus den rohen Zeitstempeln
+    const viewStart = new Date(timeSteps[0]).getTime();
+    const viewEnd = viewStart + previewHours * 3600 * 1000; // +60 Stunden in Millisekunden
 
     // Filtere nur die Datenpunkte, die in genau diesen Zeitraum fallen
     const dataVals = seriesMap[param].filter((v, index) => {
@@ -506,5 +565,7 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
     }
   }
 
-  Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
+  Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() =>
+    enforcePanAfterZoom(plotlyDiv),
+  );
 }

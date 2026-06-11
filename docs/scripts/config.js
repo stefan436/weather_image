@@ -1,4 +1,8 @@
 export const USE_MOSMIX_S = true;
+/* Schwellenwerte für die Summary cards nach denen die Bewölkung klassifiziert wird
+unter 30 wolkenlos, zwischen 30 und 60 leicht bewölkt,
+zwischen 60 und 80 mittel bewölkt, über 80 stark bewölkt */
+export const cloudCoverThresholds = [30, 60, 80];
 
 export const periodOrder = [
   "Nacht",
@@ -209,8 +213,7 @@ export const elementUnitsMap = {
   SunD3: "s",
   SunD: "s",
   DRR1: "s",
-}; // periods; Die Vorhersage für das signifikante Wetter vorhergesagt um 7 uhr bedeutet das Wetter zwischen 6:00 und 6.59 Uhr (within last hour)
-
+};
 
 export const wwIconMap = {
   // Gewitter
@@ -261,4 +264,4 @@ export const wwIconMapNight = {
   0: { icon: "clear night.png", label: "Klarer Himmel" },
   1: { icon: "low cloud cover night.png", label: "Bewölkung abnehmend" },
   2: { icon: "medium cloud cover night.png", label: "Bewölkung unverändert" },
-}; // gewünschte Reihenfolge
+}; 

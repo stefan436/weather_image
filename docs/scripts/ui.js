@@ -1,5 +1,11 @@
 // ui.js
-import { periods, periodOrder, wwIconMap, wwIconMapNight } from "./config.js";
+import {
+  cloudCoverThresholds,
+  periods,
+  periodOrder,
+  wwIconMap,
+  wwIconMapNight,
+} from "./config.js";
 
 export function setStatus(txt) {
   const statusEl = document.getElementById("status");
@@ -37,7 +43,9 @@ export function renderStationChoices(stations, onStationSelect) {
 
 export function buildSummary(seriesMap, timeSteps) {
   if (!seriesMap || !seriesMap["Significant Weather"]) {
-    console.warn("Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich");
+    console.warn(
+      "Kein Wettercode (ww) verfügbar – keine Zusammenfassung möglich",
+    );
     return;
   }
 
@@ -46,7 +54,7 @@ export function buildSummary(seriesMap, timeSteps) {
   const oldSelector = document.getElementById("day-selector");
   const selector = oldSelector.cloneNode(false);
   oldSelector.parentNode.replaceChild(selector, oldSelector);
-  
+
   container.innerHTML = "";
   selector.innerHTML = "";
 
@@ -55,21 +63,34 @@ export function buildSummary(seriesMap, timeSteps) {
 
   // ********* Schritt 1: Roh-Einträge vorbereiten *********
   const entries = timeSteps.map((ts, i) => {
-    const dateObj = new Date(ts);
+    const originalDate = new Date(ts);
+    // SHIFT: 1 Stunde (60 Minuten * 60 Sekunden * 1000 Millisekunden) abziehen.
+    // Ein Zeitstempel von 14:00 Uhr wird so zu 13:00 Uhr und repräsentiert
+    // damit exakt die korrekte Stunde, in der das Wetter stattfand.
+    // Der ww code um 14:00 Uhr beschreibt die Wetterbedingungen von 13:00-13:59 Uhr, daher dieser Shift.
+    const realDateObj = new Date(originalDate.getTime() - 60 * 60 * 1000);
+
     const code = parseInt(seriesMap["Significant Weather"][i]);
-    return { timestamp: dateObj, hour: dateObj.getHours(), code, index: i };
-  }); 
+    return {
+      timestamp: realDateObj,
+      hour: realDateObj.getHours(),
+      code,
+      index: i,
+    };
+  });
 
   // ********* Schritt 2: nur zukünftige Einträge (ab jetzt) *********
-  const futureEntries = entries.filter((e) => e.timestamp >= now); 
+  const futureEntries = entries.filter((e) => e.timestamp >= now);
 
   // ********* Schritt 3: nach Tag (ISO YYYY-MM-DD) und Periode gruppieren *********
   const daysMap = {};
 
   for (const entry of futureEntries) {
     const period = periods.find((p) => {
+      // Normalfall: Zeitraum innerhalb eines Tages
       if (p.startHour < p.endHour) {
         return entry.hour >= p.startHour && entry.hour < p.endHour;
+        // Sonderfall: Zeitraum über Mitternacht (z.B. Spät Abend 22-02 Uhr)
       } else {
         return entry.hour >= p.startHour || entry.hour < p.endHour;
       }
@@ -120,7 +141,7 @@ export function buildSummary(seriesMap, timeSteps) {
   if (dayKeys.length === 0) {
     container.innerHTML = `<div class="no-data">Keine zukünftigen Vorhersagen vorhanden.</div>`;
     return;
-  } 
+  }
 
   // ********* Schritt 4: Aktuellen Tag finden *********
   const today = new Date();
@@ -133,7 +154,7 @@ export function buildSummary(seriesMap, timeSteps) {
   let currentIndex = sortedKeys.findIndex((k) => k === todayIso);
   if (currentIndex === -1) currentIndex = 0;
 
-  let animating = false; 
+  let animating = false;
 
   // ********* Schritt 5: Rendering eines einzelnen Tages *********
   function updateDaySelector(index, direction = null) {
@@ -144,7 +165,7 @@ export function buildSummary(seriesMap, timeSteps) {
 
     const newWrapper = document.createElement("div");
     newWrapper.className = "day-slide-wrapper";
-    newWrapper.innerHTML = `<strong>${displayText}</strong>`; 
+    newWrapper.innerHTML = `<strong>${displayText}</strong>`;
 
     if (direction === "left") {
       newWrapper.style.transform = "translateX(100%)";
@@ -152,49 +173,51 @@ export function buildSummary(seriesMap, timeSteps) {
       newWrapper.style.transform = "translateX(-100%)";
     } else {
       newWrapper.style.transform = "translateX(0)";
-    } 
+    }
 
     const oldWrapper = selector.querySelector(".day-slide-wrapper");
 
     if (!oldWrapper) {
       selector.innerHTML = "";
-      selector.appendChild(newWrapper); 
+      selector.appendChild(newWrapper);
       newWrapper.getBoundingClientRect();
       requestAnimationFrame(() => {
         newWrapper.style.transform = "translateX(0)";
-      }); 
+      });
       renderDay(iso, direction);
       document.getElementById("day-left").disabled = index <= 0;
-      document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+      document.getElementById("day-right").disabled =
+        index >= sortedKeys.length - 1;
       return;
-    } 
+    }
 
-    animating = true; 
-    selector.appendChild(newWrapper); 
+    animating = true;
+    selector.appendChild(newWrapper);
 
     oldWrapper.style.transition = "transform 0.3s ease";
-    newWrapper.style.transition = "transform 0.3s ease"; 
+    newWrapper.style.transition = "transform 0.3s ease";
 
     oldWrapper.style.transform = "translateX(0)";
     oldWrapper.getBoundingClientRect();
-    newWrapper.getBoundingClientRect(); 
+    newWrapper.getBoundingClientRect();
 
     const exitDir = direction === "left" ? "-100%" : "100%";
     oldWrapper.style.transform = `translateX(${exitDir})`;
     requestAnimationFrame(() => {
       newWrapper.style.transform = "translateX(0)";
-    }); 
+    });
 
     const onNewEnd = () => {
       if (oldWrapper.parentNode === selector) selector.removeChild(oldWrapper);
       newWrapper.removeEventListener("transitionend", onNewEnd);
       animating = false;
     };
-    newWrapper.addEventListener("transitionend", onNewEnd); 
+    newWrapper.addEventListener("transitionend", onNewEnd);
 
     renderDay(iso, direction);
     document.getElementById("day-left").disabled = index <= 0;
-    document.getElementById("day-right").disabled = index >= sortedKeys.length - 1;
+    document.getElementById("day-right").disabled =
+      index >= sortedKeys.length - 1;
   }
 
   // ********* Schritt 6: Einzeltag-Rendering *********
@@ -226,25 +249,38 @@ export function buildSummary(seriesMap, timeSteps) {
 
         const cloud_covers = [];
         for (const i of indices) {
-          if (!isNaN(seriesMap["Bewölkung"]?.[i])) {
-            cloud_covers.push(seriesMap["Bewölkung"][i]);
+          // SHIFT-AUSGLEICH: Wir ziehen 1 vom Index ab, um den 
+          // Bewölkungswert am ANFANG der jeweiligen Stunde zu bekommen.
+          // Dadurch ist z.B. für Mittags der Durchschnitt durch den Bewölkungsgrad
+          // um 10 Uhr, 11 Uhr, 12 Uhr und 13 Uhr (anstatt 11-14 Uhr) berechnet.
+          const prevIndex = i - 1; 
+          
+          // SICHERHEITSCHECK: Verhindert einen Fehler beim allerersten Eintrag 
+          // des Arrays (falls prevIndex -1 sein sollte).
+          if (prevIndex >= 0 && !isNaN(seriesMap["Bewölkung"]?.[prevIndex])) {
+            cloud_covers.push(seriesMap["Bewölkung"][prevIndex]);
           }
         }
 
         if (cloud_covers.length === 0) {
-          console.warn("Warnung: cloud_cover ist leer, Durchschnitt wird auf 0 gesetzt.");
+          console.warn(
+            "Warnung: cloud_cover ist leer, Durchschnitt wird auf 0 gesetzt.",
+          );
         }
 
         const avg_cloud_cover =
           cloud_covers.length > 0
-            ? cloud_covers.reduce((acc, val) => acc + val, 0) / cloud_covers.length
-            : 0;
+            ? cloud_covers.reduce((acc, val) => acc + val, 0) /
+              cloud_covers.length
+            : null;
 
-        if (avg_cloud_cover <= 20) {
+        if (avg_cloud_cover === null) {
+          dominantCode = null; // oder ein eigener Code wie -1
+        } else if (avg_cloud_cover <= cloudCoverThresholds[0]) {
           dominantCode = 0;
-        } else if (avg_cloud_cover <= 50) {
+        } else if (avg_cloud_cover <= cloudCoverThresholds[1]) {
           dominantCode = 1;
-        } else if (avg_cloud_cover <= 80) {
+        } else if (avg_cloud_cover <= cloudCoverThresholds[2]) {
           dominantCode = 2;
         } else {
           dominantCode = 3;
@@ -252,9 +288,16 @@ export function buildSummary(seriesMap, timeSteps) {
       }
 
       let info;
-      const isNightPeriod = ["Abend", "Spät Abends", "Nacht"].includes(periodName);
+      const isNightPeriod = ["Abend", "Spät Abends", "Nacht"].includes(
+        periodName,
+      );
 
-      if (isNightPeriod && [0, 1, 2].includes(dominantCode)) {
+      if (dominantCode === null || dominantCode === undefined) {
+        info = {
+          icon: "unknown.png",
+          label: "unbekannt",
+        };
+      } else if (isNightPeriod && dominantCode <= 2) {
         info = wwIconMapNight[dominantCode] || {
           icon: "unknown.png",
           label: "unbekannt",
@@ -281,7 +324,7 @@ export function buildSummary(seriesMap, timeSteps) {
     if (container.children.length === 0) {
       container.innerHTML = `<div class="no-data">Für diesen Tag liegen keine Vorhersagedaten vor.</div>`;
     }
-  } 
+  }
 
   // ********* Schritt 7: Event-Listener für Pfeile *********
   const oldLeftBtn = document.getElementById("day-left");
@@ -303,24 +346,32 @@ export function buildSummary(seriesMap, timeSteps) {
     if (animating || currentIndex >= sortedKeys.length - 1) return;
     currentIndex++;
     updateDaySelector(currentIndex, "left");
-  }); 
+  });
 
   // ********* Initialisierung *********
-  updateDaySelector(currentIndex); 
+  updateDaySelector(currentIndex);
 
   // ********* Schritt 8: Swipe-Gesten *********
   let touchStartX = null;
   let touchEndX = null;
-  const swipeThreshold = 50; 
+  const swipeThreshold = 50;
 
-  selector.addEventListener("touchstart", function (e) {
+  selector.addEventListener(
+    "touchstart",
+    function (e) {
       touchStartX = e.changedTouches[0].screenX;
-  }, { passive: true });
+    },
+    { passive: true },
+  );
 
-  selector.addEventListener("touchend", function (e) {
+  selector.addEventListener(
+    "touchend",
+    function (e) {
       touchEndX = e.changedTouches[0].screenX;
       handleSwipeGesture();
-  }, { passive: true });
+    },
+    { passive: true },
+  );
 
   function handleSwipeGesture() {
     if (animating) return;

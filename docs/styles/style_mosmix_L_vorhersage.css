@@ -22,7 +22,15 @@ body {
 h1 {
   font-size: 1.8rem;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
+}
+
+h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--badge-text);
+  margin-top:0px;
+  margin-bottom:20px;
 }
 
 /* Layout-Struktur */

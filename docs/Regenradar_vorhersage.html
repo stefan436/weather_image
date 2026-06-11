@@ -143,10 +143,17 @@
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             pos => callback(pos.coords.latitude, pos.coords.longitude),
-            showError
+            err => {
+              showError(err);
+
+              if (err.code === err.PERMISSION_DENIED) {
+                callback(48.1374, 11.5755, false);
+              }
+            }
           );
         } else {
           document.getElementById("location_output").innerText = "Geolocation wird nicht unterstützt.";
+          callback(48.1374, 11.5755, false);
         }
       }
 
@@ -386,10 +393,6 @@
         }
       }
 
-
-
-
-
       /**
        * Erstellt den HTML-Inhalt für das Pop-up einer Zelle.
        * @param {object} cell - Das Zell-Datenobjekt.
@@ -572,26 +575,29 @@
       }
 
       // --- Hauptlogik zum Laden der Daten ---
-      async function fetchAndProcessComposite(lat_pos, lon_pos) {
+      async function fetchAndProcessComposite(lat_pos, lon_pos, isRealLocation) {
         map.setView([lat_pos, lon_pos], 10);
-        if (userLocationMarker) {
-            // Falls der Marker schon existiert, nur die Position updaten
-            userLocationMarker.setLatLng([lat_pos, lon_pos]);
-        } else {
-            // Neuen, blauen GPS-Punkt erstellen
-            userLocationMarker = L.circleMarker([lat_pos, lon_pos], {
-                radius: 6,              // Größe des Punkts
-                fillColor: "#0078ff",   // GPS-Blau
-                color: "#ffffff",       // Weißer Rand zur besseren Sichtbarkeit
-                weight: 2,              // Dicke des Rands
-                opacity: 0.8,
-                fillOpacity: 0.66,
-                pane: 'markerPane'      // Standard Leaflet-Pane für Marker (ganz oben)
-            }).addTo(map);
-            
-            // Optional: Ein kleines Pop-up beim Anklicken
-            userLocationMarker.bindPopup("<b>Dein Standort</b>");
+        if (isRealLocation){
+          if (userLocationMarker) {
+              // Falls der Marker schon existiert, nur die Position updaten
+              userLocationMarker.setLatLng([lat_pos, lon_pos]);
+          } else {
+              // Neuen, blauen GPS-Punkt erstellen
+              userLocationMarker = L.circleMarker([lat_pos, lon_pos], {
+                  radius: 6,              // Größe des Punkts
+                  fillColor: "#0078ff",   // GPS-Blau
+                  color: "#ffffff",       // Weißer Rand zur besseren Sichtbarkeit
+                  weight: 2,              // Dicke des Rands
+                  opacity: 0.8,
+                  fillOpacity: 0.66,
+                  pane: 'markerPane'      // Standard Leaflet-Pane für Marker (ganz oben)
+              }).addTo(map);
+              
+              // Ein kleines Pop-up beim Anklicken
+              userLocationMarker.bindPopup("<b>Dein Standort</b>");
+          }
         }
+        
         try {
           const konradPromise = fetchAndProcessKonrad();
 
@@ -633,6 +639,7 @@
             document.getElementById('loadProgressLabel').style.display = 'none';
             document.getElementById('loadProgress').style.display = 'none';
             document.getElementById('loadProgressText').style.display = 'none';
+            document.getElementById('location_output').style.display = 'none';
             document.getElementById('renderProgressLabel').style.display = 'none';
             document.getElementById('renderProgress').style.display = 'none';
             document.getElementById('renderProgressText').style.display = 'none';

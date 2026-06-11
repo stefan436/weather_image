@@ -50,7 +50,7 @@ function getLayout(param, timeSteps) {
   }
   return {
     margin: { l: 50, r: 20, t: 30, b: 70 },
-    xaxis: { title: "Zeit", automargin: true, range: xRange },
+    xaxis: { title: "Zeit", automargin: true, range: xRange, hoverformat: "%a, %d.%b, %H:%M"},
     yaxis: { title: param, automargin: true },
     hovermode: "x",
     autosize: true,
@@ -395,7 +395,6 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
       line: { width: 3, shape: "spline", color: "rgba(17, 24, 39, 1)" },
       marker: { size: 6, color: "rgba(17, 24, 39, 1)" },
       name: "Gesamt",
-      hoverinfo: "y+name",
     });
 
     // 2. Zusätzliche Kurven definieren (Farben sind Vorschläge, gerne anpassen)
@@ -417,7 +416,6 @@ export function renderPlot(param, seriesMap, timeSteps, result_uv_and_pt) {
           mode: "lines",
           line: { width: 2, shape: "spline", color: ep.color, dash: "dot" }, // Gestrichelt zur besseren Unterscheidung
           name: ep.name,
-          hoverinfo: "y+name",
         });
       }
     });

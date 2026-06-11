@@ -95,7 +95,10 @@ async function findAndRenderStations() {
           setStatus("");
         },
         (error) => {
-          setStatus("Fehler beim Standortzugriff: " + error.message);
+          setStatus(
+            "Nutze Suchfeld für manuelle Eingabe. Fehler beim Standortzugriff: " +
+              error.message,
+          );
         },
       );
     } else {

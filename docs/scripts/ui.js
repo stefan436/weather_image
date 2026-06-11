@@ -11,7 +11,7 @@ export function renderStationChoices(stations, onStationSelect) {
   const stationEl = document.getElementById("station");
   stationEl.innerHTML = `
     <div class="station-info">
-      <b>Nächste Stationen gefunden:</b>
+      <b>Nächstgelegene Stationen (Entfernung):</b>
       <div class="station-choices"></div>
     </div>
   `;

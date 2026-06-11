@@ -35,7 +35,7 @@ async function handleGeocodeRequest() {
 
   setStatus("Suche Adresse …");
   const result = await fetchCoordinates(address);
-  setStatus("");
+  setStatus("Bestätigen der Adresse ...");
 
   if (result.error) {
     resultDiv.textContent = "Fehler: " + result.error;
@@ -65,6 +65,7 @@ async function findAndRenderStations() {
     const response = await fetch("data/mosmix_stationen_coords.json");
     if (!response.ok) throw new Error("JSON konnte nicht geladen werden.");
     const stationData = await response.json();
+    setStatus("Berechne nächste Stationen ...")
 
     // Falls der Button "Aktueller Standort" geklickt wurde und Koordinaten noch fehlen:
     if (userLat === null || userLon === null) {
@@ -83,7 +84,7 @@ async function findAndRenderStations() {
             stationData,
           );
           renderStationChoices(nearestStations, handleStationSelection);
-          setStatus("");
+          setStatus("Wähle Ort der Vorhersage");
         },
         (error) => {
           setStatus(
@@ -96,7 +97,7 @@ async function findAndRenderStations() {
       // Adresse wurde manuell eingegeben und bestätigt
       const nearestStations = getNearestStations(userLat, userLon, stationData);
       renderStationChoices(nearestStations, handleStationSelection);
-      setStatus("");
+      setStatus("Wähle Ort der Vorhersage");
     }
   } catch (err) {
     setStatus("Fehler: " + err.message);

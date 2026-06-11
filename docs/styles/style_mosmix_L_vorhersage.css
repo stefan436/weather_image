@@ -88,7 +88,8 @@ h4 {
 
 /* Meta-Box */
 .meta {
-  margin-bottom: 20px;
+  margin-bottom: 0px;
+  margin-top: 20px;
   padding: 14px 16px;
   background: white;
   border-radius: 8px;

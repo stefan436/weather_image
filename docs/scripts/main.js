@@ -53,16 +53,6 @@ function handleConfirmResult() {
   userLat = parseFloat(currentGeocodeData.lat);
   userLon = parseFloat(currentGeocodeData.lon);
 
-  // Suchmaske optisch aufräumen
-  setTimeout(() => {
-    setStatus("");
-    document.getElementById("loadButton").style.display = "none";
-    document.getElementById("address").style.display = "none";
-    document.getElementById("addressButton").style.display = "none";
-    document.getElementById("result").style.display = "none";
-    document.getElementById("confirmButton").style.display = "none";
-  }, 0);
-
   findAndRenderStations();
 }
 
@@ -127,8 +117,9 @@ async function handleStationSelection(stationId, distance) {
     appState.result_uv_and_pt = data.result_uv_and_pt;
 
     // 3. Metadaten anzeigen
-    const stationEl = document.getElementById("station");
-    stationEl.innerHTML = `<b>Station:</b> ${data.stationDesc} &nbsp; <b>Höhe:</b> ${data.stationHeight} m ü. M. &nbsp; <b>Entfernung:</b> ${Math.round(appState.minDistance)} m`;
+    const metadataEl = document.getElementById("station-metadata-container");
+    metadataEl.innerHTML = `<b>Station:</b> ${data.stationDesc} &nbsp; <b>Höhe:</b> ${data.stationHeight} m ü. M. &nbsp; <b>Entfernung:</b> ${Math.round(appState.minDistance)} m`;
+    metadataEl.style.display = "block";
 
     // 4. Dropdown befüllen
     const plotSel = document.getElementById("plotSelect");
@@ -155,6 +146,12 @@ async function handleStationSelection(stationId, distance) {
 
     // 6. Wetterzusammenfassung generieren
     buildSummary(appState.seriesMap, appState.timeSteps);
+    document.getElementById("search-section").style.display = "none";
+    document.getElementById("station-choices-container").style.display = "none";
+
+    // 7. Gesamten Suchbereich ausblenden, sobald die Daten da sind
+    document.getElementById("search-section").style.display = "none";
+
     setStatus("");
   } catch (err) {
     console.error(err);

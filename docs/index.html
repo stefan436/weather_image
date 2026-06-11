@@ -48,39 +48,40 @@
     <h1 style="margin-bottom: 0px;">MOSMIX Prognose</h1>
     <h4>Model Output Statistics-MIX des DWD</h4>
 
-    <div class="row">
+    <div id="search-section" class="row">
       <button id="loadButton" class="btn">Wetter am aktuellen Standort</button>
-      <div style="display: flex; gap: 0.5em;">
+      <div style="display: flex; gap: 0.5em; width: 100%;">
         <input type="text" id="address" placeholder="Gib Adresse ein" autocomplete="off"
           style="flex: 2; padding: 0.5em;">
         <button class='btn' id="addressButton" style="flex: 1;">Suchen</button>
       </div>
       <div id="result"></div>
       <button id="confirmButton" class="btn" style="display: none;">Bestätigen</button>
+      <div id="station-choices-container"></div>
+    </div>
+
+    
+
+    <div id="control-section" class="row">
       <label for="plotSelect"><strong>Wetterdaten:</strong></label>
       <select id="plotSelect" disabled></select>
       <span id="status" class="badge">Bereit</span>
     </div>
 
-    <div id="station" class="meta"></div>
-
     <section id="weather-summary" class="weather-summary">
-
       <div class="day-selector-wrapper">
         <button class="day-arrow left" id="day-left">&#10094;</button>
         <div id="day-selector" class="day-selector"></div>
         <button class="day-arrow right" id="day-right">&#10095;</button>
       </div>
-
       <div id="scroll-container" class="scroll-container"></div>
     </section>
-
-
-
 
     <div id="plot">
       <div id="plotlyDiv"></div>
     </div>
+
+    <div id="station-metadata-container" class="meta" style="display: none;"></div>
 
     <div class="row" style="margin-top: 20px;">
       <span id="infoText" class="infoBadge">
@@ -92,8 +93,7 @@
           <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden
             für den nächstgelegenen Vorhersagepunkt zum Standort oder der Adresse angegeben.</li>
           <li>Die restlichen Vorhersagedaten kommen aus dem MOSMIX S Produkt welches stündlich aktualisiert wird.
-            Ausschließlich
-            die Fehlerbereiche, die Niederschlagswahrscheinlichkeit und die Sonnenstunden werden aus dem MOSMIX L
+            Ausschließlich die Fehlerbereiche, die Niederschlagswahrscheinlichkeit und die Sonnenstunden werden aus dem MOSMIX L
             Produkt (alle 6 Std.) extrahiert.</li>
         </ul>
       </span>
@@ -103,18 +103,18 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <p>
+      <a href="#" class="footer-link" onclick="location.reload(); return false;">Seite neu laden</a>
+      <p style="margin-top: 0; margin-bottom: 0;">
         Alle Daten (außer anders Vermerkt) vom DWD (Quelle: Deutscher Wetterdienst), lizensiert unter <a
           class="footer-link" href="https://creativecommons.org/licenses/by/4.0/" target="_blank"
           rel="noopener noreferrer">CC BY 4.0</a>.<br>
         Daten ggf. bearbeitet.<br>
       </p>
-      <p>
+      <p style="margin-top: 0; margin-bottom: 0;">
         Geocoding durch <a class="footer-link" href="https://nominatim.openstreetmap.org/">Nominatim</a> - Daten von <a
           class="footer-link" href="https://www.openstreetmap.org/">OpenStreetMap-Mitwirkende</a>
       </p>
       <a href="Impressum.html" class="footer-link">Impressum & Datenschutz</a>
-      <a href="#" class="footer-link" onclick="location.reload(); return false;">Seite neu laden</a>
     </div>
   </footer>
 

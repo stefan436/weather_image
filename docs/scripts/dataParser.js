@@ -13,6 +13,8 @@ import { elementNamesMap } from "./elementNamesMap.js";
 
 import { runForecastUvAndPt } from "./uv_and_pt_script.js";
 
+import { setStatus } from "./ui.js";
+
 function fmtLocal(iso) {
   try {
     return new Date(iso).toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
@@ -22,6 +24,7 @@ function fmtLocal(iso) {
 }
 
 export async function loadMosmixData(stationId, userLat, userLon) {
+  setStatus("Lade Wetterdaten vom DWD herunter...");
   const proxy =
     "https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=";
   const baseUrl = `https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/${stationId}/kml/MOSMIX_L_LATEST_${stationId}.kmz`;
@@ -29,10 +32,11 @@ export async function loadMosmixData(stationId, userLat, userLon) {
   const resp = await fetch(proxy + encodeURIComponent(baseUrl));
   if (!resp.ok)
     throw new Error(`KMZ konnte nicht geladen werden (${resp.status})`);
+  setStatus("Entpacke Wetterdaten...");
   const blob = await resp.blob();
-
   const zip = await JSZip.loadAsync(blob);
   const kmlFile = Object.keys(zip.files).find((f) => f.endsWith(".kml"));
+  setStatus("Analysiere Wetterdaten...");
   const kmlText = await zip.files[kmlFile].async("string");
 
   // Wir rufen parseKML auf und GEEBEN die Daten an die main.js ZURÜCK!
@@ -86,6 +90,7 @@ export async function parseKML(text, userLat, userLon, stationId) {
 
   // 1. UV und PT Daten holen
   try {
+    setStatus("Berechne UV-Index und Gefühlte Temperatur...");
     // Es wird vorausgesetzt, dass runForecastUvAndPt importiert oder verfügbar ist
     result_uv_and_pt = await runForecastUvAndPt(userLat, userLon);
     console.log(result_uv_and_pt);
@@ -137,6 +142,7 @@ export async function parseKML(text, userLat, userLon, stationId) {
   // 4. MOSMIX-S JSON LADEN UND ÜBERSCHREIBEN
   if (USE_MOSMIX_S) {
     try {
+      setStatus("Integriere stündliche Vorhersagedaten...");
       const sResp = await fetch(`data/mosmix_s/${stationId}.json`);
 
       if (sResp.ok) {

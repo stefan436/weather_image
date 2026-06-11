@@ -65,7 +65,6 @@ async function findAndRenderStations() {
     const response = await fetch("data/mosmix_stationen_coords.json");
     if (!response.ok) throw new Error("JSON konnte nicht geladen werden.");
     const stationData = await response.json();
-    setStatus("Berechne nächste Stationen ...")
 
     // Falls der Button "Aktueller Standort" geklickt wurde und Koordinaten noch fehlen:
     if (userLat === null || userLon === null) {
@@ -116,6 +115,7 @@ async function handleStationSelection(stationId, distance) {
 
     // 1. Daten asynchron parsen lassen
     const data = await loadMosmixData(stationId, userLat, userLon);
+    setStatus("Erstelle Grafiken...");
 
     // 2. Zustand ablegen
     appState.seriesMap = data.seriesMap;

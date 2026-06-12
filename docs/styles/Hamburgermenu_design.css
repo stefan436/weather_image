@@ -1,33 +1,36 @@
 /* Grundlegende Styles */
 :root {
-  /* Höhe deines Banners (grauer Balken mit "Wetterinfo") */
+  /* Höhe des Banners */
   --header-height: 60px;
+  /* Modernes dunkles Menü mit leichter Transparenz für Blur-Effekt */
+  --menu-bg: #262626cc; 
 }
 
-/* Grundlegende Styles */
 body {
-  font-family: sans-serif;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
 }
 
 /* NAVBAR / Banner */
 .navbar {
   position: relative;
-  z-index: 1001;               /* über dem Slide-In */
+  z-index: 1001;               
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #4f4f4f;
   padding: 0 20px;
   color: white;
-  height: var(--header-height); /* feste Bannerhöhe */
+  height: var(--header-height);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Subtiler Schatten für mehr Tiefe */
 }
 
 .navbar .logo {
   color: white;
   text-decoration: none;
-  font-weight: bold;
-  font-size: 1.5em;
+  font-weight: 600;
+  font-size: 1.4em;
+  letter-spacing: -0.5px;
 }
 
 /* Desktop: Links nebeneinander */
@@ -36,42 +39,65 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
+  align-items: center;
 }
 
-.nav-links li { margin-left: 20px; }
-.nav-links a { color: white; text-decoration: none; }
+.nav-links li { 
+  margin-left: 8px; 
+}
 
-/* HAMBURGER ICON – zentriertes X */
+.nav-links a { 
+  color: rgba(255, 255, 255, 0.9); 
+  text-decoration: none; 
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-size: 0.95em;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* HAMBURGER ICON – modernisiert */
 .hamburger-menu {
-  display: none;               /* erst im Mobile sichtbar */
+  display: none;               
   position: relative;
-  width: 32px;
-  height: 24px;
+  width: 28px;
+  height: 20px;
   cursor: pointer;
+  z-index: 1002; /* Bleibt über dem offenen Menü sichtbar */
 }
 
 .hamburger-menu span {
   position: absolute;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px; /* Etwas feinerer Strich wirkt eleganter */
   background-color: white;
   border-radius: 2px;
-  transform-origin: 50% 50%;   /* wirklich um die Mitte drehen */
-  transition: transform .3s ease, opacity .2s ease, top .3s ease, bottom .3s ease;
+  transform-origin: 50% 50%;   
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.2s ease, 
+              top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ausgangspositionen (oben / mitte / unten) */
+/* Ausgangspositionen */
 .hamburger-menu span:nth-child(1) { top: 0; }
 .hamburger-menu span:nth-child(2) { top: 50%; transform: translateY(-50%); }
 .hamburger-menu span:nth-child(3) { bottom: 0; }
 
-/* Geöffnet: beide Balken in die Mitte ziehen und drehen */
+/* Geöffnet: geschmeidige X-Transformation */
 .hamburger-menu.open span:nth-child(1) {
   top: 50%;
   transform: translateY(-50%) rotate(45deg);
 }
-.hamburger-menu.open span:nth-child(2) { opacity: 0; }
+.hamburger-menu.open span:nth-child(2) { 
+  opacity: 0; 
+  transform: translateY(-50%) scale(0);
+}
 .hamburger-menu.open span:nth-child(3) {
   bottom: auto;
   top: 50%;
@@ -80,42 +106,75 @@ body {
 
 /* MOBILE */
 @media (max-width: 768px) {
-  .hamburger-menu { display: flex; }
+  .hamburger-menu { display: block; }
 
-  /* Off-Canvas Panel rechts */
+/* Off-Canvas Panel rechts */
   .nav-links {
     position: fixed;
-    top: 80px;        /* bündig unter Banner */
+    top: var(--header-height); 
     right: 0;
-    width: 280px;                     /* feste Breite */
+    width: 100%;                     
+    max-width: 300px; 
     height: calc(100vh - var(--header-height));
-    background-color: #444;
+    background-color: var(--menu-bg);
+    
+    /* Modernes Glassmorphism-Feature */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
     margin: 0;
-    padding: 20px;
+    padding: 24px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0; /* Auf 0 gesetzt, damit wir die Mitte exakt bestimmen können */
     text-align: left;
 
     transform: translateX(100%);
-    transition: transform .35s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.3); /* dezenter Schatten */
-  }
-
-  .nav-links.active {
-    transform: translateX(0); /* fährt von rechts herein */
+    box-shadow: -4px 0 15px rgba(0,0,0,0.25); 
   }
 
   .nav-links li {
     opacity: 0;
-    transform: translateX(16px);
-    transition: opacity .25s ease, transform .25s ease;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    margin-left: 0;
+    width: 100%; /* Dehnt das Listenelement auf die volle Breite für die Linie aus */
   }
+
+  /* Horizontale Trennlinie exakt in der Mitte zwischen den Elementen */
+  .nav-links li:not(:last-child) {
+    border-bottom: 1px solid #111827;
+    padding-bottom: 8px; /* Abstand vom Link zur Linie */
+    margin-bottom: 8px;  /* Abstand von der Linie zum nächsten Link */
+  }
+  .nav-links.active {
+    transform: translateX(0); 
+  }
+
+  /* Kaskadierendes Einfliegen der Links */
+  .nav-links.active li:nth-child(1) { transition-delay: 0.1s; }
+  .nav-links.active li:nth-child(2) { transition-delay: 0.15s; }
+  .nav-links.active li:nth-child(3) { transition-delay: 0.2s; }
 
   .nav-links.active li {
     opacity: 1;
     transform: translateX(0);
+  }
+
+  /* Große Touch-Ziele für Mobile */
+  .nav-links a {
+    display: block;
+    padding: 14px 16px;
+    font-size: 1.1em;
+    border-radius: 8px;
+    background-color: transparent;
+  }
+
+  .nav-links a:hover,
+  .nav-links a:active {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
   body.menu-open { overflow: hidden; }

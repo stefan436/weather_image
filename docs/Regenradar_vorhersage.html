@@ -71,7 +71,11 @@
       map.getPane('contourPane').style.zIndex = 450;
       map.getPane('contourPane').style.mixBlendMode = 'multiply';
 
-      // NEU: Pane für KONRAD-Daten (oben)
+      // Pane für benutzerstandort
+      map.createPane('markerPane');
+      map.getPane('markerPane').style.zIndex = 470;
+
+      // Pane für KONRAD-Daten (oben)
       map.createPane('konradPane');
       map.getPane('konradPane').style.zIndex = 460;
       
@@ -142,7 +146,7 @@
       function getLocation(callback) {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
-            pos => callback(pos.coords.latitude, pos.coords.longitude),
+            pos => callback(pos.coords.latitude, pos.coords.longitude, true),
             err => {
               showError(err);
 

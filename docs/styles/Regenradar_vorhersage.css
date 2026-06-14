@@ -1,23 +1,7 @@
-:root {
-    --bg: #f9fafb; 
-    --fg: #111827; 
-    --primary: #4f4f4f; 
-    --primary-hover: #333;
-    --border: #e5e7eb; 
-    --badge-bg: #f1f1f1; 
-    --badge-text: #4f4f4f;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-}
-
 body, html {
-    margin: 0;
-    padding: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
-    font-family: var(--font-family);
-    background: var(--bg);
-    color: var(--fg);
 }
 
 #controls {
@@ -39,26 +23,6 @@ body, html {
 
 .muted-osm {
   filter: grayscale(100%) contrast(80%) brightness(90%);
-}
-
-button, .btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-button:hover {
-    background: var(--primary-hover);
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 #loadProgress, #renderProgress {

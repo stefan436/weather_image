@@ -1,3 +1,5 @@
+// config.js
+
 export const USE_MOSMIX_S = true;
 /* Schwellenwerte für die Summary cards nach denen die Bewölkung klassifiziert wird
 unter 30 wolkenlos, zwischen 30 und 60 leicht bewölkt,

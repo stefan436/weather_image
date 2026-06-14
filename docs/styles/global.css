@@ -1,0 +1,52 @@
+/* =========================================
+   GLOBAL.CSS - Farben, Variablen & Resets
+   ========================================= */
+
+:root {
+  /* Globale Farbpalette */
+  --bg: #f9fafb;
+  --fg: #111827;
+  --primary: #4f4f4f;
+  --primary-hover: #333;
+  --border: #e5e7eb;
+  --badge-bg: #f1f1f1;
+  --badge-text: #4f4f4f;
+
+  /* Hamburgermenü Variablen */
+  --header-height: 60px;
+  --menu-bg: #262626cc;
+
+  /* Typografie */
+  --font-family: Inter, system-ui, sans-serif;
+}
+
+/* --- Globale Resets --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* --- Globale Komponenten --- */
+/* Buttons aus beiden Dateien zusammengeführt */
+button, .btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover, .btn:hover {
+  background: var(--primary-hover);
+}
+
+button:disabled, .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

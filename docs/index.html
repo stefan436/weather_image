@@ -13,8 +13,9 @@
 
 
   <!-- Beide Styles einbinden -->
-  <link rel="stylesheet" href="styles/Hamburgermenu_design.css">
-  <link rel="stylesheet" href="styles/style_mosmix_L_vorhersage.css">
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/Hamburgermenu.css">
+  <link rel="stylesheet" href="styles/Index.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
@@ -25,7 +26,7 @@
   <!-- Navigation -->
   <header>
     <nav class="navbar">
-      <a href="#" class="logo">Wetter Dashboard</a>
+      <a href="#" class="logo" style="font-family: var(--font-family);">Wetter Dashboard</a>
       <div class="hamburger-menu" id="hamburger-icon">
         <span></span>
         <span></span>
@@ -34,9 +35,9 @@
       <ul class="nav-links" id="nav-menu">
         <!-- <li><a href="Regenradar.html">RADVOR Bild</a></li> -->
         <!-- Regenradar.html bzw RADVOR Bild Daten werden nicht mehr vom DWD bereitgestellt.-->
-        <li><a href="Regenradar_vorhersage.html">RV Regenradar</a></li>
-        <li><a href="Aktuelle_Temperatur.html">Aktuelle Messwerte</a></li>
-        <li><a href="https://www.sat24.com/en-gb/country/de/hd">Satellitenbild <span
+        <li><a href="Regenradar_vorhersage.html" style="font-family: var(--font-family);">RV Regenradar</a></li>
+        <li><a href="Aktuelle_Messwerte.html" style="font-family: var(--font-family);">Aktuelle Messwerte</a></li>
+        <li><a href="https://www.sat24.com/en-gb/country/de/hd" style="font-family: var(--font-family);">Satellitenbild <span
               style="font-size: 0.8em;">🔗</span></a></li>
 
       </ul>
@@ -124,10 +125,10 @@
   </footer>
 
   <!-- Hamburger-Skript -->
-  <script src="scripts/Hamburgermenu_script.js"></script>
+  <script src="scripts/shared/Hamburgermenu_script.js"></script>
 
   <!-- Mosmix Script -->
-  <script type="module" src="scripts/main.js"></script>
+  <script type="module" src="scripts/MOSMIX/main.js"></script>
 </body>
 
 </html>

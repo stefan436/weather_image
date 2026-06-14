@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Aktuelle Messwerte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <!-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/Aktuelle_Messwerte.css">
+</head>
+<body>
+  <main style="padding: 12px;">
+    <h1>Aktuelle Messwerte</h1>
+    <div class="btn-wrapper">
+      <button id="loadWeatherBtn" class="btn">Daten laden</button>
+    </div>
+    <p id="location_output"></p>
+
+    <div class="weather-card" style="height: 625px;">
+      <div class="weather-data" id="weather_data"></div>
+    </div>
+  </main>
+
+
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      Sonnenauf- und Untergangszeiten werden lokal berechnet mittels <a href="https://github.com/mourner/suncalc" target="_blank">SunCalc</a>.
+    </p>
+    <p>
+      UV-Index-Daten von <a href="https://currentuvindex.com" target="_blank" rel="noopener noreferrer">currentuvindex.com</a>, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
+    </p>
+    <p>
+      Die restlichen Daten wurden über die <a href="https://brightsky.dev/" target="_blank" rel="noopener noreferrer">brightsky.dev</a> geladen, stamme jedoch vom Deutschen Wetterdienst (DWD). Quelle: Deutscher Wetterdienst, lizensiert unter <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Daten wurden nicht verändert.
+    </p>
+  </footer>
+
+
+<script type="module" src="./scripts/Messwerte/main.js"></script>
+
+</body>
+</html>

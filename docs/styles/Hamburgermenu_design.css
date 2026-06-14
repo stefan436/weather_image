@@ -138,7 +138,7 @@ body {
   .nav-links li {
     opacity: 0;
     transform: translateX(50px);
-    transition: opacity 0.2s ease, transform 0.3s ease;
+    transition: opacity 0.4s ease, transform 0.3s ease;
     margin-left: 0;
     width: 100%; /* Dehnt das Listenelement auf die volle Breite für die Linie aus */
   }

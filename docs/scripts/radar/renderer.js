@@ -96,7 +96,7 @@ export function updateForecastTimeDisplay(appState) {
       second: appState.forecastTime % 100,
     })
     .plus({ minutes: appState.currentFrame * 5 })
-    .setZone("Europe/Berlin");
+    .toLocal()
 
   const formatted = baseTime.toFormat("HH:mm") + " Uhr";
   document.getElementById("frameLabel").textContent = `${formatted}`;

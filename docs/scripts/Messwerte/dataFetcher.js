@@ -73,8 +73,8 @@ export async function fetchWeatherData(lat, lon) {
     const fields = {
       Zeitpunkt: formatValue(
         DateTime.fromISO(currentHourData.timestamp, { zone: "utc" })
-          .setZone("Europe/Berlin")
-          .toFormat("d. LLLL HH:mm 'Uhr'"),
+          .toLocal()
+          .toFormat("ccc, dd.LLL, HH:mm 'Uhr'"),
       ),
       Temperatur: formatValue(currentHourData.temperature?.toFixed(1), "°C"),
       Niederschlag: formatValue(currentHourData.precipitation, " mm"),

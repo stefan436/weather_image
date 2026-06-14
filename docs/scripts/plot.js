@@ -70,10 +70,10 @@ function getLayout(param, timeSteps, timeZoneId) {
   return {
     margin: { l: 50, r: 20, t: 30, b: 70 },
     xaxis: {
-      title: "Zeit",
       automargin: true,
       range: xRange,
       hoverformat: "%a, %d.%b, %H:%M",
+      tickformat: "%H:%M \n%d.%b",
     },
     yaxis: { title: param, automargin: true },
     hovermode: "x",
@@ -482,7 +482,6 @@ export function renderPlot(
       shapes: shapes, // Die Nacht-Rechtecke übernehmen wir
       yaxis: {
         title: "Wahrscheinlichkeit (%)",
-        range: [-5, 105], // Macht den Graphen stabil (Wahrscheinlichkeiten sind immer 0-100%)
         automargin: true,
       },
     };

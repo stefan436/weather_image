@@ -90,7 +90,7 @@ export async function parseKML(text, userLat, userLon, stationId) {
 
   // 1. UV und PT Daten holen
   try {
-    setStatus("Berechne UV-Index und Gefühlte Temperatur...");
+    setStatus("Berechne UV-Index und gefühlte Temperatur...");
     // Es wird vorausgesetzt, dass runForecastUvAndPt importiert oder verfügbar ist
     result_uv_and_pt = await runForecastUvAndPt(userLat, userLon);
     console.log(result_uv_and_pt);

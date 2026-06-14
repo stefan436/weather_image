@@ -105,6 +105,12 @@ export function renderPlot(
 
   // UV-Index Plot
   if (param.includes("UV-Index")) {
+    // Sicherheitsabbruch, falls keine Daten vorhanden sind
+    if (!result_uv_and_pt || !result_uv_and_pt["uvi_times"]) {
+      plotlyDiv.innerHTML = "<em>Keine UV-Daten für diesen Standort verfügbar</em>";
+      return;
+    }
+
     const day_strings = result_uv_and_pt["uvi_times"];
     const hours = result_uv_and_pt["UVH"]; // in 'hh' Format
     const timeStep_uv = day_strings.map((date, i) => {
@@ -207,32 +213,35 @@ export function renderPlot(
 
   // Gefühlte Temperatur Plot
   if (param.includes("Temperatur (°C)")) {
-    const gft_time_step = result_uv_and_pt["gft_times"].map(
-      (ts) => getStationTime(ts, timeZoneId).plotlyString,
-    );
-    const gft_data = seriesMap["Gefühlte Temperatur"];
+    // NUR einzeichnen, wenn die UV/PT-Daten überhaupt existieren
+    if (result_uv_and_pt && result_uv_and_pt["gft_times"] && seriesMap["Gefühlte Temperatur"]) {
+      const gft_time_step = result_uv_and_pt["gft_times"].map(
+        (ts) => getStationTime(ts, timeZoneId).plotlyString,
+      );
+      const gft_data = seriesMap["Gefühlte Temperatur"];
 
-    // Linie Gefühlte Temperatur in rot
-    traces.push({
-      x: gft_time_step,
-      y: gft_data,
-      type: "scatter",
-      mode: "lines",
-      line: { width: 2, shape: "spline", color: "rgb(200, 0, 0)" },
-      connectgaps: true,
-      hoverinfo: "skip",
-      showlegend: false,
-    });
+      // Linie Gefühlte Temperatur in rot
+      traces.push({
+        x: gft_time_step,
+        y: gft_data,
+        type: "scatter",
+        mode: "lines",
+        line: { width: 2, shape: "spline", color: "rgb(200, 0, 0)" },
+        connectgaps: true,
+        hoverinfo: "skip",
+        showlegend: false,
+      });
 
-    // Marker Gefühlte Temperatur in rot
-    traces.push({
-      x: gft_time_step,
-      y: gft_data,
-      type: "scatter",
-      mode: "markers",
-      marker: { size: 6, color: "rgb(120, 0, 0)" },
-      name: "Gefühlte Temperatur (°C)",
-    });
+      // Marker Gefühlte Temperatur in rot
+      traces.push({
+        x: gft_time_step,
+        y: gft_data,
+        type: "scatter",
+        mode: "markers",
+        marker: { size: 6, color: "rgb(120, 0, 0)" },
+        name: "Gefühlte Temperatur (°C)",
+      });
+    }
   }
 
   // Maximale Windböe Plot

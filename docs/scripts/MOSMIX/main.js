@@ -128,8 +128,15 @@ async function handleStationSelection(stationId, distance) {
     metadataEl.style.display = "block";
 
     // 4. Dropdown befüllen
+    let availableColumns = data.plotColumns;
+    
+    // UV-Index herausfiltern, falls result_uv_and_pt null ist
+    if (!appState.result_uv_and_pt) {
+      availableColumns = availableColumns.filter(c => !c.includes("UV-Index"));
+    }
+
     const plotSel = document.getElementById("plotSelect");
-    plotSel.innerHTML = data.plotColumns
+    plotSel.innerHTML = availableColumns
       .map((c) => {
         const selected = c === "Temperatur (°C)" ? "selected" : "";
         return `<option value="${c}" ${selected}>${c}</option>`;

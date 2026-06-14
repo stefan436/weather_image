@@ -90,21 +90,24 @@ export async function parseKML(text, userLat, userLon, stationId) {
 
   // 1. UV und PT Daten holen
   try {
-    setStatus("Berechne UV-Index und gefühlte Temperatur...");
-    // Es wird vorausgesetzt, dass runForecastUvAndPt importiert oder verfügbar ist
-    result_uv_and_pt = await runForecastUvAndPt(userLat, userLon);
-    console.log(result_uv_and_pt);
+    setStatus("Lade UV-Index und gefühlte Temperatur...");
+    result_uv_and_pt = await runForecastUvAndPt(stationId);
 
-    seriesMap["Gefühlte Temperatur"] = result_uv_and_pt["GFT"].map((wert) => {
-      const celsius = wert - 273.15;
-      return Math.round(celsius * 10) / 10;
-    });
+    // WICHTIG: Null-Check! Nur verarbeiten, wenn die Daten wirklich existieren
+    if (result_uv_and_pt && result_uv_and_pt["GFT"] && result_uv_and_pt["UVI"]) {
+      seriesMap["Gefühlte Temperatur"] = result_uv_and_pt["GFT"].map((wert) => {
+        const celsius = wert - 273.15;
+        return Math.round(celsius * 10) / 10;
+      });
 
-    seriesMap["UV-Index"] = result_uv_and_pt["UVI"].map((wert) => {
-      return Math.round(wert * 10) / 10;
-    });
+      seriesMap["UV-Index"] = result_uv_and_pt["UVI"].map((wert) => {
+        return Math.round(wert * 10) / 10;
+      });
+    }
   } catch (e) {
-    console.warn("Fehler beim Laden von UV-Index und Gefühlter Temperatur:", e);
+    // Dieser Catch-Block greift nur noch bei echten unerwarteten Fehlern, 
+    // nicht mehr bei regulären Stationen außerhalb des Rasters.
+    console.warn("Unerwarteter Fehler beim Verarbeiten der UV/GFT-Daten:", e);
   }
 
   // 2. KML Forecasts parsen

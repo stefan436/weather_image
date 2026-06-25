@@ -3,8 +3,8 @@ name: Build and Deploy Weather App
 on:
 
   schedule:
-    - cron: '0 6 * * *'       # Täglicher DWD-Lauf
-    - cron: '45 4-20 * * *'   # Stündliche Widget-Updates
+#    - cron: '0 6 * * *'       # Täglicher DWD-Lauf
+#    - cron: '45 4-20 * * *'   # Stündliche Widget-Updates
   workflow_dispatch:
 
 # Diese Berechtigungen sind zwingend erforderlich, damit GitHub Actions die Webseite deployen darf

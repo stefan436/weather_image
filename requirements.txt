@@ -1,10 +1,4 @@
-astral
-matplotlib==3.10.3
-matplotlib-inline==0.1.7
-numpy
-pandas
-pillow
-pytz
 requests
-scipy
-folium
+numpy
+xarray
+cfgrib

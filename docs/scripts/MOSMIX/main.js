@@ -62,7 +62,7 @@ async function findAndRenderStations() {
   setStatus("Lade Stationsliste …");
 
   try {
-    const response = await fetch("data/mosmix_stationen_coords.json");
+    const response = await fetch("https://users.ph.nat.tum.de/ge47fab/weather_data/mosmix_stationen_coords.json");
     if (!response.ok) throw new Error("JSON konnte nicht geladen werden.");
     const stationData = await response.json();
 

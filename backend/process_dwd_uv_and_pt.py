@@ -1,14 +1,15 @@
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 import re
 import xarray as xr
 import numpy as np
+import shutil
 
 def download_latest_dwd_file(target_folder, date=None, typ="uvi"):
     if date is None:
-        date_obj = datetime.utcnow()
+        date_obj = datetime.now(timezone.utc)
     elif isinstance(date, str):
         date_obj = datetime.strptime(date, "%Y%m%d")
     else:
@@ -70,7 +71,7 @@ def clean_array(arr):
     return [round(float(x), 2) if not np.isnan(x) else None for x in arr]
 
 def main():
-    download_folder = "./downloads"
+    download_folder = "/scratch/TUMid/tmp_download"
     os.makedirs(download_folder, exist_ok=True)
 
     file_paths = download_all_dwd_types(download_folder)
@@ -102,14 +103,12 @@ def main():
     min_lon_uv, max_lon_uv = np.min(lon_uv), np.max(lon_uv)
 
     # Lade die bekannten MOSMIX-Stationen
-    with open("docs/data/mosmix_stationen_coords.json", "r", encoding="utf-8") as f:
+    with open("/WWW/users/TUMid/weather_data/mosmix_stationen_coords.json", "r", encoding="utf-8") as f:
         stations = json.load(f)
 
     # Zielverzeichnis für die vorverarbeiteten JSONs
-    out_dir = "docs/data/uv_gft"
+    out_dir = "/WWW/users/TUMid/weather_data/uv_gft"
     os.makedirs(out_dir, exist_ok=True)
-
-    print(f"Berechne UV- und GFT-Daten für {len(stations)} MOSMIX-Stationen...")
     
     for st in stations:
         st_id = st["station_id"]
@@ -136,16 +135,20 @@ def main():
             with open(os.path.join(out_dir, f"{st_id}.json"), "w", encoding="utf-8") as f:
                 json.dump(station_data, f, separators=(',', ':'))
 
-    print("Vorverarbeitung abgeschlossen. Speichere Zeitstempel...")
-
     # Zeitstempel global abspeichern, da das Frontend diese weiterhin zur Zuordnung braucht
     times_str_gft = [str(t) for t in gft['valid_time'].values]
-    with open("docs/data/gft_forecast_times.json", "w", encoding="utf-8") as f:
+    with open("/WWW/users/TUMid/weather_data/gft_forecast_times.json", "w", encoding="utf-8") as f:
         json.dump(times_str_gft, f)
 
     times_str_uvi = [str(t) for t in uvi['valid_time'].values]
-    with open("docs/data/uvi_forecast_times.json", "w", encoding="utf-8") as f:
+    with open("/WWW/users/TUMid/weather_data/uvi_forecast_times.json", "w", encoding="utf-8") as f:
         json.dump(times_str_uvi, f)
+
+    gft.close()
+    uvh.close()
+    uvi.close()
+    shutil.rmtree(download_folder)
+    
 
 if __name__ == "__main__":
     main()

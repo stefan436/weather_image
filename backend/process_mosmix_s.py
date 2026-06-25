@@ -5,14 +5,6 @@ import xml.etree.ElementTree as ET
 import json
 import os
 import time
-
-import os
-import io
-import time
-import urllib.request
-import zipfile
-import xml.etree.ElementTree as ET
-import json
 from concurrent.futures import ProcessPoolExecutor
 
 # Extrahierte parameter: (übersetzung in elementNamesMap.js)
@@ -37,15 +29,11 @@ def save_station_json(station_id, raw_forecasts, timesteps, targets, out_dir):
         # json.dump(data_dict, jf, indent=2)
 
 def build_mosmix_static_api():
-    start_time = time.time()
     url = "https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_S/all_stations/kml/MOSMIX_S_LATEST_240.kmz"
-    out_dir = "docs/data/mosmix_s"
+    out_dir = "/WWW/users/TUMid/weather_data/mosmix_s"
     os.makedirs(out_dir, exist_ok=True)
     
-    print("Lade MOSMIX-S herunter...")
     req = urllib.request.urlopen(url)
-    
-    print("Parse XML-Stream und bereite Parallelisierung vor...")
     
     # Hier sammeln wir die Aufgaben für die Worker
     tasks = []
@@ -88,12 +76,9 @@ def build_mosmix_static_api():
                             # Aufgabe für den Pool speichern
                             tasks.append((station_id, raw_forecasts))
                         
-                        elem.clear()
+                        elem.clear()    
 
-    print(f"XML fertig gelesen. Starte parallele Verarbeitung von {len(tasks)} Stationen...")
-    
-    # Nutzt automatisch alle CPU-Kerne des GitHub-Runners (Standard: 2 Kerne)
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=10) as executor:
         futures = [
             executor.submit(save_station_json, station_id, raw_forecasts, timesteps, targets, out_dir)
             for station_id, raw_forecasts in tasks
@@ -101,8 +86,6 @@ def build_mosmix_static_api():
         # Warten, bis alle Worker fertig sind
         for future in futures:
             future.result()
-
-    print(f"Erfolgreich beendet in {time.time() - start_time:.2f} Sekunden.")
 
 if __name__ == "__main__":
     build_mosmix_static_api()

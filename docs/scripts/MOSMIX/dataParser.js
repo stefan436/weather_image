@@ -146,7 +146,7 @@ export async function parseKML(text, userLat, userLon, stationId) {
   if (USE_MOSMIX_S) {
     try {
       setStatus("Integriere stündliche Vorhersagedaten...");
-      const sResp = await fetch(`data/mosmix_s/${stationId}.json`);
+      const sResp = await fetch(`https://users.ph.nat.tum.de/ge47fab/weather_data/mosmix_s/${stationId}.json`);
 
       if (sResp.ok) {
         const sData = await sResp.json();

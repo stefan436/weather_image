@@ -193,3 +193,42 @@ document.getElementById("plotSelect").addEventListener("change", (e) => {
     appState.timeZoneId,
   );
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // NEU: Automatische Auswertung der URL-Parameter für die Stationskarte
+    const urlParams = new URLSearchParams(window.location.search);
+    const latParam = urlParams.get('lat');
+    const lonParam = urlParams.get('lon');
+
+    if (latParam && lonParam) {
+        const addressInput = document.getElementById('address');
+        const addressBtn = document.getElementById('addressButton');
+        
+        if (addressInput && addressBtn) {
+            // 1. Koordinaten formatiert in das Suchfeld schreiben
+            addressInput.value = `${latParam}, ${lonParam}`;
+            
+            // 2. Suche automatisch auslösen
+            addressBtn.click();
+            // Parameter sofort nach dem Trigger aus der Adresszeile löschen!
+            // Macht im Hintergrund aus "index.html?lat=XX&lon=YY" einfach wieder "index.html"
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // 3. Optionale automatische Bestätigung:
+            // Da das Laden der Stationen asynchron per API geschieht, taucht der Bestätigen-Button erst kurz danach auf.
+            // Wenn deine Such-Logik bei exakten Koordinaten-Treffern automatisch den "confirmButton" klickt,
+            // musst du hier nichts weiter tun. Falls nicht, kannst du einen kleinen Observer oder Timeout nutzen,
+            // um den confirmButton automatisch zu klicken, sobald er sichtbar wird:
+            const checkConfirmInterval = setInterval(() => {
+                const confirmBtn = document.getElementById('confirmButton');
+                if (confirmBtn && confirmBtn.style.display !== 'none') {
+                    confirmBtn.click();
+                    clearInterval(checkConfirmInterval); // Intervall stoppen, sobald bestätigt wurde
+                }
+            }, 100);
+
+            // Nach 5 Sekunden die Suche abbrechen, falls nichts gefunden wurde (Sicherheitshalber)
+            setTimeout(() => clearInterval(checkConfirmInterval), 5000);
+        }
+    }
+});

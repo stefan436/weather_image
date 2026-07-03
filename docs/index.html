@@ -35,12 +35,11 @@
       <ul class="nav-links" id="nav-menu">
         <!-- <li><a href="Regenradar.html">RADVOR Bild</a></li> -->
         <!-- Regenradar.html bzw RADVOR Bild Daten werden nicht mehr vom DWD bereitgestellt.-->
-        <li><a href="Regenradar_vorhersage.html" style="font-family: var(--font-family);">RV Regenradar</a></li>
-        <li><a href="Aktuelle_Messwerte.html" style="font-family: var(--font-family);">Aktuelle Messwerte</a></li>
+        <li><a href="sites/Regenradar_vorhersage.html" style="font-family: var(--font-family);">RV Regenradar</a></li>
+        <li><a href="sites/Aktuelle_Messwerte.html" style="font-family: var(--font-family);">Aktuelle Messwerte</a></li>
         <li><a href="https://www.sat24.com/en-gb/country/de/hd" style="font-family: var(--font-family);">Satellitenbild <span
               style="font-size: 0.8em;">🔗</span></a></li>
-        <li><a href="Regenradar_vorhersage_v2.html" style="font-family: var(--font-family);">RV Regenradar V2</a></li>
-
+        <li><a href="sites/Regenradar_vorhersage_v2.html" style="font-family: var(--font-family);">RV Regenradar V2</a></li>
       </ul>
     </nav>
   </header>
@@ -52,10 +51,13 @@
 
     <div id="search-section" class="row">
       <button id="loadButton" class="btn">Wetter am aktuellen Standort📍</button>
+      <a href="sites/Stationskarte.html">
+              <button id="WeatherCardButton" class="btn">Standort auf Karte Wählen🗺️</button>
+      </a>
       <div style="display: flex; gap: 0.5em; width: 100%;">
         <input type="text" id="address" placeholder="Gib Adresse ein" autocomplete="off"
           style="flex: 2; padding: 0.5em;">
-        <button class='btn' id="addressButton" style="flex: 1;">Suchen</button>
+        <button id="addressButton" class='btn' style="flex: 1;">Suchen</button>
       </div>
       <span id="status" class="badge">Bereit</span>
       <div id="result"></div>
@@ -121,7 +123,7 @@
         Geocoding durch <a class="footer-link" href="https://nominatim.openstreetmap.org/">Nominatim</a> - Daten von <a
           class="footer-link" href="https://www.openstreetmap.org/">OpenStreetMap-Mitwirkende</a>
       </p>
-      <a href="Impressum.html" class="footer-link">Impressum & Datenschutz</a>
+      <a href="sites/Impressum.html" class="footer-link">Impressum & Datenschutz</a>
     </div>
   </footer>
 

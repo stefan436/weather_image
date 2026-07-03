@@ -1,6 +1,5 @@
-/** Funktionen für Regenradar_vorhersage.html */
+// geoService.js
 
-// --- Standort-Funktionen ---
 export function getLocation(callback) {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(

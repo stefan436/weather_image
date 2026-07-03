@@ -62,7 +62,9 @@ async function findAndRenderStations() {
   setStatus("Lade Stationsliste …");
 
   try {
-    const response = await fetch("https://users.ph.nat.tum.de/ge47fab/weather_data/mosmix_stationen_coords.json");
+    const response = await fetch(
+      "https://users.ph.nat.tum.de/ge47fab/weather_data/mosmix_stationen_coords.json",
+    );
     if (!response.ok) throw new Error("JSON konnte nicht geladen werden.");
     const stationData = await response.json();
 
@@ -129,10 +131,12 @@ async function handleStationSelection(stationId, distance) {
 
     // 4. Dropdown befüllen
     let availableColumns = data.plotColumns;
-    
+
     // UV-Index herausfiltern, falls result_uv_and_pt null ist
     if (!appState.result_uv_and_pt) {
-      availableColumns = availableColumns.filter(c => !c.includes("UV-Index"));
+      availableColumns = availableColumns.filter(
+        (c) => !c.includes("UV-Index"),
+      );
     }
 
     const plotSel = document.getElementById("plotSelect");
@@ -194,41 +198,70 @@ document.getElementById("plotSelect").addEventListener("change", (e) => {
   );
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    // NEU: Automatische Auswertung der URL-Parameter für die Stationskarte
-    const urlParams = new URLSearchParams(window.location.search);
-    const latParam = urlParams.get('lat');
-    const lonParam = urlParams.get('lon');
+document.addEventListener("DOMContentLoaded", () => {
+  // Automatische Auswertung der URL-Parameter für die Stationskarte
+  const urlParams = new URLSearchParams(window.location.search);
+  const latParam = urlParams.get("lat");
+  const lonParam = urlParams.get("lon");
 
-    if (latParam && lonParam) {
-        const addressInput = document.getElementById('address');
-        const addressBtn = document.getElementById('addressButton');
-        
-        if (addressInput && addressBtn) {
-            // 1. Koordinaten formatiert in das Suchfeld schreiben
-            addressInput.value = `${latParam}, ${lonParam}`;
-            
-            // 2. Suche automatisch auslösen
-            addressBtn.click();
-            // Parameter sofort nach dem Trigger aus der Adresszeile löschen!
-            // Macht im Hintergrund aus "index.html?lat=XX&lon=YY" einfach wieder "index.html"
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // 3. Optionale automatische Bestätigung:
-            // Da das Laden der Stationen asynchron per API geschieht, taucht der Bestätigen-Button erst kurz danach auf.
-            // Wenn deine Such-Logik bei exakten Koordinaten-Treffern automatisch den "confirmButton" klickt,
-            // musst du hier nichts weiter tun. Falls nicht, kannst du einen kleinen Observer oder Timeout nutzen,
-            // um den confirmButton automatisch zu klicken, sobald er sichtbar wird:
-            const checkConfirmInterval = setInterval(() => {
-                const confirmBtn = document.getElementById('confirmButton');
-                if (confirmBtn && confirmBtn.style.display !== 'none') {
-                    confirmBtn.click();
-                    clearInterval(checkConfirmInterval); // Intervall stoppen, sobald bestätigt wurde
-                }
-            }, 100);
-
-            // Nach 5 Sekunden die Suche abbrechen, falls nichts gefunden wurde (Sicherheitshalber)
-            setTimeout(() => clearInterval(checkConfirmInterval), 5000);
-        }
+  if (latParam && lonParam) {
+    const searchSection = document.getElementById("search-section");
+    if (searchSection) {
+      searchSection.style.display = "none";
     }
+    const addressInput = document.getElementById("address");
+    const addressBtn = document.getElementById("addressButton");
+
+    if (addressInput && addressBtn) {
+      // 1. Koordinaten formatiert in das Suchfeld schreiben
+      addressInput.value = `${latParam}, ${lonParam}`;
+
+      // 2. Suche automatisch auslösen
+      addressBtn.click();
+
+      // Das Result-Div sofort ausblenden
+      const resultDiv = document.getElementById("result");
+      if (resultDiv) {
+        resultDiv.style.display = "none";
+      }
+
+      // Parameter sofort nach dem Trigger aus der Adresszeile löschen!
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // 3. Automatischer Ablauf: Erst Bestätigen -> Dann Station wählen
+      const automatedFlowInterval = setInterval(() => {
+        const confirmBtn = document.getElementById("confirmButton");
+        const stationContainer = document.getElementById(
+          "station-choices-container",
+        );
+        const firstStationBtn = stationContainer
+          ? stationContainer.querySelector(".station-btn")
+          : null;
+
+        // SCHRITT A: Der Bestätigen-Button ist da, aber die Stationen wurden noch nicht gerendert.
+        // Wir klicken auf Bestätigen.
+        if (
+          confirmBtn &&
+          confirmBtn.style.display !== "none" &&
+          !firstStationBtn
+        ) {
+          confirmBtn.style.display = "none"; // Verstecken vor dem Klick
+          confirmBtn.click();
+          return; // Schleife verlassen und auf das Rendern der Stationen im nächsten Durchlauf warten
+        }
+
+        // SCHRITT B: Nach dem Bestätigen-Klick sind die Stations-Buttons nun endlich im HTML aufgetaucht.
+        if (firstStationBtn) {
+          // Die oberste Station anklicken (das löst dein onStationSelect aus)
+          firstStationBtn.click();
+
+          // Alles erledigt -> Intervall beenden!
+          clearInterval(automatedFlowInterval);
+        }
+      }, 100);
+
+      // Nach 7 Sekunden abbrechen (Sicherheitsanker, da wir jetzt zwei asynchrone Schritte haben)
+      setTimeout(() => clearInterval(automatedFlowInterval), 7000);
+    }
+  }
 });

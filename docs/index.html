@@ -37,9 +37,10 @@
         <!-- Regenradar.html bzw RADVOR Bild Daten werden nicht mehr vom DWD bereitgestellt.-->
         <li><a href="sites/Regenradar_vorhersage.html" style="font-family: var(--font-family);">RV Regenradar</a></li>
         <li><a href="sites/Aktuelle_Messwerte.html" style="font-family: var(--font-family);">Aktuelle Messwerte</a></li>
-        <li><a href="https://www.sat24.com/en-gb/country/de/hd" style="font-family: var(--font-family);">Satellitenbild <span
-              style="font-size: 0.8em;">🔗</span></a></li>
-        <li><a href="sites/Regenradar_vorhersage_v2.html" style="font-family: var(--font-family);">RV Regenradar V2</a></li>
+        <li><a href="https://www.sat24.com/en-gb/country/de/hd" style="font-family: var(--font-family);">Satellitenbild
+            <span style="font-size: 0.8em;">🔗</span></a></li>
+        <li><a href="sites/Regenradar_vorhersage_v2.html" style="font-family: var(--font-family);">RV Regenradar V2</a>
+        </li>
       </ul>
     </nav>
   </header>
@@ -50,22 +51,30 @@
     <h4>Model Output Statistics-MIX des DWD</h4>
 
     <div id="search-section" class="row">
-      <button id="loadButton" class="btn">Wetter am aktuellen Standort📍</button>
-      <a href="sites/Stationskarte.html">
-              <button id="WeatherCardButton" class="btn">Standort auf Karte Wählen🗺️</button>
-      </a>
+
+      <div style="display: flex; gap: 0.5em; width: 100%; margin-bottom: 0.5em;">
+        <button id="loadButton" class="btn" style="flex: 1 1 0; white-space: normal; padding: 0.5em 0.2em;">
+          Standort📍
+        </button>
+        
+        <a href="sites/Stationskarte.html" style="flex: 1 1 0; display: flex; text-decoration: none;">
+          <button id="WeatherCardButton" class="btn" style="width: 100%; white-space: normal; padding: 0.5em 0.2em;">
+            Karte🗺️
+          </button>
+        </a>
+      </div>
+
       <div style="display: flex; gap: 0.5em; width: 100%;">
         <input type="text" id="address" placeholder="Gib Adresse ein" autocomplete="off"
           style="flex: 2; padding: 0.5em;">
         <button id="addressButton" class='btn' style="flex: 1;">Suchen</button>
       </div>
-      <span id="status" class="badge">Bereit</span>
+
+      <span id="status" class="badge" style="align-self: flex-start;">Bereit</span>
       <div id="result"></div>
       <button id="confirmButton" class="btn" style="display: none;">Bestätigen</button>
       <div id="station-choices-container"></div>
     </div>
-
-    
 
     <div id="control-section" class="row">
       <label for="plotSelect"><strong>Wetterdaten:</strong></label>
@@ -94,15 +103,19 @@
           <li>Die Zusammenfassung zeigt die dominierenden Wetterbedingungen (signifikanteste Wettersituation) für Nachts
             (2-6 Uhr), Frühs (6-10 Uhr), Mittags (10-14 Uhr), Nachmittags (14-18 Uhr), Abends (18-22 Uhr) und Spät
             Abends (22-02 Uhr).</li>
-          <li>Die Datenpunkte sind Vorhersagen für exakt den angegebnenen Zeitpunkt (z.B. 14:00Uhr). Für Zeitraumbezogene Daten
-            (Niederschlagswahrscheinlichkeiten, Niederschlagsmenge, Maximale Windgeschwindigkeit, Nebelwahrscheinlichkeit)
-             gilt die Vorhersage für die vorangegangenen Stunde (z.B. 14:00 Uhr Vorhersage für 13:00-14:00 Uhr).
+          <li>Die Datenpunkte sind Vorhersagen für exakt den angegebnenen Zeitpunkt (z.B. 14:00Uhr). Für
+            Zeitraumbezogene Daten
+            (Niederschlagswahrscheinlichkeiten, Niederschlagsmenge, Maximale Windgeschwindigkeit,
+            Nebelwahrscheinlichkeit)
+            gilt die Vorhersage für die vorangegangenen Stunde (z.B. 14:00 Uhr Vorhersage für 13:00-14:00 Uhr).
           </li>
           <li>Die "Gefühlte Temperatur" und der "UV-Index" werden aus einer seperaten Datei (DWD) abgerufen und werden
-            für den nächstgelegenen Vorhersagepunkt zum Standort oder der Adresse angegeben. Daten für die "Gefühlte Temperatur"
+            für den nächstgelegenen Vorhersagepunkt zum Standort oder der Adresse angegeben. Daten für die "Gefühlte
+            Temperatur"
             und dem "UV-Index" sind nur für Europa verfügbar.</li>
           <li>Die restlichen Vorhersagedaten kommen aus dem MOSMIX S Produkt welches stündlich aktualisiert wird.
-            Ausschließlich die Fehlerbereiche, die Niederschlagswahrscheinlichkeit und die Sonnenstunden werden aus dem MOSMIX L
+            Ausschließlich die Fehlerbereiche, die Niederschlagswahrscheinlichkeit und die Sonnenstunden werden aus dem
+            MOSMIX L
             Produkt (alle 6 Std.) extrahiert.</li>
         </ul>
       </span>

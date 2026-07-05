@@ -29,7 +29,7 @@ set_past_date = None # datetime(2026, 7, 2, 23, 20, tzinfo=timezone.utc)
 # COORD_BIN_PATH = r'../../../docs/data/coords_radarcomposite_rv.bin'
 # ICON_GRID_FILE = r'/home/stefan/Schreibtisch/Coding/Wetterinfo/Wetterinfo/advanced_radar/pysteps/Blending/data/icon_grid_0047_R19B07_L.nc'      # Dein unstrukturiertes Quellgitter
 # TARGET_GRID_FILE = r'/home/stefan/Schreibtisch/Coding/Wetterinfo/Wetterinfo/advanced_radar/pysteps/Blending/data/ICON_grid_conversion/transformed_icon_grid.txt'   # Entspricht der TARGET_GRID_DESCRIPTION im PDF
-WEIGHTS_FILE = r'/home/stefan/Schreibtisch/Coding/Wetterinfo/Wetterinfo/advanced_radar/pysteps/Blending/data/ICON_grid_conversion/weights_icon2stere_con.nc'  # Die zu berechnenden Interpolationsgewichte
+WEIGHTS_FILE = r'./data/ICON_grid_conversion/weights_icon2stere_con.nc'  # Die zu berechnenden Interpolationsgewichte
 # IN_FILE = r'/home/stefan/Schreibtisch/Coding/Wetterinfo/Wetterinfo/advanced_radar/pysteps/Blending/temp_model_data.nc'         # Die eigentlichen Modelldaten
 # OUT_FILE = r'/home/stefan/Schreibtisch/Coding/Wetterinfo/Wetterinfo/advanced_radar/pysteps/Blending/data/regridded_ICON_data.nc'           # Das finale Ergebnis
 
@@ -54,7 +54,7 @@ radarColorLevels = [
 ]
 
 save_path_webp = "./data/Forecast/frames/radar_frame_"
-url_webp = "./../../../advanced_radar/pysteps/Blending/data/Forecast/frames/radar_frame_"
+url_webp = "/backend/BlendingForecast/data/Forecast/frames/radar_frame_"
 meta_json_path = "./data/Forecast/meta.json"
 
 

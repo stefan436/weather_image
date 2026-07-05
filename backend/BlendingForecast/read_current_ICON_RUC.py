@@ -72,31 +72,14 @@ def _download_single_ruc(url, output_dir):
     except requests.exceptions.RequestException as error:
         return False, f"Failed to download {url}. Error: {error}"
 
-def _check_url_and_del_file(output_dir, url_list):
-    # check if files are already downloaded and delete unused files                
-    for element in output_dir.iterdir():
-        if element.is_file():
-            treffer_index = None
-            for index, url in enumerate(url_list):
-                # Path(url).name holt den Dateinamen aus der URL (z.B. "datei.zip")
-                if not isinstance(url, str):
-                    continue        # falls vorheriges file vorhanden ist und mit nan ersetzt wurde
-                if Path(url).name == element.name:
-                    treffer_index = index
-                    break
-            if treffer_index is not None:
-                url_list[treffer_index] = np.nan
-                print(f"Bereits vorhanden (wird übersprungen): {element.name}")
-            else:
-                print(f"Ungenutzte Datei wird gelöscht: {element.name}")
-                element.unlink()    
-    return url_list
 
 def download_ruc(url_list):
     output_dir = Path(download_dir_ruc)
     output_dir.mkdir(parents=True, exist_ok=True)
+    for element in output_dir.iterdir():
+        if element.is_file():
+            element.unlink()   
     
-    url_list = _check_url_and_del_file(output_dir, url_list)
     if any(isinstance(url, str) for url in url_list):
         print(f"Starting downloads to: {output_dir.resolve()}\n")
         # Parallelisieren der Downloads

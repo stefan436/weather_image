@@ -16,7 +16,8 @@ export async function preloadFrames(appState, map) {
                 const overlay = L.imageOverlay(frame.url, appState.bounds, {
                     opacity: 0,
                     interactive: false, // Bilder fangen keine Klicks ab
-                    pane: 'radarPane'
+                    pane: 'radarPane',
+                    crossOrigin: true
                 }).addTo(map);
 
                 // CSS Transition auf das HTML-Bildelement anwenden

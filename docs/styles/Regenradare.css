@@ -5,7 +5,7 @@ body, html {
 }
 
 #controls {
-    padding: 16px;
+    padding: 6px;
     background: white;
     border-top: 1px solid var(--border);
     box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
@@ -149,3 +149,91 @@ progress::-moz-progress-bar {
     height: 100dvh; /* 👈 nimmt die tatsächliche sichtbare Höhe */
   }
 }
+
+
+
+/* --- Custom Slider Styling --- */
+.slider-wrapper {
+    position: relative;
+    width: 300px;
+    margin: 0 10px;
+    display: flex;
+    align-items: center;
+}
+
+.t0-marker {
+    position: absolute;
+    top: -50px; /* Etwas höher, um Platz für das Badge zu machen */
+    transform: translateX(-50%);
+    background-color: #e67e22;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 20px 10px;
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(230, 126, 34, 0.4);
+}
+
+/* Das kleine nach unten zeigende Dreieck */
+.t0-marker::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: #e67e22 transparent transparent transparent;
+    width: 0;
+    height: 0;
+}
+
+
+#frameSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: #e5e7eb; /* Standard-Grau, wird per JS überschrieben */
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Der greifbare Punkt (Thumb) */
+#frameSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--thumb-color, var(--primary)); /* Dynamische Farbe via JS */
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    transition: background 0.2s ease;
+}
+
+#frameSlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--thumb-color, var(--primary));
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    transition: background 0.2s ease;
+}
+
+/* Anpassung für mobile Ansicht */
+@media (max-width: 600px) {
+    .slider-wrapper {
+        width: 100%;
+        margin: 15px 0;
+    }
+}
+
+

@@ -65,17 +65,20 @@ export function renderFrame(appState) {
     const statusLabel = document.getElementById("timeStatusLabel");
     if (statusLabel && currentFrameObj.relative_time) {
         if (currentFrameObj.relative_time.startsWith("T-")) {
-            statusLabel.textContent = "(Historie)";
-            statusLabel.style.color = "#888888"; // Grau
+            statusLabel.textContent = "Historie";
+            statusLabel.style.color = "#4f4f4f"; // Dunkelgrau statt vorher hellem Grau
         } else if (currentFrameObj.relative_time === "T0") {
-            statusLabel.textContent = "(Aktuell)";
-            statusLabel.style.color = "#105CFF"; // Blau
+            statusLabel.textContent = "Aktuell";
+            statusLabel.style.color = "#4f4f4f"; // Auch Dunkelgrau als Baseline
         } else if (currentFrameObj.relative_time.startsWith("T+")) {
-            statusLabel.textContent = "(Vorhersage)";
-            statusLabel.style.color = "#E60000"; // Rot
+            statusLabel.textContent = "Vorhersage";
+            statusLabel.style.color = "#e67e22"; // Passendes Orange zur neuen Slider-Farbe
         }
     }
     
+    // NEU: Slider-Farben aktualisieren
+    updateSliderVisuals(appState);
+
     // Konrad nachziehen
     renderKonradData(appState);
 }
@@ -210,7 +213,48 @@ export function createPopupContent(cell) {
 
 
 
+function updateSliderVisuals(appState) {
+    const slider = document.getElementById("frameSlider");
+    if (!slider) return;
 
+    const max = appState.frames.length - 1;
+    if (max <= 0) return;
+
+    const current = appState.currentFrame;
+    const t0 = appState.t0Index || 0;
+
+    const cPercent = (current / max) * 100;
+    const tPercent = (t0 / max) * 100;
+
+    // Farbdefinitionen
+    const pastFill = "#4f4f4f";       // Dunkelgrau (aktuelles --primary)
+    const pastTrack = "#e5e7eb";      // Hellgrau für die Historien-Schiene
+    const futureTrack = "#fdb172";    // Helles Orange für die Zukunfts-Schiene
+    const futureFill = "#a66a38";     // Orange-Grau Mischung für den gefüllten Zukunfts-Balken
+    const futureThumb = "#e67e22";    // Knalliges Orange für den Thumb in der Zukunft
+
+    let gradient = '';
+
+    if (current <= t0) {
+        // Fall 1: Wir befinden uns in der Vergangenheit (oder bei T0)
+        gradient = `linear-gradient(to right, 
+            ${pastFill} 0%, ${pastFill} ${cPercent}%, 
+            ${pastTrack} ${cPercent}%, ${pastTrack} ${tPercent}%, 
+            ${futureTrack} ${tPercent}%, ${futureTrack} 100%)`;
+        
+        slider.style.setProperty('--thumb-color', pastFill);
+    } else {
+        // Fall 2: Wir befinden uns in der Zukunft (Vorhersage)
+        gradient = `linear-gradient(to right, 
+            ${pastFill} 0%, ${pastFill} ${tPercent}%, 
+            ${futureFill} ${tPercent}%, ${futureFill} ${cPercent}%, 
+            ${futureTrack} ${cPercent}%, ${futureTrack} 100%)`;
+            
+        slider.style.setProperty('--thumb-color', futureThumb);
+    }
+
+    slider.style.background = gradient;
+}
 
 
 

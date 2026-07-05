@@ -59,6 +59,21 @@ setupUI(appState, {
       appState.bounds = meta.bounds;
       appState.frames = meta.frames;
 
+      // Ermittle den Index für T0 (falls er nicht schon fest im Backend verankert ist)
+      const t0Idx = appState.frames.findIndex(f => f.relative_time === "T0");
+      appState.t0Index = t0Idx !== -1 ? t0Idx : 0;
+
+      // Platziere den T0-Marker exakt an der berechneten Prozent-Stelle
+      const maxFrames = appState.frames.length - 1;
+      if (maxFrames > 0) {
+        const t0Percent = (appState.t0Index / maxFrames) * 100;
+        const marker = document.getElementById("t0-marker");
+        if (marker) {
+          // Korrekturformel für die Breite des Slider-Thumbs (18px)
+          marker.style.left = `calc(${t0Percent}% + (${9 - t0Percent * 0.18}px))`;
+        }
+      }
+
       // 3. Bilder in Leaflet vorladen
       statusText.textContent = "Lade Radarbilder...";
       await preloadFrames(appState, map);

@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 
     <link rel="stylesheet" href="./../styles/global.css" />
-    <link rel="stylesheet" href="./../styles/Hamburgermenu.css">
+    <link rel="stylesheet" href="./../styles/Hamburgermenu.css" />
     <link rel="stylesheet" href="./../styles/Regenradare.css" />
   </head>
   <body>
@@ -27,28 +27,26 @@
         style="display: none; font-size: 14px; margin: 0"
       ></p>
 
-      <div
-        id="time-warning"
-        style="
-          display: none;
-          color: #d9534f;
-          font-weight: bold;
-          font-size: 12px;
-          margin-top: 4px;
-        "
-      ></div>
-
-      <span id="frameLabel">---</span>
-      <span id="timeStatusLabel" style="font-size: 14px; margin-left: 8px; font-weight: bold;"></span>
-      <input
-        id="frameSlider"
-        type="range"
-        min="0"
-        max="10"
-        value="0"
-        style="width: 300px"
-        disabled
-      />
+      <span
+        id="timeStatusLabel"
+        style="font-size: 20px; margin-left: 8px; font-weight: bold"
+      ></span>
+      <span
+        id="frameLabel"
+        style="font-size: 18px; margin-left: 8px; font-weight: bold"
+        >---</span
+      >
+      <div class="slider-wrapper">
+        <div id="t0-marker" class="t0-marker"></div>
+        <input
+          id="frameSlider"
+          type="range"
+          min="0"
+          max="10"
+          value="0"
+          disabled
+        />
+      </div>
       <button id="playPause" disabled>▶️ Play</button>
     </div>
 
@@ -91,7 +89,10 @@
     </div>
 
     <!-- Hamburgermenu Script -->
-    <script type="module" src="./../scripts/shared/Hamburgermenu_script.js"></script>
+    <script
+      type="module"
+      src="./../scripts/shared/Hamburgermenu_script.js"
+    ></script>
 
     <script type="module" src="./../scripts/pySTEPS_forecast/main.js"></script>
   </body>

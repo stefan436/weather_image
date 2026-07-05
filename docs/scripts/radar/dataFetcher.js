@@ -4,7 +4,7 @@ import { ROWS_TO_KEEP } from './config.js';
 
 
 export async function createCoords() {
-  const response = await fetch("data/coords_radarcomposite_rv.bin");
+  const response = await fetch("./../data/coords_radarcomposite_rv.bin");
   const buffer = await response.arrayBuffer();
   const view = new DataView(buffer);
 
@@ -99,9 +99,9 @@ export async function fetchAndProcessComposite(appState, map, lat_pos, lon_pos, 
       document.getElementById("loadProgress").style.display = "none";
       document.getElementById("loadProgressText").style.display = "none";
       document.getElementById("location_output").style.display = "none";
-      document.getElementById("renderProgressLabel").style.display = "none";
-      document.getElementById("renderProgress").style.display = "none";
-      document.getElementById("renderProgressText").style.display = "none";
+      // document.getElementById("renderProgressLabel").style.display = "none";
+      // document.getElementById("renderProgress").style.display = "none";
+      // document.getElementById("renderProgressText").style.display = "none";
       document.getElementById("controls").style.padding = "6px";
       document.getElementById("controls").style.gap = "6px";
       requestAnimationFrame(() => map.invalidateSize());
@@ -258,7 +258,6 @@ export async function fetchAndProcessKonrad(appState) {
   }
 }
 
-// --- RADVOR Datenverarbeitung ---
 export async function parseH5File(buffer, appState) {
   await h5wasm.ready;
   const filename = "/tmp.h5";

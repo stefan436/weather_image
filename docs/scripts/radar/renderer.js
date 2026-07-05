@@ -73,6 +73,9 @@ export async function renderAllFrames(
     renderProgressText.textContent = percent + "%";
     await new Promise((resolve) => requestIdle(resolve));
   }
+  renderProgress.style.display = "none";
+  renderProgressText.style.display = "none";
+  if (renderProgressLabel) renderProgressLabel.style.display = "none";
 }
 
 export function renderFrame(appState, map) {

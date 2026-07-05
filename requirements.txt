@@ -2,3 +2,16 @@ requests
 numpy
 xarray
 cfgrib
+
+# radar backend
+cdo
+cartopy
+pyfftw
+pysteps
+netCDF4
+eccodes
+tqdm
+h5py
+pyproj
+python-cdo
+rioxarray

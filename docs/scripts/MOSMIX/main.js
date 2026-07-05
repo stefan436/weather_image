@@ -197,18 +197,35 @@ document.getElementById("plotSelect").addEventListener("change", (e) => {
     appState.timeZoneId,
   );
 });
-
 document.addEventListener("DOMContentLoaded", () => {
   // Automatische Auswertung der URL-Parameter für die Stationskarte
   const urlParams = new URLSearchParams(window.location.search);
   const latParam = urlParams.get("lat");
   const lonParam = urlParams.get("lon");
+  const stationId = urlParams.get("stationId");
+  const stationName = urlParams.get("stationName")
+  // console.log(`lat: ${latParam}, lon: ${lonParam}, stationId: ${stationId}, stationName: ${stationName}`);
 
-  if (latParam && lonParam) {
+  // Wenn wir die Station-ID bereits aus der URL kennen!
+  if (stationId && latParam && lonParam) {
+    
+    // 1. Globale Koordinaten setzen (wird für die Zeitzone und den API-Aufruf benötigt)
+    userLat = parseFloat(latParam);
+    userLon = parseFloat(lonParam);
+
+    // 2. Suchbereich sofort ausblenden, da wir nicht suchen müssen
     const searchSection = document.getElementById("search-section");
-    if (searchSection) {
-      searchSection.style.display = "none";
-    }
+    if (searchSection) searchSection.style.display = "none";
+
+    // 3. Parameter aus der Adresszeile löschen (für saubere Reloads)
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // 4. DIREKT den Ladeprozess starten! (Distanz ist 0, da wir exakt diese Station gewählt haben)
+    handleStationSelection(stationId, 0);
+
+  }
+  else if (latParam && lonParam) {
+    const searchSection = document.getElementById("search-section");
     const addressInput = document.getElementById("address");
     const addressBtn = document.getElementById("addressButton");
 

@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div style="margin-top: 5px; font-size: 0.9em; margin-bottom: 10px;">
                             Höhe: ${station.height} m<br>
                         </div>
-                        <a href="./../index.html?lat=${lat}&lon=${lon}" 
+                        <a href="./../index.html?lat=${lat}&lon=${lon}&stationId=${station.station_id}&stationName=${encodeURIComponent(station.description)}"
                         style="display: block; text-align: center; background-color: #4f4f4f; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 0.85em; font-weight: bold;">
                         Diese Station auswählen
                         </a>

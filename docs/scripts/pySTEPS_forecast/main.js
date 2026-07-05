@@ -24,6 +24,7 @@ getLocation((lat, lon, is_real) => {
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap-Mitwirkende",
+  crossOrigin: true,
   maxZoom: 18,
   className: "muted-osm",
 }).addTo(map);

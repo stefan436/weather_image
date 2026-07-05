@@ -45,30 +45,56 @@ export async function preloadFrames(appState, map) {
 
 
 export function renderFrame(appState) {
+    const currentFrameObj = appState.frames[appState.currentFrame];
+    
     appState.frames.forEach((frame, idx) => {
         if (frame.overlay) {
             frame.overlay.setOpacity(idx === appState.currentFrame ? 0.7 : 0);
         }
     });
 
-    document.getElementById("frameLabel").textContent = `${appState.frames[appState.currentFrame].time} Uhr`;
+    // --- ZEIT-KONVERTIERUNG MIT LUXON ---
+    const dateTimeUtc = luxon.DateTime.fromISO(currentFrameObj.iso_time);
+    
+    // Fix auf deutsche Zeit zwingen (da Radar nur über DE) 
+    const displayTime = dateTimeUtc.setZone("Europe/Berlin").toFormat("HH:mm");
+    
+    document.getElementById("frameLabel").textContent = `${displayTime} Uhr`;
+    
+    // Status-Label anhand der relativen Zeit (aus dem Backend) einfärben
+    const statusLabel = document.getElementById("timeStatusLabel");
+    if (statusLabel && currentFrameObj.relative_time) {
+        if (currentFrameObj.relative_time.startsWith("T-")) {
+            statusLabel.textContent = "(Historie)";
+            statusLabel.style.color = "#888888"; // Grau
+        } else if (currentFrameObj.relative_time === "T0") {
+            statusLabel.textContent = "(Aktuell)";
+            statusLabel.style.color = "#105CFF"; // Blau
+        } else if (currentFrameObj.relative_time.startsWith("T+")) {
+            statusLabel.textContent = "(Vorhersage)";
+            statusLabel.style.color = "#E60000"; // Rot
+        }
+    }
     
     // Konrad nachziehen
     renderKonradData(appState);
 }
 
-
 export function renderKonradData(appState) {
     if (!appState.konradLayerGroup || !appState.konradData) return;
     appState.konradLayerGroup.clearLayers();
 
-    // Nur bei T+0 und T+5 rendern
-    if (appState.currentFrame !== 0 && appState.currentFrame !== 1) return;
+    const currentFrameObj = appState.frames[appState.currentFrame];
+    if (!currentFrameObj || !currentFrameObj.relative_time) return;
+
+    // Nur bei den exakten relativen Schritten T0 und T+5 rendern
+    if (currentFrameObj.relative_time !== "T0" && currentFrameObj.relative_time !== "T+5") return;
 
     appState.konradData.forEach((cell) => {
-        const popupContent = createPopupContent(cell); // Behält deine originale Funktion
+        const popupContent = createPopupContent(cell); 
 
-        if (appState.currentFrame === 0) {
+        // Aktueller Zustand (T0)
+        if (currentFrameObj.relative_time === "T0") {
             if (cell.polygon_latitudes && cell.polygon_longitudes) {
                 const lats = cell.polygon_latitudes.split(" ").map(Number);
                 const lons = cell.polygon_longitudes.split(" ").map(Number);
@@ -91,7 +117,8 @@ export function renderKonradData(appState) {
                 ).bindPopup(popupContent).addTo(appState.konradLayerGroup);
             }
         } 
-        else if (appState.currentFrame === 1) {
+        // Vorhersage-Zustand (T+5)
+        else if (currentFrameObj.relative_time === "T+5") {
             if (cell.lat_centroid_forecast && cell.major_axis_forecast) {
                 L.ellipse(
                     [cell.lat_centroid_forecast, cell.lon_centroid_forecast],
@@ -106,7 +133,6 @@ export function renderKonradData(appState) {
         }
     });
 }
-
 
 
 /**

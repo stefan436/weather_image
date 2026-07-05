@@ -21,34 +21,32 @@ export async function fetchMetaData(url) {
 
 // --- KONRAD3D Datenverarbeitung ---
 export async function fetchAndProcessKonrad(appState) {
-  const now_utc = luxon.DateTime.utc().minus({ minutes: 5 });
-  const minute = Math.floor(now_utc.minute / 5) * 5;
-  const rounded_time = now_utc.set({ minute: minute, second: 0, millisecond: 0 });
+  // 1. T0 Index ermitteln (wie zuvor besprochen)
+  appState.t0Index = appState.frames.findIndex(f => f.relative_time === "T0");
+  if (appState.t0Index === -1) appState.t0Index = 0; 
   
-  const timestamp_str = rounded_time.toFormat("yyyyMMdd'T'HHmm'00'");
-  const konrad_time_display = rounded_time.toFormat("HH:mm"); 
-
-  // --- ZEIT-SYNCHRONITÄTS-CHECK ---
-  const radar_time_display = appState.frames[0].time; // Nimmt an, das Format ist "HH:mm" (z.B. "07:40")
+  // 2. Den exakten Zeitstempel für dieses T0-Frame aus den Backend-Metadaten holen
+  const t0Frame = appState.frames[appState.t0Index];
+  const timestamp_str = t0Frame.konrad_url_time;
+  
+  // Zeit-Synchronitäts-Check entfällt, da wir zwingend dieselbe Zeit nutzen.
   const warningDiv = document.getElementById("time-warning");
-  
-  if (konrad_time_display !== radar_time_display) {
-      warningDiv.style.display = "block";
-      warningDiv.innerHTML = `⚠️ Zeitversatz! Radar: ${radar_time_display} | KONRAD: ${konrad_time_display}`;
-  } else {
-      warningDiv.style.display = "none";
-  }
+  if (warningDiv) warningDiv.style.display = "none";
 
+  // 3. URL bauen
   const proxy = "https://cors-proxy-for-weather-app.stefan-wiedemann01.workers.dev?url=";
   const url = `${proxy}https://opendata.dwd.de/weather/radar/konrad3d/KONRAD3D_${timestamp_str}.xml`;
 
   try {
     const response = await fetch(url);
+    
+    // Fehlerbehandlung, falls der DWD genau DIESES File (noch) nicht hat
     if (!response.ok) {
-      throw new Error(
-        `Fehler beim Abrufen der KONRAD3D-Datei: ${response.statusText} (Status: ${response.status})`,
-      );
+      console.warn(`KONRAD Daten für exaktes T0 (${t0Frame.time} Uhr) nicht verfügbar beim DWD. Code: ${response.status}`);
+      appState.konradData = [];
+      return; // Wir brechen sauber ab, ohne dass die App crasht
     }
+    
     const xmlText = await response.text();
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, "application/xml");

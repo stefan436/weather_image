@@ -69,6 +69,10 @@ setupUI(appState, {
       // 4. UI freischalten
       const slider = document.getElementById("frameSlider");
       slider.max = appState.frames.length - 1;
+      // Setze Startwert direkt auf T0 anstatt auf 0
+      appState.currentFrame = appState.t0Index || 0;
+      slider.value = appState.currentFrame;
+      
       slider.disabled = false;
       document.getElementById("playPause").disabled = false;
 

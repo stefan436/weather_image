@@ -7,8 +7,8 @@
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   
-  <link rel="stylesheet" href="./../styles/global.css">
-  <link rel="stylesheet" href="./../styles/Hamburgermenu.css">
+  <link rel="stylesheet" href="/docs/styles/global.css">
+  <link rel="stylesheet" href="/docs/styles/Hamburgermenu.css">
   
   <style>
     /* Die Karte braucht zwingend eine Höhenangabe */
@@ -26,30 +26,17 @@
   </style>
 </head>
 <body>
-
-  <nav class="navbar">
-      <a href="./../index.html" class="logo" style="font-family: var(--font-family);">Wetter Dashboard</a>
-      
-      <div class="hamburger-menu" id="hamburger-icon">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      
-      <ul class="nav-links" id="nav-menu">
-        <li><a href="Regenradar_vorhersage.html" style="font-family: var(--font-family);">RV Regenradar</a></li>
-        <li><a href="Aktuelle_Messwerte.html" style="font-family: var(--font-family);">Aktuelle Messwerte</a></li>
-        <li><a href="https://www.sat24.com/en-gb/country/de/hd" style="font-family: var(--font-family);">Satellitenbild <span style="font-size: 0.8em;">🔗</span></a></li>
-        <li><a href="Regenradar_vorhersage_v2.html" style="font-family: var(--font-family);">RV Regenradar V2</a></li>      </ul>
-    </nav>
+  <header>
+    <!-- NavBar und Hamburgermenue -->
+    <div id="navbar-placeholder"></div>
+  </header>
 
   <main>
     <h1>Wetterstationen</h1>
     <div id="map"></div>
   </main>
 
-  <script src="./../scripts/shared/Hamburgermenu_script.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="./../scripts/stationskarte/main.js"></script>
+  <script type="module" src="/docs/scripts/stationskarte/main.js"></script>
 </body>
 </html>

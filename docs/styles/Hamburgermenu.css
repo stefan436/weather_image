@@ -110,7 +110,7 @@
     -webkit-backdrop-filter: blur(10px);
     
     margin: 0;
-    padding: 24px 20px;
+    padding: 12px 20px 24px 20px;
     display: flex;
     flex-direction: column;
     gap: 0; /* Auf 0 gesetzt, damit wir die Mitte exakt bestimmen können */

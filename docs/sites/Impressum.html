@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Impressum</title>
   <style>
-    body {
+    h2 {
+      color: #111827;
+    }
+    a {
+      color: #780000;
+    }
+    p {
       font-family: Arial, sans-serif;
-      max-width: 800px;
       margin: 40px auto;
       padding: 0 20px;
       line-height: 1.6;
@@ -15,16 +20,17 @@
       color: #4f4f4f;
       font-size: 10px;
     }
-    h1 {
-      color: #111827;
-    }
-    a {
-      color: #780000;
-    }
   </style>
+
+  <link rel="stylesheet" href="/docs/styles/global.css">
+  <link rel="stylesheet" href="/docs/styles/Hamburgermenu.css">
 </head>
 <body>
-  <h1>Impressum</h1>
+  <header>
+    <!-- NavBar und Hamburgermenue -->
+    <div id="navbar-placeholder"></div>
+  </header>
+  <h2>Impressum</h2>
 
   <p>Angaben gemäß § 5 TMG:</p>
 
@@ -54,7 +60,7 @@
     Die durch den Seitenbetreiber erstellten Inhalte und Werke auf dieser Website unterliegen dem deutschen Urheberrecht.
   </p>
 
-  <h1>Datenschutzerklärung</h1>
+  <h2>Datenschutzerklärung</h2>
 
   <p>Diese Website ist ein privates Projekt. Es werden keine personenbezogenen Daten gespeichert oder analysiert.</p>
 
@@ -66,9 +72,42 @@
 
   <p>Stand: September 2025</p>
 
-  <p><a href="./../index.html">Zurück zur Startseite</a></p>
+  <p><a href="/docs/index.html">Zurück zur Startseite</a></p>
 
 </body>
+<script>
+  // Import NavBar
+  // 1. Navbar laden (Pfade ggf. korrigieren, z.B. /scripts/shared/navbar.html)
+  fetch('/docs/scripts/shared/navbar.html')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Navbar konnte nicht geladen werden: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(data => {
+      // 2. HTML in den Platzhalter einfügen
+      const placeholder = document.getElementById('navbar-placeholder');
+      if (placeholder) {
+        placeholder.innerHTML = data;
+      }
+
+      // 3. Hamburger-Menü ERST HIER initialisieren, wenn das HTML wirklich da ist!
+      const hamburger = document.getElementById('hamburger-icon');
+      const menu = document.getElementById('nav-menu');
+
+      if (hamburger && menu) {
+        hamburger.addEventListener('click', () => {
+          menu.classList.toggle('active'); // Wechselt die CSS-Klasse für das Menü
+          hamburger.classList.toggle('open'); // Falls du das Icon selbst animierst
+        });
+      }
+    })
+    .catch(error => {
+      console.error("Fehler beim Laden der Navigation:", error);
+    });
+
+</script>
 </html>
 
 

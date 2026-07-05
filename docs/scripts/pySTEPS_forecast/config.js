@@ -2,6 +2,8 @@
 
 export const meta_path =
   "https://users.ph.nat.tum.de/ge47fab/weather_data/pySTEPS_data/Forecast/meta.json";
+// export const meta_path =
+//   "/backend/BlendingForecast/data/Forecast/meta.json";
 export const time_per_frame = 500; // in ms; dauer bis nächster frame beginnt eingeblendet zu werden (und gleichzeitig der alte ausgeblendet wird)
 export const cross_fade_time = 0; // in s; time needed for the frame to get to set opacity
 

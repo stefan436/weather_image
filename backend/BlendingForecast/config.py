@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 # RUC Data
 hist_time_steps = 4      # wie viele radarbilder aus der vergangenheit genutzt werden um pySTEPS vorhersage zu machen. 5 min schritte --> 3 = T-10, T-5, T+0
+hist_radar_film_steps = 24     # Für das Frontend (Letzte 2 Stunden inkl. T0)
 step_size = 5
 product_ruc = 'TOT_PREC'
 base_url_ruc = f'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{product_ruc}/r/'

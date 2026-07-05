@@ -2,28 +2,28 @@ import numpy as np
 import glob
 import os
 import xarray as xr
-from datetime import datetime, timezone
+from datetime import timedelta
 from time import time
 
 # Deine eigenen Module
 from blending_engine import run_steps_blending
 from visualisation import animate_blended_forecast
-from read_past_radar import get_radar_urls, download_radar, create_radar, load_coordinates
-from read_current_ICON_RUC import get_ruc_urls, download_ruc, create_prediction, save_pred_to_netcdf
+from read_past_radar import get_radar_urls, download_radar, create_radar
+from read_current_ICON_RUC import get_ruc_urls, download_ruc, create_prediction
 from alignment import align_ruc_like_cdo_remap
 from config import *
 from validation import get_ground_truth_urls, calculate_validation_scores, plot_validation_results
-from convert_to_mobile_format import prepare_data, export_data
+from convert_to_mobile_format import prepare_data, export_data, generate_time_arrays
 
 def main():
     total_start_time = time()
     print(f"--- 1. Lade Radar Historie (Letzte {hist_time_steps * 5} Minuten) ---")
     
-    radar_urls, latest_RV_time = get_radar_urls(hist_time_steps, set_past_date=set_past_date)
+    radar_urls, latest_RV_time = get_radar_urls(hist_radar_film_steps, set_past_date=set_past_date)
     radar_folder = download_radar(radar_urls)
     
-    # radar_history hat nun Shape (9, 1200, 1100)
-    radar_history, projection_dict_rv, no_rain_rv= create_radar(radar_folder, hist_time_steps)
+    # extended_radar_history hat nun Shape (24, 1200, 1100)
+    extended_radar_history, projection_dict_rv, no_rain_rv= create_radar(radar_folder, hist_radar_film_steps)
     
     print("\n--- 2. Lade NWP (ICON-D2 RUC) Vorhersagen ---")
     ruc_urls = get_ruc_urls(set_past_date=set_past_date, RV_time=latest_RV_time, steps_into_future=(forecast_length // step_size) + 1)
@@ -38,26 +38,27 @@ def main():
         target_minutes = np.arange(forecast_step_size, forecast_length + forecast_step_size, forecast_step_size)
 
         print("\n--- 3. Finales STEPS Blending ---")
+        blending_radar_input = extended_radar_history[-hist_time_steps:]
         # pySTEPS Vorhersage startet (index 0) bei T+5
-        blended_forecast_mmh, valid_RV_mask = run_steps_blending(radar_history, final_prediction_ruc, target_minutes, pase_correction_nwp_rv)
-        blended_forecast_mmh = np.concatenate(
-            [radar_history[-1][np.newaxis, ...], blended_forecast_mmh],
+        blended_forecast_mmh, valid_RV_mask = run_steps_blending(blending_radar_input, final_prediction_ruc, target_minutes, pase_correction_nwp_rv)
+        full_forecast_array = np.concatenate(
+            [extended_radar_history, blended_forecast_mmh],
             axis=0,
         )
         forecast_minutes = np.arange(0, forecast_length + forecast_step_size, forecast_step_size)
-        print(f"Shape des Blended Outputs: {blended_forecast_mmh.shape} (Zeitpunkte, Y, X)")
+        print(f"Shape des Blended Outputs: {full_forecast_array.shape} (Zeitpunkte, Y, X)")
         print(f"Totale Dauer der Erstellung der Vorhersage: {time()-total_start_time}")
         
     else:
         print("\n--- Kein Regen erwartet. Generiere leere Vorhersage-Frames ---")
-        n_timesteps = (forecast_length // step_size) + 1
-        blended_forecast_mmh = np.zeros((n_timesteps, 1200, 1100), dtype=np.float32)
-        # Radar-Maske trotzdem aus dem letzten Frame ableiten
-        valid_RV_mask = ~np.isnan(radar_history[-1, :, :])
+        n_timesteps = hist_radar_film_steps + (forecast_length // step_size)
+        full_forecast_array = np.zeros((n_timesteps, 1200, 1100), dtype=np.float32)
+        valid_RV_mask = ~np.isnan(extended_radar_history[-1, :, :])
 
     print("\n--- 4. Export Forecast ---")
-    xr_dataset, leaflet_bounds, reprojected_mask = prepare_data(blended_forecast_mmh, projection_dict_rv, latest_RV_time, valid_RV_mask)
-    export_data(xr_dataset, leaflet_bounds, reprojected_mask)
+    absolute_time_array, relative_time_array = generate_time_arrays(full_forecast_array, latest_RV_time, hist_radar_film_steps)
+    xr_dataset, leaflet_bounds, reprojected_mask = prepare_data(full_forecast_array, projection_dict_rv, absolute_time_array, valid_RV_mask)
+    export_data(xr_dataset, leaflet_bounds, reprojected_mask, relative_time_array)
     
     print("\n--- 5. Visualisierung ---")
     # animate_blended_forecast(blended_forecast_mmh, lat2d, lon2d, forecast_minutes, save_ani=save_final_animation, save_path="steps_forecast.gif")

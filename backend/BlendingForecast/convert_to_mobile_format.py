@@ -43,16 +43,32 @@ def _apply_custom_colormap(data_matrix, valid_mask):
     # Zu einem 3D RGBA-Array zusammenfügen
     return np.stack([r, g, b, alpha], axis=-1)
 
-
-
-def prepare_data(radar_forecast, projection_dict, current_time, valid_RV_mask):
-    num_time_steps = radar_forecast.shape[0]
-    dates = [
-        current_time + timedelta(minutes=i * step_size)
-        for i in range(num_time_steps)
-    ]
+def generate_time_arrays(full_forecast_array, latest_RV_time, hist_radar_film_steps):
+    # Generiere die korrekte, absolute Zeitachse für das gesamte Array
+    # Startzeit ist T0 minus die Dauer der Radar-Historie (minus 1, da T0 inkludiert ist)
+    total_frames = full_forecast_array.shape[0]
+    start_time = latest_RV_time - timedelta(minutes=(hist_radar_film_steps - 1) * step_size)
+    absolute_time_array = [start_time + timedelta(minutes=i * step_size) for i in range(total_frames)]
     
-    # 2. Die obere linke Ecke (UL) von Lat/Lon in Projektionsmeter umrechnen
+    # Generiere die relativen Zeit-Labels
+    relative_time_array = []
+    t0_index = hist_radar_film_steps - 1 # Der Index, an dem T0 liegt
+    
+    for i in range(total_frames):
+        if i < t0_index:
+            minutes = (i - t0_index) * step_size
+            relative_time_array.append(f"T{minutes}") # Erzeugt z.B. "T-120", "T-115"
+        elif i == t0_index:
+            relative_time_array.append("T0")
+        else:
+            minutes = (i - t0_index) * step_size
+            relative_time_array.append(f"T+{minutes}") # Erzeugt z.B. "T+5", "T+10"
+
+    return absolute_time_array, relative_time_array
+
+
+def prepare_data(radar_forecast, projection_dict, time_array, valid_RV_mask):
+    # 1. Die obere linke Ecke (UL) von Lat/Lon in Projektionsmeter umrechnen
     # EPSG:4326 ist Standard WGS84 (Lat/Lon)
     transformer = Transformer.from_crs("EPSG:4326", projection_dict['projdef'], always_xy=True)
     x_min, y_max = transformer.transform(projection_dict['UL_lon'], projection_dict['UL_lat'])
@@ -67,7 +83,7 @@ def prepare_data(radar_forecast, projection_dict, current_time, valid_RV_mask):
     da = xr.DataArray(
         data=radar_forecast,
         dims=["time", "y", "x"],
-        coords={"time": dates, "y": y_coords, "x": x_coords}
+        coords={"time": time_array, "y": y_coords, "x": x_coords}
     )
 
     # 5. CRS zuweisen und Dimensionen für rioxarray deklarieren
@@ -95,7 +111,7 @@ def prepare_data(radar_forecast, projection_dict, current_time, valid_RV_mask):
     return da_web, leaflet_bounds, da_mask_web
 
 
-def export_data(da_web, leaflet_bounds, da_mask_web):
+def export_data(da_web, leaflet_bounds, da_mask_web, relative_time_array):
     meta_json_dir = Path(meta_json_path).parent
     meta_json_dir.mkdir(parents=True, exist_ok=True)
     frames_dir = Path(save_path_webp).parent
@@ -121,7 +137,9 @@ def export_data(da_web, leaflet_bounds, da_mask_web):
         # Das datetime-Objekt aus dem aktuellen xarray-Schritt ziehen
         # .dt.strftime formatiert das xarray-numpy-datetime-Objekt sauber zu Text
         uhrzeit_string = da_web.time.isel(time=t).dt.strftime("%Y%m%d_%H%M").item()
-        uhrzeit_anzeige = da_web.time.isel(time=t).dt.strftime("%H:%M").item()
+        iso_time_string = da_web.time.isel(time=t).dt.strftime("%Y-%m-%dT%H:%M:%SZ").item()
+        
+        konrad_timestamp = da_web.time.isel(time=t).dt.strftime("%Y%m%dT%H%M00").item()
         
         img = Image.fromarray(rgba_array, mode='RGBA')
         # Datei wird z.B. als "radar_frame_20260703_2025.webp" gespeichert
@@ -129,8 +147,10 @@ def export_data(da_web, leaflet_bounds, da_mask_web):
         final_url_webp = url_webp + uhrzeit_string + ".webp"
         
         meta_json["frames"].append({
-            "time": uhrzeit_anzeige,
-            "url": final_url_webp
+            "iso_time": iso_time_string,
+            "url": final_url_webp,
+            "relative_time": relative_time_array[t],
+            "konrad_url_time": konrad_timestamp
         })
         
         img.save(save_path, "WEBP", lossless=True)

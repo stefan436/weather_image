@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 import requests
+import re
 import eccodes
 import xarray as xr
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -58,9 +59,30 @@ def get_ruc_urls(set_past_date, RV_time, steps_into_future):
         url_list.append(bu)
     return url_list
     
+    
+def _format_dwd_url(url: str) -> str:
+    """
+    Erwartetes Input-Format:
+    .../2026-07-05T19:00/s/PT001H20M.grib2
+    
+    Erwartetes Output-Format:
+    RUC_20260705_R19_001H20M.grib2
+    """
+    # Das Regex-Muster sucht gezielt nach den Bausteinen:
+    # Gruppe 1-3: Jahr, Monat, Tag (\d{4}, \d{2}, \d{2})
+    # Gruppe 4: Stunde (\d{2}) - ignoriert die Minuten (:\d{2})
+    # Gruppe 5: Der Dateiname nach 'PT' (.*\.grib2)
+    pattern = r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):\d{2}/s/PT(.*\.grib2)"
+    match = re.search(pattern, url)
+    if not match:
+        raise ValueError(f"Die URL entspricht nicht dem erwarteten DWD-Format: {url}")
+    year, month, day, hour, step_file = match.groups()
+    return f"RUC_{year}{month}{day}_R{hour}_{step_file}"
+    
+    
 def _download_single_ruc(url, output_dir):
     """Hilfsfunktion für den parallelen Download einer einzelnen Datei."""
-    file_name = url.split("/")[-1]
+    file_name = _format_dwd_url(url)
     file_path = output_dir / file_name
     try:
         response = requests.get(url, stream=True, timeout=30)
@@ -73,13 +95,33 @@ def _download_single_ruc(url, output_dir):
         return False, f"Failed to download {url}. Error: {error}"
 
 
+def _check_url_and_del_file(output_dir, url_list):
+    # check if files are already downloaded and delete unused files                
+    for element in output_dir.iterdir():
+        if element.is_file():
+            treffer_index = None
+            for index, url in enumerate(url_list):
+                # Path(url).name holt den Dateinamen aus der URL (z.B. "datei.zip")
+                if not isinstance(url, str):
+                    continue        # falls vorheriges file vorhanden ist und mit nan ersetzt wurde
+                if _format_dwd_url(url) == element.name:
+                    treffer_index = index
+                    break
+            if treffer_index is not None:
+                url_list[treffer_index] = np.nan
+                print(f"Bereits vorhanden (wird übersprungen): {element.name}")
+            else:
+                print(f"Ungenutzte Datei wird gelöscht: {element.name}")
+                element.unlink()    
+    return url_list
+
+
 def download_ruc(url_list):
     output_dir = Path(download_dir_ruc)
     output_dir.mkdir(parents=True, exist_ok=True)
-    for element in output_dir.iterdir():
-        if element.is_file():
-            element.unlink()   
     
+    url_list = _check_url_and_del_file(output_dir, url_list)
+
     if any(isinstance(url, str) for url in url_list):
         print(f"Starting downloads to: {output_dir.resolve()}\n")
         # Parallelisieren der Downloads

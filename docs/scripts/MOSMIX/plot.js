@@ -47,7 +47,7 @@ function enforcePanAfterZoom(plotlyDiv) {
   });
 }
 
-// getLayout braucht jetzt timeSteps als Parameter!
+
 function getLayout(param, timeSteps, timeZoneId) {
   const xData = timeSteps.map(
     (ts) => getStationTime(ts, timeZoneId).plotlyString,
@@ -57,17 +57,16 @@ function getLayout(param, timeSteps, timeZoneId) {
   if (timeSteps.length > 0) {
     // 1. Originales Datum für die Mathematik nutzen
     const startObj = new Date(timeSteps[0]);
-
     // 2. 60 Stunden (in Millisekunden) addieren
     const endObj = new Date(startObj.getTime() + previewHours * 3600 * 1000);
-
     // 3. Beide Zeitpunkte sauber formatiert als Strings an Plotly übergeben
     xRange = [
       getStationTime(startObj, timeZoneId).plotlyString,
       getStationTime(endObj, timeZoneId).plotlyString,
     ];
   }
-  return {
+  
+  const layout = {
     margin: { l: 50, r: 20, t: 30, b: 70 },
     xaxis: {
       automargin: true,
@@ -75,13 +74,36 @@ function getLayout(param, timeSteps, timeZoneId) {
       hoverformat: "%a, %d.%b, %H:%M",
       tickformat: "%H:%M \n%d.%b",
     },
-    yaxis: { title: param, automargin: true },
+    yaxis: { 
+      title: param, 
+      automargin: true,
+      fixedrange: true // Blockiert Panning und Zoom in Y-Richtung für ALLE Parameter
+    },
     hovermode: "x",
     autosize: true,
     showlegend: false,
     dragmode: "pan",
   };
+
+  // --- Feste Sichtbereiche (Range) statt weicher Limits ---
+  if (
+    param.includes("Niederschlagswahrscheinlichkeit") ||
+    param.includes("Bewölkung") ||
+    param.includes("Nebelwahrscheinlichkeit") ||
+    param.includes("Relative Luftfeuchtigkeit")
+  ) {
+    layout.yaxis.range = [-5, 105];
+  } else if (param.includes("Sonnenstunden")) {
+    layout.yaxis.range = [-2, 24];
+  } else if (param.includes("UV-Index")) {
+    layout.yaxis.range = [-1, 13];
+  } else if (param.includes("Strahlungsintensität")) {
+    layout.yaxis.range = [-100, 1400];
+  } 
+  return layout;
 }
+
+
 
 // HAUPTFUNKTION: Rendert den Plot (wird in main.js importiert)
 export function renderPlot(
@@ -107,7 +129,8 @@ export function renderPlot(
   if (param.includes("UV-Index")) {
     // Sicherheitsabbruch, falls keine Daten vorhanden sind
     if (!result_uv_and_pt || !result_uv_and_pt["uvi_times"]) {
-      plotlyDiv.innerHTML = "<em>Keine UV-Daten für diesen Standort verfügbar</em>";
+      plotlyDiv.innerHTML =
+        "<em>Keine UV-Daten für diesen Standort verfügbar</em>";
       return;
     }
 
@@ -214,7 +237,11 @@ export function renderPlot(
   // Gefühlte Temperatur Plot
   if (param.includes("Temperatur (°C)")) {
     // NUR einzeichnen, wenn die UV/PT-Daten überhaupt existieren
-    if (result_uv_and_pt && result_uv_and_pt["gft_times"] && seriesMap["Gefühlte Temperatur"]) {
+    if (
+      result_uv_and_pt &&
+      result_uv_and_pt["gft_times"] &&
+      seriesMap["Gefühlte Temperatur"]
+    ) {
       const gft_time_step = result_uv_and_pt["gft_times"].map(
         (ts) => getStationTime(ts, timeZoneId).plotlyString,
       );
@@ -486,12 +513,13 @@ export function renderPlot(
       }
     });
 
+    const baseLayout = getLayout(param, timeSteps, timeZoneId);
     const layout = {
-      ...getLayout(param, timeSteps, timeZoneId),
+      ...baseLayout,
       shapes: shapes, // Die Nacht-Rechtecke übernehmen wir
       yaxis: {
+        ...baseLayout.yaxis, // <-- WICHTIG: Übernimmt die Limits und fixedrange
         title: "Wahrscheinlichkeit (%)",
-        automargin: true,
       },
     };
 

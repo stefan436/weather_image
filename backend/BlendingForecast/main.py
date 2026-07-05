@@ -3,7 +3,6 @@ import glob
 import os
 import xarray as xr
 from datetime import datetime, timezone
-from cdo import Cdo
 from time import time
 
 # Deine eigenen Module
@@ -15,8 +14,6 @@ from alignment import align_ruc_like_cdo_remap
 from config import *
 from validation import get_ground_truth_urls, calculate_validation_scores, plot_validation_results
 from convert_to_mobile_format import prepare_data, export_data
-
-cdo = Cdo()
 
 def main():
     total_start_time = time()
@@ -92,3 +89,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    print("Finised!!")

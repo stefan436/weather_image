@@ -16,38 +16,6 @@ const appState = {
   animationTimer: null,
 };
 
-// Import NavBar
-// 1. Navbar laden (Pfade ggf. korrigieren, z.B. /scripts/shared/navbar.html)
-fetch('/docs/scripts/shared/navbar.html')
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Navbar konnte nicht geladen werden: ${response.status}`);
-    }
-    return response.text();
-  })
-  .then(data => {
-    // 2. HTML in den Platzhalter einfügen
-    const placeholder = document.getElementById('navbar-placeholder');
-    if (placeholder) {
-      placeholder.innerHTML = data;
-    }
-
-    // 3. Hamburger-Menü ERST HIER initialisieren, wenn das HTML wirklich da ist!
-    const hamburger = document.getElementById('hamburger-icon');
-    const menu = document.getElementById('nav-menu');
-
-    if (hamburger && menu) {
-      hamburger.addEventListener('click', () => {
-        menu.classList.toggle('active'); // Wechselt die CSS-Klasse für das Menü
-        hamburger.classList.toggle('open'); // Falls du das Icon selbst animierst
-      });
-    }
-  })
-  .catch(error => {
-    console.error("Fehler beim Laden der Navigation:", error);
-  });
-
-
 // --- Initialisierung der Karte ---
 const map = L.map("map").setView([48.137208, 11.575525], 10);
 getLocation((lat, lon, is_real) => {

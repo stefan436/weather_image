@@ -21,7 +21,7 @@
       <div id="navbar-placeholder"></div>
     </header>
     <div id="controls">
-      <button id="start">Radar laden</button>
+      <button id="start" style="display: none;">Radar laden</button>
       <p
         id="status_output"
         style="display: none; font-size: 14px; margin: 0"
@@ -37,7 +37,7 @@
         >---</span
       >
       <div class="slider-wrapper">
-        <div id="t0-marker" class="t0-marker"></div>
+        <div id="t0-marker" class="t0-marker" style="display: none;"></div>
         <input
           id="frameSlider"
           type="range"
@@ -55,14 +55,14 @@
     <div id="legend" class="legend" style="display: none">
       <div
         id="legend-hint"
-        style="font-size: 12px; color: #444; margin-bottom: 6px"
+        style="font-size: 12px; color: #444"
       >
         ℹ️ Tippe auf den Regen für Details
       </div>
 
       <div
         id="legend-click"
-        style="font-size: 14px; display: none; margin-bottom: 6px"
+        style="font-size: 14px; display: none"
       >
         <span
           id="clickColorBox"
@@ -77,7 +77,7 @@
         ></span>
         <span id="clickValue" style="font-weight: bold"></span>
       </div>
-      <div style="font-size: 10px; margin-top: 8px; color: #444">
+      <div style="font-size: 10px; margin-top: 6px; color: #444">
         Quelle: Deutscher Wetterdienst,
         <a
           href="https://creativecommons.org/licenses/by/4.0/"

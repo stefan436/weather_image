@@ -3,9 +3,9 @@
 import { time_per_frame } from './config.js'
 
 export function setupUI(appState, callbacks) {
-//  document.getElementById("start").addEventListener("click", () => {
-//    callbacks.onStart();
-//  });
+  if (callbacks.onStart) {
+      callbacks.onStart();
+    }
 
   document.getElementById("playPause").addEventListener("click", () => {
     const playBtn = document.getElementById("playPause");

@@ -20,6 +20,26 @@ const appState = {
 const map = L.map("map").setView([48.137208, 11.575525], 10);
 getLocation((lat, lon, is_real) => {
   map.setView([lat, lon], 10);
+  if (is_real) {
+    if (appState.userLocationMarker) {
+      // Falls der Marker schon existiert, nur die Position updaten
+      appState.userLocationMarker.setLatLng([lat, lon]);
+    } else {
+      // Neuen, blauen GPS-Punkt erstellen
+      appState.userLocationMarker = L.circleMarker([lat, lon], {
+        radius: 6, // Größe des Punkts
+        fillColor: "#0078ff", // GPS-Blau
+        color: "#ffffff", // Weißer Rand zur besseren Sichtbarkeit
+        weight: 2, // Dicke des Rands
+        opacity: 0.8,
+        fillOpacity: 0.66,
+        pane: "markerPane", // Standard Leaflet-Pane für Marker (ganz oben)
+      }).addTo(map);
+
+      // Ein kleines Pop-up beim Anklicken
+      appState.userLocationMarker.bindPopup("<b>Dein Standort</b>");
+    }
+  }
 });
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -60,7 +80,7 @@ setupUI(appState, {
       appState.frames = meta.frames;
 
       // Ermittle den Index für T0 (falls er nicht schon fest im Backend verankert ist)
-      const t0Idx = appState.frames.findIndex(f => f.relative_time === "T0");
+      const t0Idx = appState.frames.findIndex((f) => f.relative_time === "T0");
       appState.t0Index = t0Idx !== -1 ? t0Idx : 0;
 
       // Platziere den T0-Marker exakt an der berechneten Prozent-Stelle
@@ -82,15 +102,17 @@ setupUI(appState, {
       await fetchAndProcessKonrad(appState);
 
       // 4. UI freischalten
+      const t0Marker = document.getElementById("t0-marker");
       const slider = document.getElementById("frameSlider");
       slider.max = appState.frames.length - 1;
       // Setze Startwert direkt auf T0 anstatt auf 0
       appState.currentFrame = appState.t0Index || 0;
       slider.value = appState.currentFrame;
-      
+
       slider.disabled = false;
       document.getElementById("playPause").disabled = false;
 
+      t0Marker.style.display = "block";
       statusText.style.display = "none";
 
       // 5. Erstes Frame anzeigen

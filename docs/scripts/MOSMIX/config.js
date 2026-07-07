@@ -41,8 +41,9 @@ export const combinedParams = [
 export const preferredOrder = [
   "Temperatur (°C)",
   "Niederschlagswahrscheinlichkeit",
-  "Totale Niederschlagsmenge (mm)",
   "Gewitterwahrscheinlichkeit",
+  "Glättewahrscheinlichkeit",
+  "Totale Niederschlagsmenge (mm)",
   "Bewölkung",
   "Windgeschwindigkeit (km/h)",
   "Maximale Windböe",
@@ -161,7 +162,10 @@ export const excludedElements = [
   "TN",
   "N",
   "Gefühlte Temperatur",
-]; // Kombinationen von Werten + ihren Fehlern
+  "W_GEW_01", "W_GEWSK_01", "U_GEWSW_01", 
+  "FZ", "FZRA", "FZRAX",                 
+  "cp", "lsp", "asnow",
+]; 
 
 export const unitConversionMap = {
   K: (v) => v - 273.15,

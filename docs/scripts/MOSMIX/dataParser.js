@@ -146,7 +146,8 @@ export async function parseKML(text, userLat, userLon, stationId) {
   if (USE_MOSMIX_S) {
     try {
       setStatus("Integriere stündliche Vorhersagedaten...");
-      const sResp = await fetch(`https://users.ph.nat.tum.de/ge47fab/weather_data/mosmix_s/${stationId}.json`);
+      const sResp = await fetch(`https://users.ph.nat.tum.de/ge47fab/weather_data/index/Forecast/mosmix_s/${stationId}.json`);
+      // const sResp = await fetch(`./../backend/WarnMOS/data/mosmix_s/${stationId}.json`);
 
       if (sResp.ok) { 
         const sData = await sResp.json();
@@ -184,6 +185,13 @@ export async function parseKML(text, userLat, userLon, stationId) {
         overrideSeries("FX1", "Maximale Windböe", (v) => v * 3.6);
         overrideSeries("Rad1h", "Strahlungsintensität (W/m^2)", (v) => v / 3.6);
         overrideSeries("wwM", "Nebelwahrscheinlichkeit", (v) => v);
+        overrideSeries("W_GEW_01", "W_GEW_01", (v) => v);
+        overrideSeries("W_GEWSK_01", "W_GEWSK_01", (v) => v);
+        overrideSeries("U_GEWSW_01", "U_GEWSW_01", (v) => v);
+        
+        if (sData.d["W_GEW_01"]) {
+          seriesMap["Gewitterwahrscheinlichkeit"] = seriesMap["W_GEW_01"]; 
+        }
 
         const wwArray = sData.d["ww"];
         if (wwArray) {

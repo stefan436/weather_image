@@ -121,5 +121,14 @@ export const elementNamesMap = {
     "WPc31": "Optional significant weather (highest priority) during the last 3 hours",
     "WPc61": "Optional significant weather (highest priority) during the last 6 hours",
     "WPch1": "Optional significant weather (highest priority) during the last 12 hours",
-    "WPcd1": "Optional significant weather (highest priority) during the last 24 hours"
+    "WPcd1": "Optional significant weather (highest priority) during the last 24 hours",
+    "lsp": "Large-scale precipitation",
+    "cp": "Convective precipitation",
+    "asnow": "Total snowfall",
+    "W_GEW_01": "Probability of thunderstorm during 1h",
+    "W_GEWSK_01": "Probability of heavy thunderstorm during 1h",
+    "U_GEWSW_01": "Probability of severe thunderstorm during 1h",
+    "FZ": "Prob Glaette",
+    "FZRA": "Prob oertlich Glatteis",
+    "FZRAX": "Prob Glatteis"
 };

@@ -2,8 +2,8 @@
 
 async function loadTimeStamps() {
     const [response_gft, response_uvi] = await Promise.all([
-        fetch("https://users.ph.nat.tum.de/ge47fab/weather_data/gft_forecast_times.json"),
-        fetch("https://users.ph.nat.tum.de/ge47fab/weather_data/uvi_forecast_times.json")
+        fetch("https://users.ph.nat.tum.de/ge47fab/weather_data/index/Forecast/gft_forecast_times.json"),
+        fetch("https://users.ph.nat.tum.de/ge47fab/weather_data/index/Forecast/uvi_forecast_times.json")
     ]);
 
     const gft_times_raw = await response_gft.json();
@@ -29,7 +29,7 @@ async function loadTimeStamps() {
  */
 export async function runForecastUvAndPt(stationId) {
     try {
-        const response = await fetch(`https://users.ph.nat.tum.de/ge47fab/weather_data/uv_gft/${stationId}.json`);
+        const response = await fetch(`https://users.ph.nat.tum.de/ge47fab/weather_data/index/Forecast/uv_gft/${stationId}.json`);
         
         // Status 404 (Not Found) bedeutet, die Station liegt außerhalb des Abdeckungsbereichs (z.B. Südafrika)
         if (!response.ok) {

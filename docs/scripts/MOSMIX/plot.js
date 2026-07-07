@@ -90,7 +90,8 @@ function getLayout(param, timeSteps, timeZoneId) {
     param.includes("Niederschlagswahrscheinlichkeit") ||
     param.includes("Bewölkung") ||
     param.includes("Nebelwahrscheinlichkeit") ||
-    param.includes("Relative Luftfeuchtigkeit")
+    param.includes("Relative Luftfeuchtigkeit") ||
+    param.includes("Gewitterwahrscheinlichkeit")
   ) {
     layout.yaxis.range = [-5, 105];
   } else if (param.includes("Sonnenstunden")) {
@@ -265,6 +266,7 @@ export function renderPlot(
         y: gft_data,
         type: "scatter",
         mode: "markers",
+        connectgaps: true,
         marker: { size: 6, color: "rgb(120, 0, 0)" },
         name: "Gefühlte Temperatur (°C)",
       });
@@ -299,6 +301,7 @@ export function renderPlot(
         y: gust_data,
         type: "scatter",
         mode: "markers",
+        connectgaps: true,
         marker: { size: 6, color: "rgb(0, 100, 150)" },
         name: "Maximale Windböe",
       });
@@ -378,6 +381,7 @@ export function renderPlot(
     });
   }
 
+  // Hintergrund Niederschlag
   if (param.includes("Totale Niederschlagsmenge (mm)")) {
     shapes.push(
       {
@@ -469,6 +473,7 @@ export function renderPlot(
       y: yData, // Das ist bereits seriesMap["Niederschlagswahrscheinlichkeit"]
       type: "scatter",
       mode: "lines+markers",
+      connectgaps: true,
       line: { width: 3, shape: "spline", color: "rgba(17, 24, 39, 1)" },
       marker: { size: 6, color: "rgba(17, 24, 39, 1)" },
       name: "Gesamt",
@@ -507,6 +512,7 @@ export function renderPlot(
           y: epData,
           type: "scatter",
           mode: "lines",
+          connectgaps: true,
           line: { width: 2, shape: "spline", color: ep.color, dash: "dot" }, // Gestrichelt zur besseren Unterscheidung
           name: ep.name,
         });
@@ -527,6 +533,49 @@ export function renderPlot(
       enforcePanAfterZoom(plotlyDiv),
     );
     return; // Bricht hier ab, damit der "Standard Plot" nicht auch noch gezeichnet wird
+  }
+
+  // --- NEU: Gewitterwahrscheinlichkeit (WarnMOS) ---
+  if (param === "Gewitterwahrscheinlichkeit") {
+    traces.push({
+      x: xData,
+      y: yData, // Hauptlinie (W_GEW_01)
+      type: "scatter",
+      mode: "lines+markers",
+      connectgaps: true,
+      line: { width: 3, shape: "spline", color: "rgb(234, 179, 8)" }, // Gelb
+      marker: { size: 6, color: "rgb(234, 179, 8)" },
+      name: "Gewitter",
+    });
+
+    const extraProbs = [
+      { key: "W_GEWSK_01", name: "Starkes Gewitter", color: "rgb(249, 115, 22)" }, // Orange
+      { key: "U_GEWSW_01", name: "Schweres Gewitter", color: "rgb(239, 68, 68)" }, // Rot
+    ];
+
+    extraProbs.forEach((ep) => {
+      if (seriesMap[ep.key]) {
+        const epData = seriesMap[ep.key].map((v) => (v == null ? null : v));
+        traces.push({
+          x: xData, y: epData,
+          type: "scatter",
+          mode: "lines",
+          connectgaps: true,
+          line: { width: 2, shape: "spline", color: ep.color, dash: "dot" }, 
+          name: ep.name,
+        });
+      }
+    });
+
+    const baseLayout = getLayout(param, timeSteps, timeZoneId);
+    const layout = {
+      ...baseLayout,
+      shapes: shapes,
+      yaxis: { ...baseLayout.yaxis, title: "Wahrscheinlichkeit (%)" },
+    };
+
+    Plotly.newPlot(plotlyDiv, traces, layout, getConfig()).then(() => enforcePanAfterZoom(plotlyDiv));
+    return;
   }
 
   // Standard Plot für alles andere (Linie)

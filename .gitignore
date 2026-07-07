@@ -24,3 +24,5 @@ docs/data/mosmix_s
 docs/data/uv_gft
 
 backend/BlendingForecast/data
+backend/index/data
+backend/WarnMOS/data

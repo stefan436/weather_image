@@ -1,4 +1,5 @@
 __pycache__
+.vscode
 tmp
 
 docs/data/latitudes_gft.json

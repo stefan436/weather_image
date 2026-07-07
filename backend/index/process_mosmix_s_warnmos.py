@@ -210,6 +210,14 @@ def prepare_warnmos_for_stations(coords_json_path, warnmos_data_dict, mosmix_tim
         
         # KD-Tree Abfrage
         dist, idx_1d = tree.query([station_lat, station_lon])
+        # Maximal erlaubte Distanz in Grad (ca. 11 km)
+        MAX_DISTANCE_DEG = 0.1
+                
+        if dist > MAX_DISTANCE_DEG:
+            # Station liegt außerhalb des WarnMOS-Bereichs
+            warnmos_by_station[station_id] = {} # Leeres Dict, Station erhält keine WarnMOS-Daten
+            continue # Springe sofort zur nächsten Station
+
         y, x = np.unravel_index(idx_1d, lats_2d.shape)
 
         station_data = {}

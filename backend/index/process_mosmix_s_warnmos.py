@@ -39,7 +39,7 @@ def clear_directory_pathlib(dir_path):
 def get_warnmos_url(base_url, date):
     found_long_url = None
     found_short_url = None
-    max_attempts = 8 
+    max_attempts = 12 
     attempts = 0
 
     while attempts < max_attempts:
@@ -47,17 +47,19 @@ def get_warnmos_url(base_url, date):
         target_url_long = base_url + f"WarnMOSLong{date_str}.grb2.bz2"
         target_url_short = base_url + f"WarnMOS{date_str}.grb2.bz2"
         
+        # 1. Prüfe auf Long
         if not found_long_url:
             try:
                 if requests.head(target_url_long).status_code == 200:
                     found_long_url = target_url_long
-                    if not found_short_url:
-                        break 
-                    else:
-                        break
+                    # Sobald Long gefunden wurde, können wir komplett abbrechen.
+                    # Grund: Die Initialisierung der Long deckt die Zukunft ab 
+                    # und macht ältere Short-Runs obsolet.
+                    break 
             except requests.exceptions.RequestException:
                 pass
 
+        # 2. Prüfe auf Short (nur wenn wir Long noch nicht gefunden haben)
         if not found_short_url:
             try:
                 if requests.head(target_url_short).status_code == 200:
@@ -126,47 +128,35 @@ def run_warnmos_workflow(base_url, date, target_vars, temp_dir="."):
     long_url, short_url = get_warnmos_url(base_url, date)
     
     ds_short, ds_long = None, None
-    valid_times = None
     
-    # 1. SHORT einlesen und Basiszeit bestimmen
+    # HILFSFUNKTION: Macht die Datensätze kompatibel für den "Best Available" Merge
+    def align_to_valid_time(ds):
+        # 1. Sicherstellen, dass valid_time existiert
+        if "valid_time" not in ds.coords:
+            ds = ds.assign_coords(valid_time=ds.time + ds.step)
+        # 2. Wir machen valid_time zur Hauptdimension (ersetzt step)
+        ds = ds.swap_dims({"step": "valid_time"})
+        # 3. Wir löschen die Konflikt-Koordinaten, da Short und Long
+        # unterschiedliche Basiszeiten (time) haben.
+        return ds.drop_vars(["time", "step"], errors="ignore")
+
+    # 1. SHORT einlesen und ausrichten
     if short_url:
         print(f"[SHORT] Lade herunter: {short_url}")
         ds_short = read_dataset(download_bz2(short_url, temp_dir), archive=True)
-        
-        # Basiszeit (time) und reale Vorhersagezeiten sichern
-        short_base_time = ds_short["time"].values
-        if "valid_time" in ds_short.coords:
-            valid_times = ds_short.coords["valid_time"].values
-        else:
-            valid_times = (ds_short["time"] + ds_short["step"]).values
+        ds_short = align_to_valid_time(ds_short)
 
-    # 2. LONG einlesen
+    # 2. LONG einlesen und ausrichten
     if long_url:
         print(f"[LONG] Lade herunter: {long_url}")
         ds_long = read_dataset(download_bz2(long_url, temp_dir), archive=True)
+        ds_long = align_to_valid_time(ds_long)
         
-        # --- VERSATZ-KORREKTUR ---
-        if ds_short is not None:
-            long_base_time = ds_long["time"].values
-            # Berechne den Zeitunterschied in Stunden (z.B. 18:00 - 16:00 = 2 Stunden)
-            hours_diff = int((short_base_time - long_base_time) / np.timedelta64(1, 'h'))
-            
-            if hours_diff > 0:
-                print(f"[KORREKTUR] Schneide die ersten {hours_diff} Stunden von LONG ab, um Versatz zu verhindern.")
-                # Verschiebe die 'step'-Achse von LONG so, dass sie zu SHORT passt
-                ds_long = ds_long.assign_coords(step=ds_long.step - np.timedelta64(hours_diff, 'h'))
-                # Entferne negative Steps (die jetzt in der Vergangenheit von SHORT liegen)
-                ds_long = ds_long.sel(step=ds_long.step >= np.timedelta64(0, 'ns'))
-        
-        if valid_times is None:
-            if "valid_time" in ds_long.coords:
-                valid_times = ds_long.coords["valid_time"].values
-            else:
-                valid_times = (ds_long["time"] + ds_long["step"]).values
-        
-    # 3. Jetzt ist der Merge absolut sicher!
+    # 3. Zusammenführen (Short überschreibt Long)
     if ds_short is not None and ds_long is not None:
-        print("Führe Datensätze zusammen (Short priorisiert, zeitlich synchron)...")
+        print("Führe Datensätze zusammen (Short überschreibt Long, Lücken werden gefüllt)...")
+        # combine_first nimmt den aufrufenden Datensatz (ds_short) als Master.
+        # Fehlende Zeiten (vorher oder nachher) werden mit ds_long aufgefüllt.
         ds_merged = ds_short.combine_first(ds_long)
     elif ds_short is not None:
         ds_merged = ds_short
@@ -175,6 +165,9 @@ def run_warnmos_workflow(base_url, date, target_vars, temp_dir="."):
     else:
         print("Warnung: Keine WarnMOS-Daten gefunden.")
         return {}
+        
+    # 4. Zeitreihe aus dem final verschmolzenen Datensatz extrahieren
+    valid_times = ds_merged.coords["valid_time"].values
         
     print("Extrahiere WarnMOS-Zieldaten...")
     data_dict = extract_data(ds_merged, target_vars, valid_times)
@@ -345,7 +338,7 @@ if __name__ == "__main__":
     WARNMOS_DOWNLOAD_PATH = "./data/download/WarnMOS"
     
     WARNMOS_BASE_URL = "https://opendata.dwd.de/weather/local_forecasts/warnmos/"
-    TARGET_DATE = datetime.now()
+    TARGET_DATE = datetime.utcnow()
     
     # Variablen Definitionen
     MOSMIX_TARGETS = {'TTT', 'Td', 'RR1c', 'Neff', 'DD', 'FF', 'FX1', 'wwM', 'ww', 'Rad1h'}

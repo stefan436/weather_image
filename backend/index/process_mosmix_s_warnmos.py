@@ -264,12 +264,22 @@ def process_and_save_station(station_id, raw_forecasts, timesteps, targets, warn
 def build_unified_api(mosmix_url, out_dir, coords_json, warnmos_args, target_params):
     os.makedirs(out_dir, exist_ok=True)
     
-    # Schritt 1: WarnMOS Daten laden
-    warnmos_dict = run_warnmos_workflow(*warnmos_args)
+    # Schritt 1: WarnMOS Daten laden (mit Fehlerabfang für absolute Unabhängigkeit)
+    try:
+        print("Starte WarnMOS-Verarbeitung...")
+        warnmos_dict = run_warnmos_workflow(*warnmos_args)
+    except Exception as e:
+        print(f"⚠️ FEHLER bei der WarnMOS-Verarbeitung: {e}")
+        print("Überspringe WarnMOS. MOSMIX-Verarbeitung läuft unabhängig weiter...")
+        warnmos_dict = {} # Fallback: Leeres Dict sorgt dafür, dass MOSMIX ungestört läuft
     
     # Schritt 2: MOSMIX KMZ Stream starten
     print("Starte MOSMIX Download und Parsing...")
-    req = urllib.request.urlopen(mosmix_url)
+    try:
+        req = urllib.request.urlopen(mosmix_url)
+    except Exception as e:
+        print(f"❌ KRITISCHER FEHLER: MOSMIX konnte nicht heruntergeladen werden: {e}")
+        return # Ohne MOSMIX macht das Skript hier keinen Sinn mehr
     tasks = []
     
     with zipfile.ZipFile(io.BytesIO(req.read())) as z:

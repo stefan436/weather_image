@@ -25,7 +25,7 @@ if mp.get_start_method(allow_none=True) != 'spawn':
         pass
 
 
-def run_steps_blending(radar_history, nwp_cube, target_minutes, pase_correction=True):
+def run_steps_blending(radar_history, nwp_cube, target_minutes, rv_forecast, pase_correction=True):
     """
     Führt das quasi-deterministische pysteps STEPS-Blending durch.
     radar_history: Shape (hist_time_steps, Y, X)
@@ -38,14 +38,16 @@ def run_steps_blending(radar_history, nwp_cube, target_minutes, pase_correction=
     # 2. NaN-Handling
     np.nan_to_num(radar_history, copy=False, nan=0.0)
     np.nan_to_num(nwp_cube, copy=False, nan=0.0)
+    np.nan_to_num(rv_forecast, copy=False, nan=0.0)
     nwp_cube = np.flip(nwp_cube, axis=1)
     
     # 3. Transformation in dBR
     radar_dbr, _ = transformation.dB_transform(radar_history, threshold=0.1, zerovalue=-15.0)
     nwp_dbr, _ = transformation.dB_transform(nwp_cube, threshold=0.1, zerovalue=-15.0)
+    rv_forecast_dbr, _ = transformation.dB_transform(rv_forecast, threshold=0.1, zerovalue=-15.0)
     
     # 4. Bewegungsfelder berechnen
-    print("Berechne Bewegungsvektoren ...")
+    print("Berechne Phase Correction (VET Bewegungsvektoren) ...")
 
     if pase_correction:  
         # Berechne verschiebung zwischen akteullem Radar Bild RV und Vorhersage des RUC für T+0
@@ -112,13 +114,10 @@ def run_steps_blending(radar_history, nwp_cube, target_minutes, pase_correction=
             # y_grid gibt jeweils den index des Pixels (nur für y Komponente)
             # current_align_y (hat selbe shape wie y_grid) und gibt in jedem eintrag an wie weit dieser geshiftet (in y Komponente) wurde 
             # die Differenz gibt ein array bei dem jeder Pixel ein Index enthält welcher referenziert welcher Wert (aus dem verschobenen Bild) an den jeweiligen Pixel gehört
-            src_y = y_grid - current_align_y
-            src_x = x_grid - current_align_x
-
+            src_y = (y_grid - current_align_y).astype(np.float32)
+            src_x = (x_grid - current_align_x).astype(np.float32)
             # opencv needs float32
-            src_x = src_x.astype(np.float32)
-            src_y = src_y.astype(np.float32)
-
+            
             nwp_dbr_aligned[t_step, :, :] = cv2.remap(
                 nwp_dbr[t_step, :, :], src_x, src_y, 
                 interpolation=cv2.INTER_LINEAR, 
@@ -141,7 +140,9 @@ def run_steps_blending(radar_history, nwp_cube, target_minutes, pase_correction=
         motion_nwp = future_nwp.result()
     
     # 5. Dimensionen für PySteps anpassen
-    precip_models_4d = nwp_dbr[np.newaxis, ...] 
+    precip_models_4d = nwp_dbr[np.newaxis, ...]
+    # Das RV-Feld in 4D (n_ens_members, timesteps, Y, X) umwandeln
+    precip_nowcast_4d = rv_forecast_dbr[np.newaxis, ...]
     
     n_timesteps = len(target_minutes)
     velocity_models_5d = np.repeat(motion_nwp[np.newaxis, np.newaxis, ...], n_timesteps + 1, axis=1)
@@ -154,7 +155,9 @@ def run_steps_blending(radar_history, nwp_cube, target_minutes, pase_correction=
     s = time.time()
     blended_dbr = forecast(
         precip=radar_dbr,              
-        precip_models=precip_models_4d,     
+        precip_models=precip_models_4d,
+        precip_nowcast=precip_nowcast_4d,          # Einspeisen der RV-Vorhersage
+        nowcasting_method="external_nowcast",      # Überspringen der internen Extrapolation  
         velocity=motion_radar,              
         velocity_models=velocity_models_5d, 
         timesteps=n_timesteps,              

@@ -4,11 +4,12 @@ import os
 import xarray as xr
 from datetime import timedelta
 from time import time
+from pathlib import Path
 
 # Deine eigenen Module
 from blending_engine import run_steps_blending
 from visualisation import animate_blended_forecast
-from read_past_radar import get_radar_urls, download_radar, create_radar
+from read_past_radar import get_radar_urls, download_radar, create_radar, get_rv_forecast
 from read_current_ICON_RUC import get_ruc_urls, download_ruc, create_prediction
 from alignment import align_ruc_like_cdo_remap
 from config import *
@@ -25,6 +26,14 @@ def main():
     # extended_radar_history hat nun Shape (24, 1200, 1100)
     extended_radar_history, projection_dict_rv, no_rain_rv= create_radar(radar_folder, hist_radar_film_steps)
     
+    # Extrahiere die Vorhersage aus der aktuellsten Radar-Datei
+    # Die letzte Datei im sortierten Ordner ist die aktuellste.
+    latest_rv_file = sorted([f for f in Path(radar_folder).iterdir() if f.is_file()])[-1]
+    steps_to_forecast = forecast_length // forecast_step_size
+    
+    # rv_forecast_mmh hat die Shape (timesteps, Y, X)
+    rv_forecast_mmh = get_rv_forecast(latest_rv_file, steps_to_forecast)
+    
     print("\n--- 2. Lade NWP (ICON-D2 RUC) Vorhersagen ---")
     ruc_urls = get_ruc_urls(set_past_date=set_past_date, RV_time=latest_RV_time, steps_into_future=(forecast_length // step_size) + 1)
     ruc_folder = download_ruc(ruc_urls)
@@ -39,14 +48,22 @@ def main():
 
         print("\n--- 3. Finales STEPS Blending ---")
         blending_radar_input = extended_radar_history[-hist_time_steps:]
+        
         # pySTEPS Vorhersage startet (index 0) bei T+5
-        blended_forecast_mmh, valid_RV_mask = run_steps_blending(blending_radar_input, final_prediction_ruc, target_minutes, pase_correction_nwp_rv)
+        blended_forecast_mmh, valid_RV_mask = run_steps_blending(
+            blending_radar_input,
+            final_prediction_ruc,
+            target_minutes,
+            rv_forecast_mmh,
+            pase_correction_nwp_rv
+        )
+        print(f"Shape des Blended Outputs: {blended_forecast_mmh.shape} (Zeitpunkte, Y, X)")
         full_forecast_array = np.concatenate(
             [extended_radar_history, blended_forecast_mmh],
             axis=0,
         )
         forecast_minutes = np.arange(0, forecast_length + forecast_step_size, forecast_step_size)
-        print(f"Shape des Blended Outputs: {full_forecast_array.shape} (Zeitpunkte, Y, X)")
+        print(f"Shape des End-Produkts Outputs: {full_forecast_array.shape} (Zeitpunkte, Y, X)")
         print(f"Totale Dauer der Erstellung der Vorhersage: {time()-total_start_time}")
         
     else:

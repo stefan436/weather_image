@@ -109,7 +109,51 @@ def download_radar(url_list):
             
     return output_dir
 
-
+def get_rv_forecast(data_path, steps_into_future):
+    """
+    Liest die Vorhersage-Zeitschritte (T+5, T+10...) aus den einzelnen HDF5-Dateien
+    innerhalb des RV-Tar-Archivs.
+    """
+    data_path = Path(data_path)
+    forecast_frames = []
+    
+    with tarfile.open(data_path, 'r') as tar:
+        # Alle Dateien im Archiv finden und alphabetisch sortieren
+        # Dadurch ergibt sich die Reihenfolge: 000, 005, 010, 015...
+        members = sorted([m for m in tar.getmembers() if m.isfile()], key=lambda x: x.name)
+        
+        # Wir starten zwingend bei Index 0 (T+0), da PySteps 
+        # den Startzustand (t=0) für die Initialisierung der Blending-Gewichte braucht!
+        for i in range(0, steps_into_future + 1):
+            if i >= len(members):
+                print(f"Warnung: Nicht genug Vorhersage-Dateien im Archiv. Erwarte {steps_into_future}, gefunden {len(members)-1}.")
+                break
+                
+            member = members[i]
+            f_obj = tar.extractfile(member)
+            file_bytes = io.BytesIO(f_obj.read())
+            
+            with h5py.File(file_bytes, 'r') as h5:
+                # Struktur ist in jeder Datei gleich
+                dataset = h5['/dataset1/data1/data']
+                what = h5['/dataset1/data1/what']
+                
+                # Attribute auslesen (Dein Output zeigt, dass nodata 4294967295 ist)
+                nodata = what.attrs.get('nodata', [4294967295.0])[0] if isinstance(what.attrs.get('nodata'), np.ndarray) else what.attrs.get('nodata', 4294967295.0)
+                gain = what.attrs.get('gain', [0.01])[0] if isinstance(what.attrs.get('gain'), np.ndarray) else what.attrs.get('gain', 0.01)
+                offset = what.attrs.get('offset', [0.0])[0] if isinstance(what.attrs.get('offset'), np.ndarray) else what.attrs.get('offset', 0.0)
+                
+                raw = dataset[:]
+                
+                # Umrechnung in mm/h und Maskierung
+                processed = np.where(
+                    raw == nodata, 
+                    np.nan, 
+                    (raw.astype(np.float32) * gain + offset) * 12.0
+                )
+                forecast_frames.append(processed)
+                
+    return np.array(forecast_frames)
 
 
 def read_radar_composite(data_path):
@@ -122,6 +166,7 @@ def read_radar_composite(data_path):
             key=lambda x: x.name
             )
 
+        # select first frame T+0 from archive
         member = members[0]
 
         # HDF5-Datei in den RAM laden (BytesIO)
@@ -204,26 +249,6 @@ def create_radar(download_folder, hist_time_steps):
     if radar_film.max() <= 0.1:
         no_rain = True
     return radar_film, projection_dict, no_rain
-
-
-def load_coordinates(bin_file_path):
-    with open(bin_file_path, 'rb') as f:
-        # Lese Höhe und Breite (Uint32, Little Endian 'true' in JS)
-        height = struct.unpack('<I', f.read(4))[0]
-        width = struct.unpack('<I', f.read(4))[0]
-        num_values = height * width
-
-        # Lese flache Float32-Arrays
-        lat_1d = np.frombuffer(f.read(num_values * 4), dtype=np.float32)
-        lon_1d = np.frombuffer(f.read(num_values * 4), dtype=np.float32)
-
-        # Reshape zu 2D
-        lat_2d = lat_1d.reshape((height, width))
-        lon_2d = lon_1d.reshape((height, width))
-
-        # Schneide die oberen Zeilen ab (height- rows_to_keep)
-        start_row = 0
-        return lat_2d[start_row:, :], lon_2d[start_row:, :]
 
 
 # url_list = get_radar_urls(hist_time_steps, set_past_date)

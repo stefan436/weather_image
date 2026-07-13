@@ -237,60 +237,6 @@ def create_prediction(download_folder, steps_into_future):
 
     return pred, projection_RUC, no_rain
 
-
-
-
-def save_pred_to_netcdf(pred, projection_dict, outfile="temp_model_data.nc"):
-    """
-    Wandelt das Vorhersage-Array in eine NetCDF-Datei um und fügt die 
-    Polygon-Eckpunkte (Bounds) CF-konform hinzu, damit CDO's gencon funktioniert.
-    """
-    time_steps = pred.shape[0]
-    
-    # 1. Eckpunkte (Bounds) für CDO vorbereiten
-    conn = projection_dict['connectivity'] # Shape: (n_cells, 3)
-    vlon = projection_dict['vertex_lon']
-    vlat = projection_dict['vertex_lat']
-    
-    # Mappe die Vertex-Koordinaten auf die Zellen. 
-    # Ergebnis ist ein Array der Form (n_cells, 3)
-    clon_bnds = vlon[conn]
-    clat_bnds = vlat[conn]
-    
-    # 2. CF-konformes Dataset erstellen
-    ds = xr.Dataset(
-        {
-            'precip_rate': (
-                ['time', 'cell'], 
-                pred, 
-                {'units': 'mm/h', 'long_name': 'Precipitation Rate'}
-            ),
-            # CDO sucht nach Variablen für die Eckpunkte
-            'clon_bnds': (['cell', 'vertices'], clon_bnds),
-            'clat_bnds': (['cell', 'vertices'], clat_bnds)
-        },
-        coords={
-            'time': np.arange(time_steps),
-            'clon': (
-                ['cell'], 
-                projection_dict['cell_lon'], 
-                # WICHTIG: Das bounds-Attribut sagt CDO, wo die Ecken liegen!
-                {'standard_name': 'longitude', 'units': 'degrees_east', 'bounds': 'clon_bnds'}
-            ),
-            'clat': (
-                ['cell'], 
-                projection_dict['cell_lat'], 
-                {'standard_name': 'latitude', 'units': 'degrees_north', 'bounds': 'clat_bnds'}
-            )
-        }
-    )
-    
-    ds.to_netcdf(outfile)
-    print(f"Temporäre Eingabedatei {outfile} (inkl. Zell-Eckpunkten) erstellt.")
-    return outfile
-
-
-    
 # urls = get_ruc_urls(set_past_date)
 # download_folder = download_ruc(urls)
 # prediction = create_prediction(download_folder, steps_into_future)

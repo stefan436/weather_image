@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 from scipy.ndimage import binary_erosion
+from rasterio.enums import Resampling
 
 from config import radarColorLevels, step_size, save_path_webp, meta_json_path, url_webp
 
@@ -92,7 +93,7 @@ def prepare_data(radar_forecast, projection_dict, time_array, valid_RV_mask):
 
     # 6. In Web Mercator (EPSG:3857) für Leaflet reprojizieren
     # rioxarray biegt das Bild hier automatisch gerade und glättet die Krümmung aus!
-    da_web = da.rio.reproject("EPSG:3857")
+    da_web = da.rio.reproject("EPSG:3857", resampling=Resampling.nearest)
     
     da_mask = xr.DataArray(
         data=valid_RV_mask.astype(np.float32), 

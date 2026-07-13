@@ -120,7 +120,7 @@ def run_steps_blending(radar_history, nwp_cube, target_minutes, rv_forecast, pas
             
             nwp_dbr_aligned[t_step, :, :] = cv2.remap(
                 nwp_dbr[t_step, :, :], src_x, src_y, 
-                interpolation=cv2.INTER_LINEAR, 
+                interpolation=cv2.INTER_NEAREST, 
                 borderMode=cv2.BORDER_CONSTANT, 
                 borderValue=-15.0               # für werte die aus dem/in das Bild geschoben werden --> werden auf zerovalue gesetzt --> kein Regen
             )
@@ -177,8 +177,86 @@ def run_steps_blending(radar_history, nwp_cube, target_minutes, rv_forecast, pas
     # 7. Rücktransformation in mm/h
     blended_dbr = np.squeeze(blended_dbr, axis=0)
     blended_mmh, _ = transformation.dB_transform(blended_dbr, threshold=-15.0, inverse=True)
+    
+    # 8. Time-Decayed Probability Matching anwenden
+    print("Wende Time-Decayed Probability Matching an...")
+    s = time.time()
+    # radar_history[-1] ist dein Radar bei T=0.
+    original_radar = radar_history[-1, :, :]
+    
+    # Wir übergeben den ungeänderten (aber geflippten) nwp_cube und die target_minutes
+    blended_mmh = apply_time_decayed_pmm(
+        blended_cube=blended_mmh, 
+        original_radar=original_radar, 
+        nwp_cube=nwp_cube, 
+        target_minutes=target_minutes, 
+        decay_tau=decay_tau,       # Nutzt denselben Decay-Faktor wie bei der Phase Correction (60 min)
+        threshold=0.1
+    )
+    print(f"Time-Decayed Probability Matching dauert: {time.time()-s:.2f}s")
     return blended_mmh, valid_radar_mask
 
 
 
-
+def apply_time_decayed_pmm(blended_cube, original_radar, nwp_cube, target_minutes, decay_tau=60, threshold=0.1):
+    """
+    Passt das Histogramm der Vorhersage schrittweise von Radar (T=0) auf NWP (T+x) an.
+    """
+    pmm_cube = np.empty_like(blended_cube)
+    
+    # 1. Radar-Verteilung (T=0) extrahieren
+    radar_rain = original_radar[original_radar >= threshold]
+    radar_vals = np.sort(radar_rain) if len(radar_rain) > 0 else np.array([])
+    
+    # Schleife über jeden Vorhersage-Zeitschritt (T+5, T+10, ...)
+    for i, t_min in enumerate(target_minutes):
+        target_field = blended_cube[i]
+        
+        # NWP-Cube enthält T+0 an Index 0. Wir brauchen T+5, T+10 etc., also Index i+1
+        nwp_field = nwp_cube[i+1] 
+        
+        rain_mask = target_field >= threshold
+        target_vals = target_field[rain_mask]
+        
+        # Wenn es im Zielbild nicht regnet, können wir uns das Matching sparen
+        if len(target_vals) == 0:
+            pmm_cube[i] = target_field
+            continue
+            
+        # 2. Zielwerte sortieren und Perzentile definieren
+        sort_indices = np.argsort(target_vals)
+        target_percentiles = np.linspace(0, 1, len(target_vals))
+        
+        # 3. Gewichtung berechnen (identisch zu deinem VET-Decay im Code)
+        # w_radar startet bei fast 1.0 und fällt exponentiell ab
+        w_radar = np.exp(-t_min / decay_tau)
+        
+        # 4. Radar-Werte auf die Ziel-Perzentile interpolieren
+        if len(radar_vals) > 0:
+            radar_percentiles = np.linspace(0, 1, len(radar_vals))
+            matched_radar = np.interp(target_percentiles, radar_percentiles, radar_vals)
+        else:
+            matched_radar = np.zeros_like(target_percentiles)
+            
+        # 5. NWP-Werte (für diesen spezifischen Zeitschritt) interpolieren
+        nwp_rain = nwp_field[nwp_field >= threshold]
+        if len(nwp_rain) > 0:
+            nwp_vals = np.sort(nwp_rain)
+            nwp_percentiles = np.linspace(0, 1, len(nwp_vals))
+            matched_nwp = np.interp(target_percentiles, nwp_percentiles, nwp_vals)
+        else:
+            matched_nwp = np.zeros_like(target_percentiles)
+            
+        # 6. Histogramme mischen (Time-Decay)
+        mixed_sorted_vals = w_radar * matched_radar + (1.0 - w_radar) * matched_nwp
+        
+        # 7. Gemischte Werte zurück auf die Geografie des Bildes anwenden
+        matched_vals = np.empty_like(mixed_sorted_vals)
+        matched_vals[sort_indices] = mixed_sorted_vals
+        
+        result_field = np.copy(target_field)
+        result_field[rain_mask] = matched_vals
+        
+        pmm_cube[i] = result_field
+        
+    return pmm_cube

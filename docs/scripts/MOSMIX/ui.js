@@ -77,8 +77,8 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
 
     const code = parseInt(seriesMap["Significant Weather"][i]);
     return {
-      timestamp: realDateObj, 
-      stTime: stTime, 
+      timestamp: realDateObj,
+      stTime: stTime,
       hour: stTime.hour, // Stunde in der Ziel-Zeitzone
       code: parseInt(seriesMap["Significant Weather"][i]),
       index: i,
@@ -92,8 +92,14 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
   const daysMap = {};
   // Für die Referenztage (Heute, Morgen) nutzen wir nun auch die Stations-Zeitzone
   const todayIso = getStationTime(now, timeZoneId).dayIso;
-  const tomorrowIso = getStationTime(new Date(now.getTime() + 86400000), timeZoneId).dayIso;
-  const dayAfterTomorrowIso = getStationTime(new Date(now.getTime() + 2 * 86400000), timeZoneId).dayIso;
+  const tomorrowIso = getStationTime(
+    new Date(now.getTime() + 86400000),
+    timeZoneId,
+  ).dayIso;
+  const dayAfterTomorrowIso = getStationTime(
+    new Date(now.getTime() + 2 * 86400000),
+    timeZoneId,
+  ).dayIso;
 
   for (const entry of futureEntries) {
     const period = periods.find((p) => {
@@ -129,7 +135,7 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
         timeZone: timeZoneId,
         weekday: "short",
         day: "2-digit",
-        month: "short"
+        month: "short",
       });
     }
 
@@ -245,13 +251,13 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
 
         const cloud_covers = [];
         for (const i of indices) {
-          // SHIFT-AUSGLEICH: Wir ziehen 1 vom Index ab, um den 
+          // SHIFT-AUSGLEICH: Wir ziehen 1 vom Index ab, um den
           // Bewölkungswert am ANFANG der jeweiligen Stunde zu bekommen.
           // Dadurch ist z.B. für Mittags der Durchschnitt durch den Bewölkungsgrad
           // um 10 Uhr, 11 Uhr, 12 Uhr und 13 Uhr (anstatt 11-14 Uhr) berechnet.
-          const prevIndex = i - 1; 
-          
-          // SICHERHEITSCHECK: Verhindert einen Fehler beim allerersten Eintrag 
+          const prevIndex = i - 1;
+
+          // SICHERHEITSCHECK: Verhindert einen Fehler beim allerersten Eintrag
           // des Arrays (falls prevIndex -1 sein sollte).
           if (prevIndex >= 0 && !isNaN(seriesMap["Bewölkung"]?.[prevIndex])) {
             cloud_covers.push(seriesMap["Bewölkung"][prevIndex]);
@@ -305,13 +311,68 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
         };
       }
 
+      // --- 1. Temperatur (Durchschnitt der Periode) ---
+      // Punktueller Parameter: Wir nutzen e.index - 1, um die Werte am Anfang der Stunde
+      // (z.B. 10, 11, 12, 13 Uhr für die Mittag-Periode) zu greifen.
+      const temps = entries
+        .map((e) => {
+          const prevIndex = e.index - 1;
+          return prevIndex >= 0
+            ? seriesMap["Temperatur (°C)"]?.[prevIndex]
+            : null;
+        })
+        .filter((t) => t !== null && t !== undefined && !isNaN(t));
+
+      const avgTemp =
+        temps.length > 0
+          ? Math.round(temps.reduce((a, b) => a + b, 0) / temps.length)
+          : "--";
+      const tempStr = `🌡️${avgTemp}°C`;
+
+      // --- 2. Niederschlagswahrscheinlichkeit ---
+      // Zeitraumbezogener Parameter: e.index passt hier exakt, da es die Endzeitpunkte
+      // der aufsummierten Stunden (z.B. 11, 12, 13, 14 Uhr) abbildet.
+      let precipStr = "";
+      if (dominantCode >= 50) {
+        // Maximale Wahrscheinlichkeit in der Periode
+        const probs = entries
+          .map((e) => seriesMap["Niederschlagswahrscheinlichkeit"]?.[e.index])
+          .filter((p) => p !== null && p !== undefined && !isNaN(p));
+        const maxProb = probs.length > 0 ? Math.max(...probs) : 0;
+
+        precipStr = `🌧️ ${Math.round(maxProb)}%`;
+      }
+
+      // --- 3. Windgeschwindigkeit (mindestens einmal >= 15 km/h) ---
+      // Punktueller Parameter: e.index - 1 nutzen
+      let windStr = "";
+      const winds = entries
+        .map((e) => {
+          const prevIndex = e.index - 1;
+          return prevIndex >= 0
+            ? seriesMap["Windgeschwindigkeit (km/h)"]?.[prevIndex]
+            : null;
+        })
+        .filter((w) => w !== null && w !== undefined && !isNaN(w));
+
+      if (winds.some((w) => w >= 15)) {
+        windStr = "💨";
+      }
+
+      // --- HTML der Karte zusammenbauen ---
       const card = document.createElement("div");
       card.className = "summary-card";
+
       card.innerHTML = `
-            <img src="icons/${info.icon}" alt="${info.label}">
             <div class="summary-text">
-            <strong>${periodName}</strong>
-            <span class="label">${info.label}</span>
+              <strong>${periodName}</strong>
+              <img src="icons/${info.icon}" alt="${info.label}">
+              <div class="summary-params">
+                <span>${tempStr}</span>
+                ${precipStr ? `<span>${precipStr}</span>` : ""}
+                ${windStr ? `<span>${windStr}</span>` : ""}
+              </div>
+              <span class="label">${info.label}</span>
             </div>
         `;
       container.appendChild(card);

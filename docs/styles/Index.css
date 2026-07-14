@@ -246,28 +246,46 @@ select {
   justify-content: flex-start;
 }
 
-.summary-card img {
-  width: 40px;
-  height: 40px;
-  margin-bottom: 8px;
-}
-
 .summary-card strong {
   display: block;
   font-size: 14px;
+  color: var(--fg);
   margin-bottom: 4px;
+}
+
+.summary-card img {
+  width: 40px;
+  height: 40px;
+}
+
+.summary-params {
+    font-size: 12px;
+    color: var(--fg);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 4px 12px; 
+}
+
+/* 1. Wenn es das ABSOLUT EINZIGE Element ist (nur Temperatur) */
+.summary-params span:only-child {
+    grid-column: span 2;
+    text-align: center;
+}
+
+/* 2. Wenn es das DRITTE Element ist (Wind steht alleine in Zeile 2) */
+.summary-params span:nth-child(3):last-child {
+    grid-column: span 2;
+    text-align: center;
 }
 
 .summary-card span.label {
   font-size: 12px;
-  color: #4f4f4f;
+  color: var(--primary);
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
   align-items: center; /* oder left/right je nach Bedarf */
-  gap: 1px; /* statt line-height hack */
 }
-
-
 
 
 /* Kein Daten Zustand */

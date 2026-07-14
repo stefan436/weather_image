@@ -1,11 +1,10 @@
 // dataParser.js
 
 import {
-  elementUnitsMap,
-  unitConversionMap,
+  unitProcessingConfig,
   combinedParams,
   preferredOrder,
-  excludedElements,
+  includedDropdownElements,
   USE_MOSMIX_S,
 } from "./config.js";
 
@@ -39,7 +38,6 @@ export async function loadMosmixData(stationId, userLat, userLon) {
   setStatus("Analysiere Wetterdaten...");
   const kmlText = await zip.files[kmlFile].async("string");
 
-  // Wir rufen parseKML auf und GEEBEN die Daten an die main.js ZURÜCK!
   return await parseKML(kmlText, userLat, userLon, stationId);
 }
 
@@ -110,15 +108,18 @@ export async function parseKML(text, userLat, userLon, stationId) {
     console.warn("Unerwarteter Fehler beim Verarbeiten der UV/GFT-Daten:", e);
   }
 
-  // 2. KML Forecasts parsen
+  // 2. KML Forecasts parsen und direkt mit Names-Map übersetzen
   for (const fc of forecasts) {
     const elName =
       fc.getAttributeNS(DWDNS, "elementName") || fc.getAttribute("elementName");
     const valueNode = fc.getElementsByTagNameNS(DWDNS, "value")[0];
     if (!elName || !valueNode) continue;
 
-    const unit = elementUnitsMap[elName];
-    const converter = unitConversionMap[unit];
+    // Übersetzung und Einheitenverarbeitung
+    const readableName = elementNamesMap[elName] || elName;
+    const processingRule = unitProcessingConfig[elName];
+    const converter = processingRule ? processingRule.convert : (v) => v;
+
     const values = valueNode.textContent
       .trim()
       .split(/\s+/)
@@ -126,11 +127,10 @@ export async function parseKML(text, userLat, userLon, stationId) {
         if (v === "-" || v === "") return null;
         const num = Number(v);
         if (!Number.isFinite(num)) return v;
-        const converted = converter ? converter(num) : num;
+        const converted = converter(num);
         return Math.round(converted * 100) / 100;
       });
 
-    const readableName = elementNamesMap[elName] || elName;
     seriesMap[readableName] = values.slice(0, timeSteps.length);
   }
 
@@ -142,7 +142,7 @@ export async function parseKML(text, userLat, userLon, stationId) {
     }
   }
 
-  // 4. MOSMIX-S JSON LADEN UND ÜBERSCHREIBEN
+  // 4. MOSMIX-S JSON LADEN UND ÜBERSCHREIBEN (Dynamisiert)
   if (USE_MOSMIX_S) {
     try {
       setStatus("Integriere stündliche Vorhersagedaten...");
@@ -157,53 +157,24 @@ export async function parseKML(text, userLat, userLon, stationId) {
           sTimeMap[new Date(ts).getTime()] = index;
         });
 
-        const overrideSeries = (jsonKey, seriesName, converter) => {
-          if (sData.d[jsonKey]) {
-            // Alternative: Zwingendes Leeren des von "L" stammenden Arrays,
-            // um eine Vermischung im Fall fehlender "S"-Zeitstempel unmöglich zu machen.
-            seriesMap[seriesName] = new Array(timeSteps.length).fill(null);
+        // Wir iterieren über ALLE Elemente im MOSMIX-S, konvertieren sie und speichern sie, 
+        // damit auch ungenutzte Parameter vollständig im seriesMap für die Konsole landen.
+        for (const jsonKey in sData.d) {
+          const readableName = elementNamesMap[jsonKey] || jsonKey;
+          const processingRule = unitProcessingConfig[jsonKey];
+          const converter = processingRule ? processingRule.convert : (v) => v;
 
-            timeSteps.forEach((kmlTs, kmlIndex) => {
-              const kmlTime = new Date(kmlTs).getTime();
-              const sIndex = sTimeMap[kmlTime];
-
-              if (sIndex !== undefined && sData.d[jsonKey][sIndex] !== null) {
-                seriesMap[seriesName][kmlIndex] =
-                  Math.round(converter(sData.d[jsonKey][sIndex]) * 100) / 100;
-              }
-            });
-          }
-        };
-
-        overrideSeries("TTT", "Temperatur (°C)", (v) => v - 273.15);
-        const tdKey = elementNamesMap["Td"] || "Td";
-        overrideSeries("Td", tdKey, (v) => v - 273.15);
-        overrideSeries("RR1c", "Totale Niederschlagsmenge (mm)", (v) => v);
-        overrideSeries("Neff", "Bewölkung", (v) => v);
-        overrideSeries("DD", "Windrichtung", (v) => v);
-        overrideSeries("FF", "Windgeschwindigkeit (km/h)", (v) => v * 3.6);
-        overrideSeries("FX1", "Maximale Windböe", (v) => v * 3.6);
-        overrideSeries("Rad1h", "Strahlungsintensität (W/m^2)", (v) => v / 3.6);
-        overrideSeries("wwM", "Nebelwahrscheinlichkeit", (v) => v);
-        overrideSeries("W_GEW_01", "W_GEW_01", (v) => v);
-        overrideSeries("W_GEWSK_01", "W_GEWSK_01", (v) => v);
-        overrideSeries("U_GEWSW_01", "U_GEWSW_01", (v) => v);
-        
-        if (sData.d["W_GEW_01"]) {
-          seriesMap["Gewitterwahrscheinlichkeit"] = seriesMap["W_GEW_01"]; 
-        }
-
-        const wwArray = sData.d["ww"];
-        if (wwArray) {
-          // Bedingungsloses Leeren, um L-Daten zu vernichten
-          seriesMap["Significant Weather"] = new Array(timeSteps.length).fill(
-            null,
-          );
-
+          // Arrays bedingungslos leeren/initialisieren um L-Daten sauber zu überschreiben
+          seriesMap[readableName] = new Array(timeSteps.length).fill(null);
+          
+          const sourceArray = sData.d[jsonKey];
           timeSteps.forEach((kmlTs, kmlIndex) => {
-            const sIndex = sTimeMap[new Date(kmlTs).getTime()];
-            if (sIndex !== undefined && wwArray[sIndex] !== null) {
-              seriesMap["Significant Weather"][kmlIndex] = wwArray[sIndex];
+            const kmlTime = new Date(kmlTs).getTime();
+            const sIndex = sTimeMap[kmlTime];
+
+            if (sIndex !== undefined && sourceArray[sIndex] !== null) {
+              seriesMap[readableName][kmlIndex] =
+                Math.round(converter(sourceArray[sIndex]) * 100) / 100;
             }
           });
         }
@@ -265,10 +236,13 @@ export async function parseKML(text, userLat, userLon, stationId) {
     seriesMap["Relative Luftfeuchtigkeit (%)"] = rhValues;
     seriesMap["Relative Luftfeuchtigkeit (%)_error"] = rhErrorValues;
   }
+  
+  // Alle Parameter ordentlich in die Konsole loggen (aufgeräumt und verständlich)
+  console.log("=== KOMPLETTE EXTRAHIERTE DATEN (seriesMap) ===");
   console.log("Time series:", timeSteps);
   console.log("Parsed series:", seriesMap);
 
-  // 6. Sortieren und Filtern für das UI-Dropdown vorbereiten
+  // 6. Sortieren und Filtern für das UI-Dropdown (jetzt über Whitelist-Filter)
   let cols = Object.keys(seriesMap);
 
   cols.sort((a, b) => {
@@ -280,16 +254,13 @@ export async function parseKML(text, userLat, userLon, stationId) {
     return ia - ib;
   });
 
+  // Filtern mit der neuen includedDropdownElements (Whitelist)
   const plotColumns = cols.filter((c) => {
     if (c.endsWith("_error")) return false;
-    const originalKey = Object.keys(elementNamesMap).find(
-      (k) => elementNamesMap[k] === c,
-    );
-    const key = originalKey || c;
-    return !excludedElements.includes(key);
+    return includedDropdownElements.includes(c);
   });
 
-  // 7. RÜCKGABE DER DATEN (Das Wichtigste an dieser Funktion)
+  // 7. RÜCKGABE DER DATEN 
   return {
     timeSteps: timeSteps,
     seriesMap: seriesMap,

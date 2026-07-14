@@ -1,6 +1,7 @@
 // plot.js
 // getLayout und getConfig werden NICHT exportiert, da sie nur intern in dieser Datei genutzt werden.
 
+import { elementNamesMap } from "./elementNamesMap.js";
 import { getStationTime } from "./geoService.js";
 import { previewHours } from "./config.js";
 
@@ -466,7 +467,8 @@ export function renderPlot(
   }
 
   // --- Detaillierte Niederschlagswahrscheinlichkeiten ---
-  if (param === "Niederschlagswahrscheinlichkeit") {
+  const rainProbKey = elementNamesMap["wwP"] || "Niederschlagswahrscheinlichkeit";
+  if (param === rainProbKey) {
     // 1. Die Hauptlinie (Gesamtwahrscheinlichkeit wwP)
     traces.push({
       x: xData,
@@ -479,28 +481,28 @@ export function renderPlot(
       name: "Gesamt",
     });
 
-    // 2. Zusätzliche Kurven definieren (Farben sind Vorschläge, gerne anpassen)
+    // Dynamischer Lookup für die Sub-Graphen
     const extraProbs = [
       {
-        key: "Nieselregen-Wahrscheinlichkeit",
+        key: elementNamesMap["wwZ"] || "wwZ",
         name: "Nieselregen",
         color: "rgb(156, 163, 175)",
-      }, // Grau
+      },
       {
-        key: "Frontregen-Wahrscheinlichkeit",
+        key: elementNamesMap["wwD"] || "wwD",
         name: "Frontregen",
         color: "rgb(37, 99, 235)",
-      }, // Blau
+      },
       {
-        key: "Konvektionsregen-Wahrscheinlichkeit",
+        key: elementNamesMap["wwC"] || "wwC",
         name: "Konvektion",
         color: "rgb(147, 51, 234)",
-      }, // Lila
+      },
       {
-        key: "Gewitter-Wahrscheinlichkeit",
+        key: elementNamesMap["wwT"] || "wwT",
         name: "Gewitter",
         color: "rgb(234, 179, 8)",
-      }, // Gelb/Orange
+      },
     ];
 
     // 3. Zusätzliche Kurven zum Plot hinzufügen, falls Daten vorhanden sind
@@ -535,8 +537,9 @@ export function renderPlot(
     return; // Bricht hier ab, damit der "Standard Plot" nicht auch noch gezeichnet wird
   }
 
-  // --- NEU: Gewitterwahrscheinlichkeit (WarnMOS) ---
-  if (param === "Gewitterwahrscheinlichkeit") {
+  // --- Gewitterwahrscheinlichkeit (WarnMOS) ---
+  const warnMosGewitterKey = elementNamesMap["W_GEW_01"] || "Gewitterwahrscheinlichkeit";
+  if (param === warnMosGewitterKey) {
     traces.push({
       x: xData,
       y: yData, // Hauptlinie (W_GEW_01)
@@ -548,9 +551,10 @@ export function renderPlot(
       name: "Gewitter",
     });
 
+    // Dynamischer Lookup für die Sub-Graphen
     const extraProbs = [
-      { key: "W_GEWSK_01", name: "Starkes Gewitter", color: "rgb(249, 115, 22)" }, // Orange
-      { key: "U_GEWSW_01", name: "Schweres Gewitter", color: "rgb(239, 68, 68)" }, // Rot
+      { key: elementNamesMap["W_GEWSK_01"] || "W_GEWSK_01", name: "Starkes Gewitter", color: "rgb(249, 115, 22)" },
+      { key: elementNamesMap["U_GEWSW_01"] || "U_GEWSW_01", name: "Schweres Gewitter", color: "rgb(239, 68, 68)" }, 
     ];
 
     extraProbs.forEach((ep) => {

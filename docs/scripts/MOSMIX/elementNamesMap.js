@@ -50,7 +50,7 @@ export const elementNamesMap = {
     "wwZ": "Nieselregen-Wahrscheinlichkeit",
     "wwD": "Frontregen-Wahrscheinlichkeit",
     "wwC": "Konvektionsregen-Wahrscheinlichkeit",
-    "wwT": "Gewitter-Wahrscheinlichkeit",
+    "wwT": "Gewitter-Wahrscheinlichkeit (MOSMIX)",
     "wwL": "Probability: Occurrence of liquid precipitation within the last hour",
     "wwS": "Probability: Occurrence of solid precipitation within the last hour",
     "wwF": "Probability: Occurrence of freezing rain within the last hour",
@@ -125,10 +125,10 @@ export const elementNamesMap = {
     "lsp": "Large-scale precipitation",
     "cp": "Convective precipitation",
     "asnow": "Total snowfall",
-    "W_GEW_01": "Probability of thunderstorm during 1h",
-    "W_GEWSK_01": "Probability of heavy thunderstorm during 1h",
-    "U_GEWSW_01": "Probability of severe thunderstorm during 1h",
+    "W_GEW_01": "Gewitterwahrscheinlichkeit (WarnMOS)",                       // Wahrscheinlichkeit während der letzten vergangenen stunde
+    "W_GEWSK_01": "Starkes Gewitter (WarnMOS)",             // Wahrscheinlichkeit während der letzten vergangenen stunde
+    "U_GEWSW_01": "Schweres Gewitter (WarnMOS)",            // Wahrscheinlichkeit während der letzten vergangenen stunde
     "FZ": "Prob Glaette",
     "FZRA": "Prob oertlich Glatteis",
-    "FZRAX": "Prob Glatteis"
+    "FZRAX": "Glättewahrscheinlichkeit"
 };

@@ -1,6 +1,7 @@
 // config.js
 
 export const USE_MOSMIX_S = true;
+
 /* Schwellenwerte für die Summary cards nach denen die Bewölkung klassifiziert wird
 unter 30 wolkenlos, zwischen 30 und 60 leicht bewölkt,
 zwischen 60 und 80 mittel bewölkt, über 80 stark bewölkt */
@@ -38,10 +39,17 @@ export const combinedParams = [
   { value: "Windrichtung", error: "Absolute error wind direction" },
 ];
 
+/**
+ * Die preferredOrder bestimmt die Reihenfolge der Elemente, wie sie im 
+ * Dropdown-Menü der Benutzeroberfläche erscheinen sollen.
+ * Elemente, die hier weiter oben stehen, werden zuerst angezeigt.
+ * Elemente, die nicht in dieser Liste stehen, werden im Dropdown 
+ * alphabetisch an das Ende angehängt.
+ */
 export const preferredOrder = [
   "Temperatur (°C)",
   "Niederschlagswahrscheinlichkeit",
-  "Gewitterwahrscheinlichkeit",
+  "Gewitterwahrscheinlichkeit (WarnMOS)",
   "Glättewahrscheinlichkeit",
   "Totale Niederschlagsmenge (mm)",
   "Bewölkung",
@@ -56,185 +64,96 @@ export const preferredOrder = [
   "UV-Index",
   "Strahlungsintensität (W/m^2)",
   "reduzierter Oberflächendruck",
-]; // Kürzel, die nicht im Dropdown auftauchen sollen
+];
 
-export const excludedElements = [
-  "E_PPP",
-  "E_Td",
-  "FX3",
-  "FX625",
-  "FX640",
-  "FX655",
-  "FXh",
-  "FXh25",
-  "FXh40",
-  "PSd00",
-  "PSd30",
-  "PSd60",
-  "R101",
-  "R102",
-  "R103",
-  "R105",
-  "R107",
-  "R110",
-  "R120",
-  "R130",
-  "R150",
-  "R600",
-  "R602",
-  "R610",
-  "R650",
-  "RRad1",
-  "Rd00",
-  "Rd02",
-  "Rd10",
-  "Rd50",
-  "Rh00",
-  "Rh02",
-  "Rh10",
-  "Rh50",
-  "RR1o1",
-  "RR1u1",
-  "RR1w1",
-  "RR3c",
-  "RR6c",
-  "RRdc",
-  "RRhc",
-  "RRL1c",
-  "RRS1c",
-  "RRS3c",
-  "RSunD",
-  "FX1",
-  "SunD3",
-  "T5cm",
-  "Td",
-  "TG",
-  "TM",
-  "W1W2",
-  "WPc11",
-  "WPc31",
-  "WPc61",
-  "DRR1",
-  "PPPP",
-  "WPcd1",
-  "WPch1",
-  "ww",
-  "ww3",
-  "wwC",
-  "wwC6",
-  "wwCh",
-  "wwD",
-  "wwD6",
-  "wwDh",
-  "SunD1",
-  "wwF",
-  "wwF6",
-  "wwFh",
-  "wwL",
-  "wwL6",
-  "wwLh",
-  "wwM6",
-  "wwMd",
-  "wwMh",
-  "wwP6",
-  "VV",
-  "wwPd",
-  "wwPh",
-  "wwS",
-  "wwS6",
-  "wwSh",
-  "wwT6",
-  "wwTd",
-  "wwTh",
-  "wwZ",
-  "VV10",
-  "wwT",
-  "wwZ6",
-  "wwZh",
-  "FXh55",
-  "N05",
-  "Nh",
-  "Nl",
-  "Nlm",
-  "Nm",
-  "PEvap",
-  "TX",
-  "TN",
-  "N",
-  "Gefühlte Temperatur",
-  "W_GEW_01", "W_GEWSK_01", "U_GEWSW_01", 
-  "FZ", "FZRA", "FZRAX",                 
-  "cp", "lsp", "asnow",
+// Definiert explizit, welche Parameter im UI-Dropdown auswählbar sein sollen.
+// Ersetzt das alte "excludedElements"-Array für mehr Kontrolle.
+export const includedDropdownElements = [
+  "Temperatur (°C)",
+  "Niederschlagswahrscheinlichkeit",
+  "Gewitterwahrscheinlichkeit (WarnMOS)",
+  "Totale Niederschlagsmenge (mm)",
+  "Bewölkung",
+  "Windgeschwindigkeit (km/h)",
+  "Windrichtung",
+  "Nebelwahrscheinlichkeit",
+  "Relative Luftfeuchtigkeit (%)",
+  "Sonnenstunden",
+  "UV-Index",
+  "Strahlungsintensität (W/m^2)"
 ]; 
 
-export const unitConversionMap = {
-  K: (v) => v - 273.15,
-  "m/s": (v) => v * 3.6,
-  Pa: (v) => v / 100,
-  "kg/m2": (v) => v,
-  s: (v) => v / 60,
-  "1std kJ/m2": (v) => v / 3.6,
-  "3std kJ/m2": (v) => v / 10.8,
-  m: (v) => v,
-  "Sichtweite m": (v) => v / 1000,
-  "%": (v) => v,
-  "-": (v) => v,
-  "0°..360°": (v) => v,
-};
+/**
+ * unitProcessingConfig fasst die Einheitenzuweisung und Umrechnung zusammen.
+ * Jeder Schlüssel entspricht dem rohen DWD-Kürzel.
+ * Wenn ein Kürzel hier nicht gelistet ist, wird der Wert 1:1 übernommen.
+ */
+export const unitProcessingConfig = {
+  // --- Temperatur (Kelvin zu Celsius) ---
+  TTT: { unit: "°C", convert: (v) => v - 273.15 },
+  Td: { unit: "°C", convert: (v) => v - 273.15 },
+  TX: { unit: "°C", convert: (v) => v - 273.15 },
+  TN: { unit: "°C", convert: (v) => v - 273.15 },
+  T5cm: { unit: "°C", convert: (v) => v - 273.15 },
+  TM: { unit: "°C", convert: (v) => v - 273.15 },
+  TG: { unit: "°C", convert: (v) => v - 273.15 },
 
-export const elementUnitsMap = {
-  TTT: "K",
-  Td: "K",
-  TX: "K",
-  TN: "K",
-  T5cm: "K",
-  TM: "K",
-  TG: "K",
-  E_TTT: "-",
-  E_Td: "-",
-  FF: "m/s",
-  FX1: "m/s",
-  FX3: "m/s",
-  FXh: "m/s",
-  E_FF: "m/s",
-  DD: "0°..360°",
-  E_DD: "0°..360°",
-  PPPP: "Pa",
-  QNH: "Pa",
-  E_PPP: "Pa",
-  RR1: "kg/m2",
-  RR3: "kg/m2",
-  RR6: "kg/m2",
-  RR6c: "kg/m2",
-  RR1c: "kg/m2",
-  RR3c: "kg/m2",
-  RRh: "kg/m2",
-  RRhc: "kg/m2",
-  RRd: "kg/m2",
-  RRdc: "kg/m2",
-  Rad1h: "1std kJ/m2",
-  RadS3: "3std kJ/m2",
-  RadL3: "3std kJ/m2",
-  VV: "Sichtweite m",
-  H_BsC: "m",
-  SunD1: "s",
-  SunD3: "s",
-  SunD: "s",
-  DRR1: "s",
+  // --- Fehlerbereiche Temperatur (bleiben K, da Differenzen in K und °C identisch sind) ---
+  E_TTT: { unit: "K", convert: (v) => v },
+  E_Td: { unit: "K", convert: (v) => v },
+
+  // --- Windgeschwindigkeit (m/s zu km/h) ---
+  FF: { unit: "km/h", convert: (v) => v * 3.6 },
+  FX1: { unit: "km/h", convert: (v) => v * 3.6 },
+  FX3: { unit: "km/h", convert: (v) => v * 3.6 },
+  FXh: { unit: "km/h", convert: (v) => v * 3.6 },
+  E_FF: { unit: "km/h", convert: (v) => v * 3.6 }, 
+
+  // --- Windrichtung ---
+  DD: { unit: "°", convert: (v) => v },
+  E_DD: { unit: "°", convert: (v) => v },
+
+  // --- Luftdruck (Pa zu hPa) ---
+  PPPP: { unit: "hPa", convert: (v) => v / 100 },
+  QNH: { unit: "hPa", convert: (v) => v / 100 },
+  E_PPP: { unit: "hPa", convert: (v) => v / 100 },
+
+  // --- Niederschlag (kg/m² entspricht 1:1 mm) ---
+  RR1: { unit: "mm", convert: (v) => v },
+  RR3: { unit: "mm", convert: (v) => v },
+  RR6: { unit: "mm", convert: (v) => v },
+  RR6c: { unit: "mm", convert: (v) => v },
+  RR1c: { unit: "mm", convert: (v) => v },
+  RR3c: { unit: "mm", convert: (v) => v },
+  RRh: { unit: "mm", convert: (v) => v },
+  RRhc: { unit: "mm", convert: (v) => v },
+  RRd: { unit: "mm", convert: (v) => v },
+  RRdc: { unit: "mm", convert: (v) => v },
+
+  // --- Strahlung (Umrechnung in W/m²) ---
+  Rad1h: { unit: "W/m²", convert: (v) => v / 3.6 }, // 1std kJ/m² -> W/m²
+  RadS3: { unit: "W/m²", convert: (v) => v / 10.8 }, // 3std kJ/m² -> W/m²
+  RadL3: { unit: "W/m²", convert: (v) => v / 10.8 }, // 3std kJ/m² -> W/m²
+
+  // --- Sichtweite (m zu km) ---
+  VV: { unit: "km", convert: (v) => v / 1000 },
+
+  // --- Wolkenhöhe ---
+  H_BsC: { unit: "m", convert: (v) => v },
+
+  // --- Zeiten/Dauern (Sekunden zu Minuten) ---
+  SunD1: { unit: "min", convert: (v) => v / 60 },
+  SunD3: { unit: "min", convert: (v) => v / 60 },
+  SunD: { unit: "min", convert: (v) => v / 60 },
+  DRR1: { unit: "min", convert: (v) => v / 60 }
 };
 
 export const wwIconMap = {
   // Gewitter
   95: { icon: "thunderstorm.png", label: "Gewitter mit Regen/Schnee" }, // gefrierender Sprühregen/Regen
 
-  57: {
-    icon: "heavy freeting rain.png",
-    label: "Starker gefrierender Sprühregen",
-  },
-  56: {
-    icon: "light freezing rain.png",
-    label: "Leichter gefrierender Sprühregen",
-  },
+  57: { icon: "heavy freeting rain.png", label: "Starker gefrierender Sprühregen" },
+  56: { icon: "light freezing rain.png", label: "Leichter gefrierender Sprühregen" },
   67: { icon: "heavy freezing rain.png", label: "Starker gefrierender Regen" },
   66: { icon: "light freezing rain.png", label: "Leichter gefrierender Regen" }, // Schnee/Schneeschauer
 
@@ -272,4 +191,4 @@ export const wwIconMapNight = {
   0: { icon: "clear night.png", label: "Klarer Himmel" },
   1: { icon: "low cloud cover night.png", label: "Bewölkung abnehmend" },
   2: { icon: "medium cloud cover night.png", label: "Bewölkung unverändert" },
-}; 
+};

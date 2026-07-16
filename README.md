@@ -4,48 +4,46 @@ Ein Web-Projekt zur automatisierten Verarbeitung und interaktiven Visualisierung
 
 ## ✨ Features
 
-- **Aktuelle Temperaturen & Wetterlage:** Visualisierung von DWD MOSMIX-Daten und lokalen Messwerten.
-- **Regenradar & Vorhersage:** Interaktive Karten für den aktuellen Niederschlag und kurzfristige Prognosen.
+- **Aktuelle Temperaturen & Wetterlage:** Visualisierung von DWD MOSMIX-, WarnMOS-Daten und lokalen Messwerten.
+- **Regenradar & Vorhersage:** Interaktive Karten für den aktuellen Niederschlag und kurzfristige blending Prognosen.
 - **UV-Index & Gefühlte Temperatur:** Darstellung detaillierter meteorologischer Parameter.
 - **Wetter-Icons:** Selbst erstellte Icons für eine schnelle Informationsübersicht.
-- **Vollautomatisierte Daten-Pipelines:** GitHub-Actions-Workflow sorgt für stündliche und zuverlässige Wetterzusammenfassung (weather-summary.json), welche in einem Widget dargestellt werden kann.
+- **Vollautomatisierte Daten-Pipelines:** Backend-Code zur regelmäßigen und zuverlässigen beschaffung der Daten für das Frontend.
 
-## 🚀 Live-Demo
+## 🏗 Architektur & Hosting
 
-Die Anwendung wird über **[GitHub Pages](https://stefan436.github.io/Wetterinfo/)** gehostet.
+Das Projekt nutzt einen privaten Backendserver, um zyklisch aktuelle Wetterdaten abzurufen und zu verarbeiten.
 
-## 🏗 Architektur & Automatisierung
-
-Das Projekt nutzt **GitHub Actions**, um zyklisch aktuelle Wetterdaten abzurufen, zu verarbeiten und die Webseite zu aktualisieren.
-
-* **Workflow (`deploy_weather_app.yml`):** Das Skript wird regelmäßig per Cron-Job ausgeführt. Es lädt die neuesten Rohdaten herunter, führt die Python-Verarbeitungsskripte aus und generiert die entsprechenden statischen Dateien im `docs/`-Ordner.
-* **Hosting (GitHub Pages):** Der `docs/`-Ordner wird nach der Generierung als Artefakt verpackt und direkt über GitHub Pages deployed. 
+* **Workflow:** Die Skripte in den Unterordner des `backend` Ordners werden regelmäßig per Cron-Job ausgeführt. Es lädt die neuesten Rohdaten herunter, führt die Verarbeitung mittels Python durch und generiert die entsprechenden statischen Dateien.
+* **Hosting (GitHub Pages):** Das Frontend (`docs/`-Ordner) lädt die aktuellsten verarbeiteten Daten vom Server und stellt sie unter **[GitHub Pages](https://stefan436.github.io/Wetterinfo/)** bereit.
 
 
 ## 🛠️ Tech-Stack
 
-- **Frontend:** HTML5, CSS3, JavaScript (Marching-Squares-Algorithmus für Isolinien und mehr).
+- **Frontend:** HTML5, CSS3, JavaScript.
 - **Backend Für Wetterzusammenfassung:** Python 3
-- **Datenquellen:** DWD Open Data (MOSMIX, Radar-Komposits), Currentuvindex.com (UV-Index Messung).
-- **CI/CD & Automatisierung:** GitHub Actions.
+- **Datenquellen:** DWD Open Data (MOSMIX, WarnMOS, Radar-Komposits, ICON-D2-RUC), Currentuvindex.com (UV-Index Messung).
 
 ## 📂 Projektstruktur
 
-Das Repository ist in die Datenverarbeitung (Root) und die Web-Darstellung (`docs/`) unterteilt:
+Das Repository ist in die Datenverarbeitung (`backend/`) und die Web-Darstellung (`docs/`) unterteilt:
 
 ```text
 📦 wetterinfo
- ┣ 📂 .github/workflows      # CI/CD Pipelines für automatische Updates
+ ┣ 📂 backend                # Python-Backend für Datenbeschaffung und Verarbeitung
+ ┃ ┣ 📂 BlendingForecast     # Vorhersage-Engine (ICON, Radar, Verschmelzung, Export)
+ ┃ ┣ 📂 index                # Verarbeitung von DWD-Daten (UV, PT, MOSMIX, WarnMOS)
+ ┃ ┗ 📂 widget               # Skript zur Widget-Generierung (create_widget_info.py)
  ┣ 📂 docs                   # Web-Frontend (GitHub Pages Root)
- ┃ ┣ 📂 data                 # Generierte JSON- und Binärdateien (Koordinaten, MOSMIX, etc.)
+ ┃ ┣ 📂 data                 # Generierte Binär- und JSON-Dateien (z.B. coords_radarcomposite_rv.bin)
  ┃ ┣ 📂 icons                # Wetter-Icons
  ┃ ┣ 📂 scripts              # JavaScript-Logik (Menü, UV/PT, Map-Interaktionen)
  ┃ ┣ 📂 styles               # CSS-Stylesheets
+ ┃ ┣ 📂 sites                # Weitere HTML-Seiten
  ┃ ┣ 📜 index.html           # Hauptseite
- ┃ ┣ 📜 Regenradar.html      # Regenradar-Ansicht
- ┃ ┗ 📜 ...                  # Weitere HTML-Ansichten
- ┣ 📜 create_widget_info.py  # Python-Skript zur Widget-Generierung
- ┣ 📜 process_dwd_uv_and_pt.py # Skript zur UV-Index und PT-Berechnung
+ ┣ 📜 .gitignore             # Git Ignore-Datei
+ ┣ 📜 LICENSE                # Lizenzinformationen
+ ┗ 📜 README.md              # Projektdokumentation
 ```
 
 ## ⚖️ Lizenz & Nutzungsbedingungen

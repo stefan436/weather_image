@@ -340,7 +340,7 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
           .filter((p) => p !== null && p !== undefined && !isNaN(p));
         const maxProb = probs.length > 0 ? Math.max(...probs) : 0;
 
-        precipStr = `🌧️ ${Math.round(maxProb)}%`;
+        precipStr = `☔ ${Math.round(maxProb)}%`;
       }
 
       // --- 3. Windgeschwindigkeit (mindestens einmal >= 15 km/h) ---

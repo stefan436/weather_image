@@ -3,17 +3,30 @@ import zipfile
 import io
 import xml.etree.ElementTree as ET
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from datetime import datetime
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
+# =====================================================================
+# ------------------------- KONFIGURATION -----------------------------
+# =====================================================================
 
-# ------------------ Konfiguration ------------------
-target_station_name = "ASCHHEIM"  # Beispiel: ASCHHEIM P755 MUENCHEN STADT 10865
-BASE_URL = f"https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_S/all_stations/kml/MOSMIX_S_LATEST_240.kmz"
+STATION_ID = "P755"  # DWD Stations-ID (z.B. P755 für Aschheim)
+
+# URLs wie im Frontend: Erst L vom DWD, dann S vom eigenen Backend
+MOSMIX_L_URL = f"https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/{STATION_ID}/kml/MOSMIX_L_LATEST_{STATION_ID}.kmz"
+MOSMIX_S_JSON_PATH = f"./../index/data/Forecast/mosmix_s/{STATION_ID}.json"
+OUTPUT_FILE = "./data/weather-summary.json"
+
+# MOSMIX_S_JSON_PATH = f"/WWW/users/TUMid/weather_data/index/Forecast/mosmix_s/{STATION_ID}.json"
+# OUTPUT_FILE = "/WWW/users/TUMid/weather_data/widget/weather-summary.json"
+
+ICON_BASE_URL = "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/"
+
+# Schwellenwerte für die Bewölkung (unter 30 wolkenlos, bis 60 leicht, bis 80 mittel, drüber stark)
+CLOUD_COVER_THRESHOLDS = [30, 60, 80]
 
 PERIODS = [
     {"name": "Früh", "startHour": 6, "endHour": 10},
@@ -26,143 +39,159 @@ PERIODS = [
 
 PERIOD_ORDER = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"]
 
-# Mapping Wettercode → Label + Icon-URL (Platzhalter)
 WW_ICON_MAP = {
-    # Gewitter
-    95: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/thunderstorm.png", "label": "Gewitter mit Regen/Schnee"},
-
-    # gefrierender Sprühregen/Regen
-    57: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy freeting rain.png", "label": "Starker gefrierender Sprühregen"},
-    56: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light freezing rain.png", "label": "Leichter gefrierender Sprühregen"},
-    67: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy freeting rain.png", "label": "Starker gefrierender Regen"},
-    66: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light freezing rain.png", "label": "Leichter gefrierender Regen"},
-
-    # Schnee/Schneeschauer
-    86: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy snow.png", "label": "Starker Schneeschauer"},
-    85: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light snow.png", "label": "Leichter Schneeschauer"},
-    84: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy sleet.png", "label": "Starker Schneeregenschauer"},
-    83: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light sleet.png", "label": "Leichter Schneeregenschauer"},
-    75: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy snow.png", "label": "Starker Schneefall"},
-    73: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate snow.png", "label": "Mäßiger Schneefall"},
-    71: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light snow.png", "label": "Leichter Schneefall"},
-    69: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy sleet.png", "label": "Starker Schneeregen"},
-    68: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light sleet.png", "label": "Leichter Schneeregen"},
-
-    # Regen/Schauer
-    82: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy rain.png", "label": "Heftiger Regenschauer"},
-    81: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate rain.png", "label": "Starker Regenschauer"},
-    80: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light rain.png", "label": "Leichter Regenschauer"},
-    65: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy rain.png", "label": "Starker Regen"},
-    63: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate rain.png", "label": "Mäßiger Regen"},
-    61: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light rain.png", "label": "Leichter Regen"},
-
-    # Sprühregen
-    55: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/heavy rain.png", "label": "Starker Sprühregen"},
-    53: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/moderate rain.png", "label": "Mäßiger Sprühregen"},
-    51: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/light rain.png", "label": "Leichter Sprühregen"},
-
-    # Nebel
-    49: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/fog.png", "label": "Nebel mit Reif"},
-    45: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/fog.png", "label": "Nebel"},
-
-    # Bewölkung
-    3: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/total cloud cover.png", "label": "Bewölkung zunehmend"},
-    2: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/medium cloud cover.png", "label": "Bewölkung unverändert"},
-    1: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/low cloud cover.png", "label": "Bewölkung abnehmend"},
-    0: {"icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/clear day.png", "label": "Klarer Himmel"}
+    95: "thunderstorm.png", 57: "heavy freeting rain.png", 56: "light freezing rain.png",
+    67: "heavy freezing rain.png", 66: "light freezing rain.png", 86: "heavy snow.png",
+    85: "light snow.png", 84: "heavy sleet.png", 83: "light sleet.png",
+    75: "heavy snow.png", 73: "moderate snow.png", 71: "light snow.png",
+    69: "heavy sleet.png", 68: "light sleet.png", 82: "heavy rain.png",
+    81: "moderate rain.png", 80: "light rain.png", 65: "heavy rain.png",
+    63: "moderate rain.png", 61: "light rain.png", 55: "heavy rain.png",
+    53: "moderate rain.png", 51: "light rain.png", 49: "fog.png",
+    45: "fog.png", 3: "total cloud cover.png", 2: "medium cloud cover.png",
+    1: "low cloud cover.png", 0: "clear day.png",
 }
 
-# NEU HINZUGEFÜGT: Spezielle Icons für die Nacht
 WW_ICON_MAP_NIGHT = {
-    0: { "icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/clear night.png", "label": "Klarer Himmel" },
-    1: { "icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/low cloud cover night.png", "label": "Bewölkung abnehmend" },
-    2: { "icon": "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/medium cloud cover night.png", "label": "Bewölkung unverändert" }
+    0: "clear night.png",
+    1: "low cloud cover night.png",
+    2: "medium cloud cover night.png",
 }
 
+# =====================================================================
+# ------------------------- LOGIK & PARSING ---------------------------
+# =====================================================================
 
-def load_kmz(url):
-    r = requests.get(url)
+def load_mosmix_l():
+    r = requests.get(MOSMIX_L_URL)
     r.raise_for_status()
     z = zipfile.ZipFile(io.BytesIO(r.content))
     kml_file = [f for f in z.namelist() if f.endswith(".kml")][0]
     return z.read(kml_file).decode("iso-8859-1")
 
-
-def parse_kml(kml_text):
+def parse_kml_l(kml_text):
     DWDNS = "{https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd}"
     xml_root = ET.fromstring(kml_text)
     timeSteps = [t.text.strip() for t in xml_root.findall(f".//{DWDNS}TimeStep")]
     ns = {"kml": "http://www.opengis.net/kml/2.2"}
 
-    target_placemark = None
-    for placemark in xml_root.findall(".//kml:Placemark", ns):
-        desc = placemark.find("kml:description", ns)
-        if desc is not None and desc.text.strip() == target_station_name:
-            target_placemark = placemark
-            break
+    placemark = xml_root.find(".//kml:Placemark", ns)
+    if placemark is None:
+        raise ValueError("Kein Placemark in der KML gefunden.")
 
-    if target_placemark is None:
-        raise ValueError(f"Station '{target_station_name}' nicht gefunden.")
-
-    name = target_placemark.find("kml:name", ns).text.strip()
-    description = target_placemark.find("kml:description", ns).text.strip()
-
+    name = placemark.find("kml:name", ns).text.strip()
+    description = placemark.find("kml:description", ns).text.strip()
 
     forecasts = {}
+    needed_elements = ["ww", "Neff", "TTT", "wwP", "FF"]
+    
     for fc in xml_root.findall(f".//{DWDNS}Forecast"):
         elName = fc.attrib.get(f"{DWDNS}elementName") or fc.attrib.get("elementName")
-        raw_values = [v.text for v in fc.findall(f"{DWDNS}value")]
-        values = raw_values[0].split() if len(raw_values) == 1 else raw_values
-        forecasts[elName] = values
+        if elName in needed_elements:
+            raw_values = [v.text for v in fc.findall(f"{DWDNS}value")]
+            values = raw_values[0].split() if len(raw_values) == 1 else raw_values
+            # Leere Werte sicher zu None umwandeln
+            forecasts[elName] = [float(v) if v != "-" else None for v in values]
 
     return timeSteps, forecasts, name, description
 
+def merge_mosmix_s(timeSteps, forecasts):
+    """Lädt die lokale MOSMIX S JSON und überschreibt die KML-Daten."""
+    try:
+        # Lokale Datei öffnen und JSON parsen
+        with open(MOSMIX_S_JSON_PATH, "r", encoding="utf-8") as f:
+            s_data = json.load(f)
+        
+        # Mapping der JSON-Zeitstempel (Index pro Timestamp)
+        s_time_map = {}
+        for idx, ts_str in enumerate(s_data.get("t", [])):
+            if ts_str.endswith("Z"):
+                ts_str = ts_str[:-1] + "+00:00"
+            dt_s = datetime.fromisoformat(ts_str).astimezone(ZoneInfo("UTC"))
+            s_time_map[int(dt_s.timestamp())] = idx
+
+        # Überschreiben der existierenden L-Parameter mit S-Werten
+        for param in forecasts.keys():
+            if param in s_data.get("d", {}):
+                s_values = s_data["d"][param]
+                
+                for l_idx, kml_ts in enumerate(timeSteps):
+                    dt_l = datetime.strptime(kml_ts.replace("Z", ""), "%Y-%m-%dT%H:%M:%S.000").replace(tzinfo=ZoneInfo("UTC"))
+                    timestamp_l = int(dt_l.timestamp())
+                    
+                    s_idx = s_time_map.get(timestamp_l)
+                    if s_idx is not None and s_idx < len(s_values) and s_values[s_idx] is not None:
+                        forecasts[param][l_idx] = float(s_values[s_idx])
+                        
+        log("Lokale MOSMIX S Daten erfolgreich integriert.")
+    except Exception as e:
+        log(f"Konnte lokale MOSMIX S JSON nicht laden/mergen, nutze reine MOSMIX L Daten als Fallback. Grund: {e}")
+
+def get_value(forecasts, param, index, convert_func=lambda x: x):
+    """Hilfsfunktion zum sicheren Auslesen der vorbereiteten Arrays."""
+    try:
+        val = forecasts.get(param, [])[index]
+        if val is not None:
+            return convert_func(val)
+    except IndexError:
+        pass
+    return None
 
 def build_summary(timeSteps, forecasts, name, description):
+    tz = ZoneInfo("Europe/Berlin")
+    now = datetime.now(tz)
+    current_hour = now.replace(minute=0, second=0, microsecond=0)
+    today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     entries = []
     for i, ts in enumerate(timeSteps):
-        dateObj = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        # In Berliner Zeit konvertieren
-        dateObj = dateObj.astimezone(ZoneInfo("Europe/Berlin"))
+        dt_utc = datetime.strptime(ts.replace("Z", ""), "%Y-%m-%dT%H:%M:%S.000").replace(tzinfo=ZoneInfo("UTC"))
+        dt_local = dt_utc.astimezone(tz)
+        
+        # Shift um 1h zurück für Zeitraum-Beginn-Parameter
+        shifted_dt = dt_local - timedelta(hours=1)
 
-        code_raw = forecasts.get("ww", [None] * len(timeSteps))[i]
-        try:
-            code = int(float(code_raw)) if code_raw and code_raw != "-" else None
-        except ValueError:
-            code = None
-        entries.append({"timestamp": dateObj, "hour": dateObj.hour, "code": code, "index": i})
+        if shifted_dt >= current_hour:
+            code = get_value(forecasts, "ww", i, int)
+            entries.append({
+                "timestamp": shifted_dt,
+                "hour": shifted_dt.hour,
+                "code": code,
+                "index": i
+            })
 
     daysMap = {}
     for entry in entries:
+        period = next((p for p in PERIODS if (
+            (p["startHour"] <= entry["hour"] < p["endHour"]) if p["startHour"] < p["endHour"] 
+            else (entry["hour"] >= p["startHour"] or entry["hour"] < p["endHour"])
+        )), None)
+        
+        if not period: continue
 
-        period = None
-        for p in PERIODS:
-            if p["startHour"] < p["endHour"]:
-                if p["startHour"] <= entry["hour"] < p["endHour"]:
-                    period = p
-                    break
-            else:
-                if entry["hour"] >= p["startHour"] or entry["hour"] < p["endHour"]:
-                    period = p
-                    break
-        if not period:
-            continue
-
-        groupDate = entry["timestamp"]
+        group_date = entry["timestamp"]
         if period["startHour"] > period["endHour"] and entry["hour"] < period["endHour"]:
-            groupDate -= timedelta(days=1)
+            group_date -= timedelta(days=1)
 
-        dayIso = groupDate.strftime("%Y-%m-%d")
-        today = datetime.now().date()
-        diffDays = (groupDate.date() - today).days
-        displayDate = "Heute" if diffDays == 0 else "Morgen" if diffDays == 1 else "Übermorgen" if diffDays == 2 else groupDate.strftime("%a, %d.%m.")
+        day_iso = group_date.strftime("%Y-%m-%d")
+        group_midnight = group_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        diff_days = (group_midnight - today_midnight).days
 
-        if dayIso not in daysMap:
-            daysMap[dayIso] = {"displayDate": displayDate, "groups": {}}
-        if period["name"] not in daysMap[dayIso]["groups"]:
-            daysMap[dayIso]["groups"][period["name"]] = []
-        daysMap[dayIso]["groups"][period["name"]].append(entry)
+        if diff_days == 0:
+            display_date = "Heute"
+        elif diff_days == 1:
+            display_date = "Morgen"
+        elif diff_days == 2:
+            display_date = "Übermorgen"
+        else:
+            weekdays = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."]
+            display_date = f"{weekdays[group_date.weekday()]} {group_date.strftime('%d.%m.')}"
+
+        if day_iso not in daysMap:
+            daysMap[day_iso] = {"displayDate": display_date, "groups": {}}
+        if period["name"] not in daysMap[day_iso]["groups"]:
+            daysMap[day_iso]["groups"][period["name"]] = []
+        daysMap[day_iso]["groups"][period["name"]].append(entry)
 
     result = {
         "name": name,
@@ -170,129 +199,100 @@ def build_summary(timeSteps, forecasts, name, description):
         "days": {}
     }
 
-    for dayIso, dayData in daysMap.items():
-        result["days"][dayData["displayDate"]] = []
-        for periodName in PERIOD_ORDER:
-            entries = dayData["groups"].get(periodName, [])
-            if not entries:
-                continue
+    for day_iso in sorted(daysMap.keys()):
+        day_data = daysMap[day_iso]
+        display_date = day_data["displayDate"]
+        result["days"][display_date] = []
 
-            ww_values_in_period = [e["code"] for e in entries if e["code"] is not None]
-            if not ww_values_in_period:
-                continue
+        for period_name in PERIOD_ORDER:
+            period_entries = day_data["groups"].get(period_name, [])
+            if not period_entries: continue
 
-            dominantCode = max(ww_values_in_period)
-
-            # Speziallogik für Bewölkung (Codes 0–3)
-            if dominantCode in [0, 1, 2, 3]:
-                # Berechne durchschnittliche Bewölkung (Neff)
-                cloud_vals = []
-                for e in entries:
-                    idx = e["index"]
-                    neff = forecasts.get("Neff", [None])[idx]
-                    try:
-                        if neff and neff != "-":
-                            cloud_vals.append(float(neff))
-                    except ValueError:
-                        continue
-
-                if cloud_vals:
-                    avg_cloud = sum(cloud_vals) / len(cloud_vals)
-                    # Mapping wie im JS
-                    if avg_cloud <= 20:
-                        dominantCode = 0
-                    elif avg_cloud <= 50:
-                        dominantCode = 1
-                    elif avg_cloud <= 80:
-                        dominantCode = 2
-                    else:
-                        dominantCode = 3
+            valid_codes = [e["code"] for e in period_entries if e["code"] is not None]
+            if not valid_codes: continue
             
-            # GEÄNDERT: Wähle das Icon-Set basierend auf der Tageszeit
-            is_night_period = periodName in ["Abend", "Spät Abends", "Nacht"]
-            if is_night_period and dominantCode in [0, 1, 2]:
-                # Wenn es eine Nachtperiode ist und der Code 0-2 ist, nutze das Nacht-Icon-Set
-                info = WW_ICON_MAP_NIGHT.get(dominantCode, {"icon": "URL/unknown.png", "label": "unbekannt"})
-            else:
-                # Ansonsten nutze das Standard-Icon-Set
-                info = WW_ICON_MAP.get(dominantCode, {"icon": "URL/unknown.png", "label": "unbekannt"})
+            dominant_code = max(valid_codes)
 
-
-            timestep_entries = []
-            ww_vals, ttt_vals, rr1_vals, neff_vals = [], [], [], []
-
-            for e in entries:
-                idx = e["index"]
-                ww = forecasts.get("ww", [None])[idx]
-                ttt = forecasts.get("TTT", [None])[idx]
-                rr1 = forecasts.get("RR1c", [None])[idx]
-                neff = forecasts.get("Neff", [None])[idx]
-
-                try:
-                    if ww and ww != "-": ww_vals.append(float(ww))
-                    if ttt and ttt != "-": ttt_vals.append(float(ttt))
-                    if rr1 and rr1 != "-": rr1_vals.append(float(rr1))
-                    if neff and neff != "-": neff_vals.append(float(neff))
-                except ValueError:
-                    pass
+            if dominant_code in [0, 1, 2, 3]:
+                cloud_covers = []
+                for e in period_entries:
+                    prev_idx = e["index"] - 1
+                    if prev_idx >= 0:
+                        neff = get_value(forecasts, "Neff", prev_idx)
+                        if neff is not None: cloud_covers.append(neff)
                 
-                try:
-                    ttt_c = round(float(ttt) - 273.15, 1) if ttt and ttt != "-" else None
-                except ValueError:
-                    ttt_c = None
+                if cloud_covers:
+                    avg_cloud = sum(cloud_covers) / len(cloud_covers)
+                    if avg_cloud <= CLOUD_COVER_THRESHOLDS[0]: dominant_code = 0
+                    elif avg_cloud <= CLOUD_COVER_THRESHOLDS[1]: dominant_code = 1
+                    elif avg_cloud <= CLOUD_COVER_THRESHOLDS[2]: dominant_code = 2
+                    else: dominant_code = 3
+                else:
+                    dominant_code = None
 
+            is_night = period_name in ["Abend", "Spät Abends", "Nacht"]
+            if dominant_code is None:
+                icon_file = "unknown.png"
+            elif is_night and dominant_code <= 2:
+                icon_file = WW_ICON_MAP_NIGHT.get(dominant_code, "unknown.png")
+            else:
+                icon_file = WW_ICON_MAP.get(dominant_code, "unknown.png")
+            
+            full_icon_url = f"{ICON_BASE_URL}{icon_file}"
 
-                timestep_entries.append({
-                    "timestamp": e["timestamp"].isoformat(),
-                    "WW": ww,
-                    "TTT": ttt_c,
-                    "RR1c": rr1,
-                    "Neff": neff
-                })
+            temps = []
+            for e in period_entries:
+                prev_idx = e["index"] - 1
+                if prev_idx >= 0:
+                    t = get_value(forecasts, "TTT", prev_idx, lambda x: x - 273.15)
+                    if t is not None: temps.append(t)
+            avg_temp = round(sum(temps) / len(temps)) if temps else None
 
-            def avg(lst):
-                return round(sum(lst) / len(lst), 1) if lst else None
+            precip_prob = None
+            if dominant_code is not None and dominant_code >= 50:
+                probs = []
+                for e in period_entries:
+                    p = get_value(forecasts, "wwP", e["index"])
+                    if p is not None: probs.append(p)
+                precip_prob = round(max(probs)) if probs else 0
 
-            avg_data = {
-                "WW": avg(ww_vals),
-                "TTT": round(avg(ttt_vals) - 273.15, 1) if ttt_vals else None,
-                "RR1c": round(sum(rr1_vals), 1) if rr1_vals else None,  # kumulierte Niederschlagsmenge
-                "Neff": avg(neff_vals)
-            }
+            is_windy = False
+            for e in period_entries:
+                prev_idx = e["index"] - 1
+                if prev_idx >= 0:
+                    ff = get_value(forecasts, "FF", prev_idx, lambda x: x * 3.6)
+                    if ff is not None and ff >= 15:
+                        is_windy = True
+                        break
 
-
-
-            result["days"][dayData["displayDate"]].append({
-                "period": periodName,
-                "icon": info["icon"],
-                "label": info["label"],
-                "avg": avg_data,
-                "details": timestep_entries
+            result["days"][display_date].append({
+                "period": period_name,
+                "icon": full_icon_url,
+                "avgTemp": avg_temp,
+                "precipProb": precip_prob,
+                "isWindy": is_windy
             })
-
-    # Zusätzliche Daten im Ergebnis ergänzen
-    result["timeSteps"] = [datetime.fromisoformat(ts.replace("Z", "+00:00")).isoformat() for ts in timeSteps]
-    result["parameters"] = {
-        "WW": forecasts.get("ww", []),
-        "TTT": forecasts.get("TTT", []),
-        "RR1c": forecasts.get("RR1c", []),
-        "Neff": forecasts.get("Neff", [])
-    }
 
     return result
 
 def main():
-    log("Start: KMZ herunterladen")
-    kml_text = load_kmz(BASE_URL)
-    log("KMZ geladen, beginne Parsing")
-    timeSteps, forecasts, name, description = parse_kml(kml_text)
-    log(f"Parsing fertig, {len(timeSteps)} Timesteps gefunden, baue Zusammenfassung")
+    log("Start: Lade MOSMIX L KMZ vom DWD")
+    kml_text = load_mosmix_l()
+    
+    log("KML geladen, beginne mit dem Parsing")
+    timeSteps, forecasts, name, description = parse_kml_l(kml_text)
+    
+    log("Integriere hochauflösende MOSMIX S Daten vom Backend...")
+    merge_mosmix_s(timeSteps, forecasts)
+    
+    log(f"Daten zusammengeführt. {len(timeSteps)} Timesteps gefunden. Baue Zusammenfassung...")
     summary = build_summary(timeSteps, forecasts, name, description)
-    log("Zusammenfassung erstellt, schreibe JSON-Datei")
-    with open("docs/data/weather-summary.json", "w", encoding="utf-8") as f:
+    
+    log(f"Zusammenfassung erstellt, schreibe JSON-Datei in {OUTPUT_FILE}")
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
-    log("Datei gespeichert, fertig")
-
+    
+    log("Vorgang erfolgreich beendet.")
 
 if __name__ == "__main__":
     main()

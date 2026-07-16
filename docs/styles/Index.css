@@ -264,6 +264,7 @@ select {
     display: grid;
     grid-template-columns: repeat(2, 1fr); 
     gap: 4px 12px; 
+    width: 100%; /* Nutzt die volle Breite der Karte */
 }
 
 /* 1. Wenn es das ABSOLUT EINZIGE Element ist (nur Temperatur) */
@@ -276,6 +277,15 @@ select {
 .summary-params span:nth-child(3):last-child {
     grid-column: span 2;
     text-align: center;
+}
+
+/* Verhindert den Zeilenumbruch in der Grid-Zelle und richtet Icon/Text aus */
+.summary-params span {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* Abstand zwischen Icon und Zahl */
 }
 
 .summary-card span.label {

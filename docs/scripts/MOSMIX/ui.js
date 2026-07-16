@@ -259,7 +259,7 @@ export function buildSummary(seriesMap, timeSteps, timeZoneId) {
 
           // SICHERHEITSCHECK: Verhindert einen Fehler beim allerersten Eintrag
           // des Arrays (falls prevIndex -1 sein sollte).
-          if (prevIndex >= 0 && !isNaN(seriesMap["Bewölkung"]?.[prevIndex])) {
+          if (prevIndex >= 0 && seriesMap["Bewölkung"]?.[prevIndex] != null) {
             cloud_covers.push(seriesMap["Bewölkung"][prevIndex]);
           }
         }

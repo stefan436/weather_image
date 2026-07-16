@@ -1,31 +1,39 @@
-import requests
+import os
+import json
+import urllib.request
 import zipfile
 import io
 import xml.etree.ElementTree as ET
-import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from timezonefinder import TimezoneFinder
+from concurrent.futures import ProcessPoolExecutor
 
-def log(msg):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
+tf_instance = None  # Für Performance in den Workern
+
+def get_timezone_finder():
+    global tf_instance
+    if tf_instance is None:
+        tf_instance = TimezoneFinder()
+    return tf_instance
 
 # =====================================================================
 # ------------------------- KONFIGURATION -----------------------------
 # =====================================================================
 
-STATION_ID = "P755"  # DWD Stations-ID (z.B. P755 für Aschheim)
+MOSMIX_L_ALL_URL = "https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/all_stations/kml/MOSMIX_L_LATEST.kmz"
 
-# URLs wie im Frontend: Erst L vom DWD, dann S vom eigenen Backend
-MOSMIX_L_URL = f"https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/single_stations/{STATION_ID}/kml/MOSMIX_L_LATEST_{STATION_ID}.kmz"
-MOSMIX_S_JSON_PATH = f"./../index/data/Forecast/mosmix_s/{STATION_ID}.json"
-OUTPUT_FILE = "./data/weather-summary.json"
+# Ordner, in dem die MOSMIX_S JSON-Dateien aus deinem Backend liegen
+MOSMIX_S_DIR = "/WWW/users/TUMid/weather_data/index/Forecast/mosmix_s"
 
-# MOSMIX_S_JSON_PATH = f"/WWW/users/TUMid/weather_data/index/Forecast/mosmix_s/{STATION_ID}.json"
-# OUTPUT_FILE = "/WWW/users/TUMid/weather_data/widget/weather-summary.json"
+# Zielordner für die generierten Wetter-Zusammenfassungen (pro Station eine Datei)
+OUTPUT_DIR = "/WWW/users/TUMid/weather_data/widget"
 
 ICON_BASE_URL = "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/"
 
-# Schwellenwerte für die Bewölkung (unter 30 wolkenlos, bis 60 leicht, bis 80 mittel, drüber stark)
+COORDS_JSON_PATH = "/WWW/users/TUMid/weather_data/mosmix_stationen_coords.json"
+
+# Schwellenwerte für die Bewölkung
 CLOUD_COVER_THRESHOLDS = [30, 60, 80]
 
 PERIODS = [
@@ -38,6 +46,8 @@ PERIODS = [
 ]
 
 PERIOD_ORDER = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"]
+
+NEEDED_ELEMENTS = {"ww", "Neff", "TTT", "wwP", "FF"}
 
 WW_ICON_MAP = {
     95: "thunderstorm.png", 57: "heavy freeting rain.png", 56: "light freezing rain.png",
@@ -58,51 +68,34 @@ WW_ICON_MAP_NIGHT = {
     2: "medium cloud cover night.png",
 }
 
+def log(msg):
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
+
 # =====================================================================
 # ------------------------- LOGIK & PARSING ---------------------------
 # =====================================================================
 
-def load_mosmix_l():
-    r = requests.get(MOSMIX_L_URL)
-    r.raise_for_status()
-    z = zipfile.ZipFile(io.BytesIO(r.content))
-    kml_file = [f for f in z.namelist() if f.endswith(".kml")][0]
-    return z.read(kml_file).decode("iso-8859-1")
-
-def parse_kml_l(kml_text):
-    DWDNS = "{https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd}"
-    xml_root = ET.fromstring(kml_text)
-    timeSteps = [t.text.strip() for t in xml_root.findall(f".//{DWDNS}TimeStep")]
-    ns = {"kml": "http://www.opengis.net/kml/2.2"}
-
-    placemark = xml_root.find(".//kml:Placemark", ns)
-    if placemark is None:
-        raise ValueError("Kein Placemark in der KML gefunden.")
-
-    name = placemark.find("kml:name", ns).text.strip()
-    description = placemark.find("kml:description", ns).text.strip()
-
-    forecasts = {}
-    needed_elements = ["ww", "Neff", "TTT", "wwP", "FF"]
-    
-    for fc in xml_root.findall(f".//{DWDNS}Forecast"):
-        elName = fc.attrib.get(f"{DWDNS}elementName") or fc.attrib.get("elementName")
-        if elName in needed_elements:
-            raw_values = [v.text for v in fc.findall(f"{DWDNS}value")]
-            values = raw_values[0].split() if len(raw_values) == 1 else raw_values
-            # Leere Werte sicher zu None umwandeln
-            forecasts[elName] = [float(v) if v != "-" else None for v in values]
-
-    return timeSteps, forecasts, name, description
-
-def merge_mosmix_s(timeSteps, forecasts):
-    """Lädt die lokale MOSMIX S JSON und überschreibt die KML-Daten."""
+def get_value(forecasts, param, index, convert_func=lambda x: x):
+    """Hilfsfunktion zum sicheren Auslesen der vorbereiteten Arrays."""
     try:
-        # Lokale Datei öffnen und JSON parsen
-        with open(MOSMIX_S_JSON_PATH, "r", encoding="utf-8") as f:
+        val = forecasts.get(param, [])[index]
+        if val is not None:
+            return convert_func(val)
+    except IndexError:
+        pass
+    return None
+
+def merge_mosmix_s_local(station_id, timeSteps, forecasts):
+    """Lädt die lokale MOSMIX S JSON der jeweiligen Station und überschreibt die KML-Daten."""
+    s_file_path = os.path.join(MOSMIX_S_DIR, f"{station_id}.json")
+    
+    if not os.path.exists(s_file_path):
+        return # Keine S-Daten für diese Station vorhanden
+        
+    try:
+        with open(s_file_path, "r", encoding="utf-8") as f:
             s_data = json.load(f)
         
-        # Mapping der JSON-Zeitstempel (Index pro Timestamp)
         s_time_map = {}
         for idx, ts_str in enumerate(s_data.get("t", [])):
             if ts_str.endswith("Z"):
@@ -110,7 +103,6 @@ def merge_mosmix_s(timeSteps, forecasts):
             dt_s = datetime.fromisoformat(ts_str).astimezone(ZoneInfo("UTC"))
             s_time_map[int(dt_s.timestamp())] = idx
 
-        # Überschreiben der existierenden L-Parameter mit S-Werten
         for param in forecasts.keys():
             if param in s_data.get("d", {}):
                 s_values = s_data["d"][param]
@@ -123,22 +115,12 @@ def merge_mosmix_s(timeSteps, forecasts):
                     if s_idx is not None and s_idx < len(s_values) and s_values[s_idx] is not None:
                         forecasts[param][l_idx] = float(s_values[s_idx])
                         
-        log("Lokale MOSMIX S Daten erfolgreich integriert.")
     except Exception as e:
-        log(f"Konnte lokale MOSMIX S JSON nicht laden/mergen, nutze reine MOSMIX L Daten als Fallback. Grund: {e}")
-
-def get_value(forecasts, param, index, convert_func=lambda x: x):
-    """Hilfsfunktion zum sicheren Auslesen der vorbereiteten Arrays."""
-    try:
-        val = forecasts.get(param, [])[index]
-        if val is not None:
-            return convert_func(val)
-    except IndexError:
+        # Fehltoleranz: Wenn S-Daten defekt sind, L-Daten als Fallback behalten
         pass
-    return None
 
-def build_summary(timeSteps, forecasts, name, description):
-    tz = ZoneInfo("Europe/Berlin")
+def build_summary(timeSteps, forecasts, name, description, tz_name):
+    tz = ZoneInfo(tz_name)
     now = datetime.now(tz)
     current_hour = now.replace(minute=0, second=0, microsecond=0)
     today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -148,7 +130,6 @@ def build_summary(timeSteps, forecasts, name, description):
         dt_utc = datetime.strptime(ts.replace("Z", ""), "%Y-%m-%dT%H:%M:%S.000").replace(tzinfo=ZoneInfo("UTC"))
         dt_local = dt_utc.astimezone(tz)
         
-        # Shift um 1h zurück für Zeitraum-Beginn-Parameter
         shifted_dt = dt_local - timedelta(hours=1)
 
         if shifted_dt >= current_hour:
@@ -275,24 +256,122 @@ def build_summary(timeSteps, forecasts, name, description):
 
     return result
 
+def process_station_worker(station_id, name, description, lat, lon, raw_forecasts, timeSteps):
+    """
+    Worker-Funktion für das Multiprocessing. 
+    Wandelt die raw_forecasts um, mergt MOSMIX_S rein und erstellt das Widget-Summary.
+    """
+    try:
+        # NEU: Zeitzone dynamisch anhand der Koordinaten bestimmen
+        tf = get_timezone_finder()
+        tz_name = tf.timezone_at(lng=lon, lat=lat)
+        if not tz_name:
+            tz_name = "UTC"  # Fallback, falls Koordinaten ungültig (z.B. 0.0, 0.0)
+            
+        # 1. Rohdaten (Strings) in Listen von Floats umwandeln
+        forecasts = {}
+        for el_name, val_text in raw_forecasts:
+            vals = [float(v) if v != '-' else None for v in val_text.split()]
+            forecasts[el_name] = vals
+        
+        # 2. MOSMIX S Daten mergen (falls vorhanden)
+        merge_mosmix_s_local(station_id, timeSteps, forecasts)
+        
+        # 3. Summary generieren - NEU: tz_name übergeben
+        summary = build_summary(timeSteps, forecasts, name, description, tz_name)
+        
+        # 4. JSON schreiben
+        out_file = os.path.join(OUTPUT_DIR, f"{station_id}.json")
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(summary, f, ensure_ascii=False, indent=2)
+            
+    except Exception as e:
+        print(f"Fehler bei Station {station_id}: {e}")
+
+# =====================================================================
+# ------------------------- MAIN LOOP ---------------------------------
+# =====================================================================
+
 def main():
-    log("Start: Lade MOSMIX L KMZ vom DWD")
-    kml_text = load_mosmix_l()
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    log("KML geladen, beginne mit dem Parsing")
-    timeSteps, forecasts, name, description = parse_kml_l(kml_text)
+    log("Lade Koordinaten-Mapping aus JSON...")
+    with open(COORDS_JSON_PATH, "r", encoding="utf-8") as f:
+        coords_data = json.load(f)
     
-    log("Integriere hochauflösende MOSMIX S Daten vom Backend...")
-    merge_mosmix_s(timeSteps, forecasts)
+    # Lookup-Table erstellen: {"station_id": (lat, lon)}
+    coords_map = {}
+    for item in coords_data:
+        coords_map[item["station_id"]] = (float(item["lat"]), float(item["lon"]))
     
-    log(f"Daten zusammengeführt. {len(timeSteps)} Timesteps gefunden. Baue Zusammenfassung...")
-    summary = build_summary(timeSteps, forecasts, name, description)
+    log(f"Lade MOSMIX L All Stations von {MOSMIX_L_ALL_URL}")
+    req = urllib.request.urlopen(MOSMIX_L_ALL_URL)
     
-    log(f"Zusammenfassung erstellt, schreibe JSON-Datei in {OUTPUT_FILE}")
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(summary, f, ensure_ascii=False, indent=2)
+    tasks = []
     
-    log("Vorgang erfolgreich beendet.")
+    log("Entpacke und starte Streaming-Parsing...")
+    with zipfile.ZipFile(io.BytesIO(req.read())) as z:
+        kml_filename = [f for f in z.namelist() if f.endswith('.kml')][0]
+        
+        with z.open(kml_filename) as f:
+            context = ET.iterparse(f, events=('start', 'end'))
+            ns = {
+                'kml': 'http://www.opengis.net/kml/2.2',
+                'dwd': 'https://opendata.dwd.de/weather/lib/pointforecast_dwd_extension_V1_0.xsd'
+            }
+            
+            timeSteps = []
+            
+            for event, elem in context:
+                if event == 'end':
+                    # 1. TimeSteps sammeln
+                    if elem.tag == f"{{{ns['dwd']}}}TimeStep":
+                        timeSteps.append(elem.text)
+                        elem.clear()
+                    
+                    # 2. Stationen (Placemarks) verarbeiten
+                    elif elem.tag == f"{{{ns['kml']}}}Placemark":
+                        name_node = elem.find('kml:name', ns)
+                        desc_node = elem.find('kml:description', ns)
+                        
+                        if name_node is not None:
+                            station_id = name_node.text.strip()
+                            description = desc_node.text.strip() if desc_node is not None else ""
+                            
+                            # Koordinaten aus dem JSON-Mapping abfragen
+                            lat, lon = coords_map.get(station_id, (0.0, 0.0))
+                            
+                            raw_forecasts = []
+                            ext_data = elem.find('kml:ExtendedData', ns)
+                            if ext_data is not None:
+                                for fc in ext_data.findall('dwd:Forecast', ns):
+                                    el_name = fc.get(f"{{{ns['dwd']}}}elementName")
+                                    if el_name in NEEDED_ELEMENTS:
+                                        val_node = fc.find('dwd:value', ns)
+                                        if val_node is not None and val_node.text:
+                                            raw_forecasts.append((el_name, val_node.text))
+                            
+                            # Wenn die Station Wetterdaten hat, packe sie in die Tasks
+                            if raw_forecasts:
+                                # lat und lon an den Worker übergeben
+                                tasks.append((station_id, station_id, description, lat, lon, raw_forecasts, timeSteps))
+                        
+                        # RAM sofort freigeben
+                        elem.clear()
+
+    log(f"Starte parallele Verarbeitung für {len(tasks)} Stationen...")
+    
+    with ProcessPoolExecutor(max_workers=10) as executor:
+        futures = [
+            executor.submit(process_station_worker, *task)
+            for task in tasks
+        ]
+        for future in futures:
+            future.result() # Fängt Exceptions der Worker ab
+            
+    log("Alle Stationen erfolgreich verarbeitet und gespeichert.")
 
 if __name__ == "__main__":
     main()
+    
+    

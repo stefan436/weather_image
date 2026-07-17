@@ -36,6 +36,8 @@ COORDS_JSON_PATH = "/WWW/users/TUMid/weather_data/mosmix_stationen_coords.json"
 # Schwellenwerte für die Bewölkung
 CLOUD_COVER_THRESHOLDS = [30, 60, 80]
 
+WINDY_THRESHOLD = 15
+
 PERIODS = [
     {"name": "Früh", "startHour": 6, "endHour": 10},
     {"name": "Mittag", "startHour": 10, "endHour": 14},
@@ -242,7 +244,7 @@ def build_summary(timeSteps, forecasts, name, description, tz_name):
                 prev_idx = e["index"] - 1
                 if prev_idx >= 0:
                     ff = get_value(forecasts, "FF", prev_idx, lambda x: x * 3.6)
-                    if ff is not None and ff >= 15:
+                    if ff is not None and ff >= WINDY_THRESHOLD:
                         is_windy = True
                         break
 

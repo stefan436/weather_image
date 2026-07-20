@@ -72,11 +72,13 @@ function getLayout(param, timeSteps, timeZoneId) {
     xaxis: {
       automargin: true,
       range: xRange,
+      gridcolor: "rgba(17, 24, 39, 0.2)",
       hoverformat: "%a, %d.%b, %H:%M",
       tickformat: "%H:%M \n%d.%b",
     },
     yaxis: { 
       title: param, 
+      gridcolor: "rgba(17, 24, 39, 0.2)",
       automargin: true,
       fixedrange: true // Blockiert Panning und Zoom in Y-Richtung für ALLE Parameter
     },
@@ -95,6 +97,13 @@ function getLayout(param, timeSteps, timeZoneId) {
     param.includes("Gewitterwahrscheinlichkeit")
   ) {
     layout.yaxis.range = [-5, 105];
+    layout.yaxis.minor = {
+      dtick: 10,                 // Zieht alle 10% eine Minor-Linie (Hauptlinien sind meist alle 20%)
+      showgrid: true,            // Aktiviert die Rasterlinien für diese Zwischenschritte
+      gridwidth: 1,
+      gridcolor: "rgba(200, 200, 200, 0.5)",
+      griddash: "dash"           
+    };
   } else if (param.includes("Sonnenstunden")) {
     layout.yaxis.range = [-2, 24];
   } else if (param.includes("UV-Index")) {
@@ -615,6 +624,7 @@ export function renderPlot(
     layout.yaxis = {
       title: "Windrichtung",
       tickmode: "array",
+      gridcolor: "rgba(17, 24, 39, 0.2)",
       tickvals: [0, 90, 180, 270, 360],
       ticktext: ["N", "E", "S", "W", "N"],
       range: [0, 360],

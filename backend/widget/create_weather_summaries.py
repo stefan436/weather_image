@@ -36,7 +36,7 @@ COORDS_JSON_PATH = "/WWW/users/TUMid/weather_data/mosmix_stationen_coords.json"
 # Schwellenwerte für die Bewölkung
 CLOUD_COVER_THRESHOLDS = [30, 60, 80]
 
-WINDY_THRESHOLD = 15
+WINDY_THRESHOLD = 13            # everything >= WINDY_THRESHOLD is marked windy; in km/h
 
 PERIODS = [
     {"name": "Früh", "startHour": 6, "endHour": 10},

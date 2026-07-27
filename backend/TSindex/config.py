@@ -1,28 +1,27 @@
 # config.py
 
+# include wind as dampening (especially wind shear)? WSHEAR_U, WSHEAR_V     $$BRN = \frac{CAPE}{0.5 \cdot (\Delta U^2 + \Delta V^2)}$$  warum durch 0.5 teilen? BRN zur klassifikation
+
 step_size = 60          # in min
 steps_into_future = 27
 
-RUC_product1 = "CAPE_MU"
-base_url_ruc1 = f"https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{RUC_product1}/r/"
-
-cape_ref = 800
-
-RUC_product2 = "CIN_MU"
-base_url_ruc2 = f"https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{RUC_product2}/r/"
-
-cin_ref = 10
-
-ruc_nodata = 9999.0
-
-download_dir_ruc1 = "./data/RUC1/"
-download_dir_ruc2 = "./data/RUC2/"
-
 grid_file = './data/icon_grid_0047_R19B07_L.nc'
-
 num_workers = 6
 
+CAPE_MU_ref = 1000
+CIN_MU_ref = 35
 
+# Dynamische Konfiguration für alle herunterzuladenden Produkte
+PRODUCTS = {
+    "CAPE_MU": {
+        "nodata": 9999.0,
+        "download_dir": "./data/CAPE_MU/"
+    },
+    "CIN_MU": {
+        "nodata": 999.0,
+        "download_dir": "./data/CIN_MU/"
+    }
+}
 
 # export data
 # Format: (Untergrenze_Wert, (R, G, B))

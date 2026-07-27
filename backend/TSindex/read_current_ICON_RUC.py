@@ -111,8 +111,8 @@ def _check_url_and_del_file(output_dir, url_list):
     return url_list
 
 
-def download_ruc(url_list, download_dir_ruc1):
-    output_dir = Path(download_dir_ruc1)
+def download_ruc(url_list, download_dir):
+    output_dir = Path(download_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
     url_list = _check_url_and_del_file(output_dir, url_list)

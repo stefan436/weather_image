@@ -9,34 +9,40 @@ from convert_to_mobile_format import generate_time_arrays_ruc, prepare_data_icon
 def calculate_TSindex(cape, cin, cape_ref, cin_ref):
     """
     Berechnet die Kombination von a und b über die Formel:
-    (cape / a_rcape_refef) * exp(-cin / cin_ref)
-    
-    Shapes:
-    - cape, cin: (timestep, lat, lon)
-    - cape_ref, cin_ref: Entweder Skalare, oder Arrays die zum Broadcasting passen 
-                    (z. B. gleiches Shape oder (lat, lon))
+    (cape / cape_ref) * exp(-cin / cin_ref)
     """
-    # Vektoriierte Berechnung über alle Dimensionen hinweg
-    result = (cape / cape_ref) * np.exp(-cin / cin_ref)
-    
-    return result
+    return (cape / cape_ref) * np.exp(-cin / cin_ref)
 
 
 today = datetime.now(timezone.utc)
 time_now = today.replace(minute=0, second=0, microsecond=0)
 
-urls1 = get_ruc_urls(set_past_date=None, steps_into_future=config.steps_into_future, base_url_ruc=config.base_url_ruc1)
-download_dir1 = download_ruc(urls1, config.download_dir_ruc1)
-pred_cape_raw, projection_ruc = create_prediction(download_dir1, config.steps_into_future)
-pred_cape = np.where(pred_cape_raw == 9999.0, np.nan, pred_cape_raw)
+# 1. Dynamischer Download und Verarbeitung in einer Schleife
+predictions = {}
 
-urls2 = get_ruc_urls(set_past_date=None, steps_into_future=config.steps_into_future, base_url_ruc=config.base_url_ruc2)
-download_dir2 = download_ruc(urls2, config.download_dir_ruc2)
-pred_cin_raw, projection_ruc = create_prediction(download_dir2, config.steps_into_future)
-pred_cin = np.where(pred_cin_raw == 999.0, np.nan, pred_cin_raw)
+for product_name, params in config.PRODUCTS.items():
+    # URL dynamisch aus dem Produktnamen bauen
+    base_url = f"https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{product_name}/r/"
+    
+    urls = get_ruc_urls(set_past_date=None, steps_into_future=config.steps_into_future, base_url_ruc=base_url)
+    download_dir = download_ruc(urls, params["download_dir"])
+    pred_raw, projection_ruc = create_prediction(download_dir, config.steps_into_future)
+    
+    # produktspezifischen NoData-Wert maskieren
+    pred_masked = np.where(pred_raw == params["nodata"], np.nan, pred_raw)
+    
+    # Resultat im Dictionary unter dem Produktnamen speichern
+    predictions[product_name] = pred_masked
 
-final_pred = calculate_TSindex(pred_cape, pred_cin, config.cape_ref, config.cin_ref)
+# 2. Spezifische Index-Berechnung mit den gesammelten Daten
+final_pred = calculate_TSindex(
+    cape=predictions["CAPE_MU"], 
+    cin=predictions["CIN_MU"], 
+    cape_ref=config.CAPE_MU_ref, 
+    cin_ref=config.CIN_MU_ref
+)
 
+# 3. Export der Daten
 total_frames = final_pred.shape[0]
 absolute_time_array, relative_time_array = generate_time_arrays_ruc(total_frames, time_now)
 
@@ -52,7 +58,6 @@ export_data(
     da_mask_web=da_mask_web, 
     relative_time_array=relative_time_array
 )
-
 
 
 

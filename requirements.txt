@@ -4,7 +4,7 @@ xarray
 cfgrib
 
 # radar backend
-cdo
+# cdo
 cartopy
 pyfftw
 pysteps

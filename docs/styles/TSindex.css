@@ -138,79 +138,11 @@ progress::-moz-progress-bar {
     align-items: center;
 }
 
-.t0-marker {
-    position: absolute;
-    top: -50px;
-    transform: translateX(-50%);
-    background-color: #4f4f4f; /* Dunkelgrau für den "Aktuell"-T0-Marker */
-    color: white;
-    font-size: 10px;
-    font-weight: bold;
-    padding: 20px 10px;
-    border-radius: 10px;
-    pointer-events: none;
-    z-index: 10;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
 
-.t0-marker::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 10px 10px 0;
-    border-style: solid;
-    border-color: #4f4f4f transparent transparent transparent;
-    width: 0;
-    height: 0;
-}
 
-#frameSlider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 8px;
-    border-radius: 4px;
-    /* Ein heller Orangeton für den Vorhersage-Zeitraum */
-    background: #fdb172; 
-    outline: none;
-    cursor: pointer;
-    margin: 0;
-}
-
-/* Der greifbare Punkt (Thumb) */
-#frameSlider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    /* Kräftiges Orange für den aktiven Marker */
-    background: #e67e22; 
-    cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-    transition: transform 0.1s ease;
-}
-
-#frameSlider::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-}
-
-#frameSlider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #e67e22;
-    cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-    transition: transform 0.1s ease;
-}
 
 #frameSlider::-moz-range-thumb:hover {
-    transform: scale(1.15);
+    transform: scale(1.5);
 }
 
 /* Anpassung für mobile Ansicht */

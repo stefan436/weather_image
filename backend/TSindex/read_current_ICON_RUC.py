@@ -3,7 +3,7 @@ import netCDF4 as nc
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
-from scipy.interpolate import griddata
+from scipy.spatial import cKDTree
 import requests
 import re
 import eccodes
@@ -12,7 +12,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config import step_size, num_workers, grid_file
 
-# General info: steps_into_future contains the T+0 step. --> if forcast legth = 60 min --> steps_into_future = 13
 
 def get_ruc_urls(set_past_date, steps_into_future, base_url_ruc):
     if set_past_date is not None:
@@ -83,8 +82,7 @@ def _download_single_ruc(url, output_dir):
         response = requests.get(url, stream=True, timeout=30)
         response.raise_for_status()
         with open(file_path, "wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
+            file.writelines(response.iter_content(chunk_size=8192))
         return True, url
     except requests.exceptions.RequestException as error:
         return False, f"Failed to download {url}. Error: {error}"
@@ -188,61 +186,70 @@ def extract_icon_grid_essentials(grid_filepath):
 
 def regrid_timeseries(pred, reprojection_ruc):
     """
-    Interpoliert unstrukturierte Wetterdaten mit der Shape (time, coords) 
-    auf ein regelmäßiges 2D-Gitter für jeden Zeitschritt.
-    
-    Parameter:
-    - pred: numpy array der Shape (time, coords)
-    - reprojection_ruc: Dictionary mit 'cell_lon' und 'cell_lat'
-    
-    Rückgabe:
-    - grid_values_time: numpy array der Shape (time, 794, 753)
+    Interpoliert unstrukturierte Wetterdaten rasend schnell auf ein regelmäßiges 2D-Gitter,
+    indem die räumliche Zuordnung nur einmal berechnet wird.
     """
-    # 1. 1D-Koordinaten aus dem ICON-Grid extrahieren
     lons_1d = reprojection_ruc['cell_lon']
     lats_1d = reprojection_ruc['cell_lat']
 
-    # 2. Regelmäßiges 2D-Gitter einmalig definieren
+    # 1. Zielgitter definieren
     grid_lon, grid_lat = np.mgrid[
-        lons_1d.min():lons_1d.max():794j,
-        lats_1d.min():lats_1d.max():753j
+        lons_1d.min():lons_1d.max():1000j,
+        lats_1d.min():lats_1d.max():1000j
     ]
 
-    # 3. Über alle Zeitschritte iterieren und interpolieren
-    # Da sich das Quell- und Zielgitter nicht ändern, bleibt 'points' und 'xi' konstant.
-    grid_values_list = [
-        griddata(
-            points=(lons_1d, lats_1d),
-            values=pred[t, :],
-            xi=(grid_lon, grid_lat),
-            method='nearest'
-        )
-        for t in range(pred.shape[0])
-    ]
+    # 2. Quell- und Zielkoordinaten für den KD-Tree vorbereiten
+    # Shape wird (N, 2)
+    source_points = np.column_stack((lons_1d, lats_1d))
+    target_points = np.column_stack((grid_lon.ravel(), grid_lat.ravel()))
 
-    # In ein einzelnes NumPy-Array konvertieren: Shape wird (time, 794, 753)
-    grid_values_time = np.array(grid_values_list)
+    # 3. KD-Tree bauen und abfragen (Passiert nur EINMAL!)
+    tree = cKDTree(source_points)
+    # distance wird nicht benötigt, wir wollen nur die Indizes der nächsten Nachbarn
+    _, indices = tree.query(target_points)
+
+    # 4. Werte für alle Zeitschritte gleichzeitig rüberkopieren (NumPy Magic)
+    # pred hat die Shape (time, n_cells). 
+    # Durch pred[:, indices] weisen wir jedem der Zielpunkte den Wert der 
+    # entsprechenden Quellzelle zu.
+    grid_values_flat = pred[:, indices] 
+
+    # 5. Zurück in die gewünschte Shape bringen: (time, 1000, 1000)
+    grid_values_time = grid_values_flat.reshape(pred.shape[0], 1000, 1000)
 
     return grid_values_time
 
+
+
+def _process_single_file(args):
+    """Hilfsfunktion, um Index und Datei für die parallele Verarbeitung zu kapseln."""
+    idx, file_path = args
+    current_frame = process_grib_file(file_path)
+    return idx, current_frame
+
 def create_prediction(download_folder, steps_into_future):
-    no_rain = None
     # Lade Metadaten von ICON D2 RUC
     projection_RUC = extract_icon_grid_essentials(grid_file)
     n_cells = len(projection_RUC['cell_lon'])
-    pred = np.empty((steps_into_future+1, n_cells))
-    # pred = np.empty((steps_into_future-1, 542040))
-    folder_path = Path(download_folder)
-    # sort
-    files = sorted([f for f in folder_path.iterdir() if f.is_file()])
     
-    for idx, element in enumerate(files):
-        # + 1 da die Vorhersage von RUC für T-5 benötigt wird um T+0 zu berechnen
-        if idx >= steps_into_future + 1:
-            break # Sicherheitshalber abbrechen, falls mehr Dateien existieren
-            
-        current_frame = process_grib_file(element)
+    folder_path = Path(download_folder)
+    # Sortierte Liste der Dateien erstellen und auf die benötigte Anzahl begrenzen
+    files = sorted([f for f in folder_path.iterdir() if f.is_file()])
+    max_files = steps_into_future + 1
+    files_to_process = files[:max_files]
+    
+    pred = np.empty((len(files_to_process), n_cells))
+    
+    # Aufgaben für den Pool vorbereiten: Tupel aus (Index, Datei)
+    tasks = list(enumerate(files_to_process))
+    
+    # Parallele Verarbeitung mit ThreadPoolExecutor (nutzt num_workers aus config)
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        results = executor.map(_process_single_file, tasks)
         
-        pred[idx, :] = current_frame
+        # Ergebnisse an der korrekten Stelle im Array einspeichern
+        for idx, current_frame in results:
+            pred[idx, :] = current_frame
+            
     pred = regrid_timeseries(pred, projection_RUC)
     return pred, projection_RUC

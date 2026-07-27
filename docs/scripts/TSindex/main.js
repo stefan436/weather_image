@@ -47,9 +47,14 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   className: "muted-osm",
 }).addTo(map);
 
-// Pane für Regenradar (stellt sicher, dass es über der Karte liegt)
-map.createPane("radarPane");
-map.getPane("radarPane").style.zIndex = 450;
+// Pane für Konvektionsindex (stellt sicher, dass es über der Karte liegt)
+map.createPane("indexPane");
+map.getPane("indexPane").style.zIndex = 450;
+
+// NEU: Pane für die BRN-Vektoren
+map.createPane("vectorPane");
+map.getPane("vectorPane").style.zIndex = 460; // Höher als das indexPane, damit Linien nicht überdeckt werden
+map.getPane("vectorPane").style.pointerEvents = "none"; // WICHTIG: Lässt Klicks für deine Legende durch!
 
 const mapEl = document.getElementById("map");
 new ResizeObserver(() => map.invalidateSize()).observe(mapEl);
@@ -73,27 +78,11 @@ setupUI(appState, {
       appState.bounds = meta.bounds;
       appState.frames = meta.frames;
 
-      // Ermittle den Index für T0 (falls er nicht schon fest im Backend verankert ist)
-      const t0Idx = appState.frames.findIndex((f) => f.relative_time === "T0");
-      appState.t0Index = t0Idx !== -1 ? t0Idx : 0;
-
-      // Platziere den T0-Marker exakt an der berechneten Prozent-Stelle
-      const maxFrames = appState.frames.length - 1;
-      if (maxFrames > 0) {
-        const t0Percent = (appState.t0Index / maxFrames) * 100;
-        const marker = document.getElementById("t0-marker");
-        if (marker) {
-          // Korrekturformel für die Breite des Slider-Thumbs (18px)
-          marker.style.left = `calc(${t0Percent}% + (${9 - t0Percent * 0.18}px))`;
-        }
-      }
-
       // 3. Bilder in Leaflet vorladen
-      statusText.textContent = "Lade Radarbilder...";
+      statusText.textContent = "Lade MCP...";
       await preloadFrames(appState, map);
 
       // 4. UI freischalten
-      const t0Marker = document.getElementById("t0-marker");
       const slider = document.getElementById("frameSlider");
       slider.max = appState.frames.length - 1;
       // Setze Startwert direkt auf T0 anstatt auf 0
@@ -103,11 +92,10 @@ setupUI(appState, {
       slider.disabled = false;
       document.getElementById("playPause").disabled = false;
 
-      t0Marker.style.display = "block";
       statusText.style.display = "none";
 
       // 5. Erstes Frame anzeigen
-      renderFrame(appState);
+      renderFrame(appState, map); 
     } catch (error) {
       statusText.textContent = "Fehler: " + error.message;
       startBtn.style.display = "inline";
@@ -115,7 +103,7 @@ setupUI(appState, {
     }
   },
   onRenderFrame: () => {
-    renderFrame(appState);
+    renderFrame(appState, map); 
   },
 });
 
@@ -131,7 +119,7 @@ function hexToRgb(hex) {
     : null;
 }
 
-// Klick-Event auf der Karte für die Radar-Legende
+// Klick-Event auf der Karte für die Index-Legende
 map.on("click", (e) => {
   const legendHint = document.getElementById("legend-hint");
   const legendClick = document.getElementById("legend-click");
@@ -148,7 +136,7 @@ map.on("click", (e) => {
 
   const bounds = L.latLngBounds(appState.bounds);
 
-  // Wenn außerhalb des Radar-Rechtecks geklickt wird -> Legende zurücksetzen
+  // Wenn außerhalb des Rechtecks geklickt wird -> Legende zurücksetzen
   if (!bounds.contains(e.latlng)) {
     resetLegend();
     return;
@@ -231,7 +219,7 @@ map.on("click", (e) => {
     const valueText = document.getElementById("clickValue");
 
     if (colorBox) colorBox.style.backgroundColor = closestLevel.color;
-    if (valueText) valueText.textContent = `≥ ${closestLevel.min}`;
+    if (valueText) valueText.textContent = `≥ ${closestLevel.min} MCP`;
   } else {
     console.log("Farbe wich zu stark von der hinterlegten Palette ab.");
     resetLegend();

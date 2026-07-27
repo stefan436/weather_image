@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TSindex Vorhersage (ICON-D2)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Leaflet für die Karten-Basis -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Luxon für die Zeitkonvertierung -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+
+    <!-- Eigene Stylesheets -->
+    <link rel="stylesheet" href="./../styles/global.css" />
+    <link rel="stylesheet" href="./../styles/Hamburgermenu.css" />
+    <link rel="stylesheet" href="./../styles/TSindex.css" /> 
+  </head>
+  <body>
+    <header>
+      <!-- NavBar und Hamburgermenue -->
+      <div id="navbar-placeholder"></div>
+    </header>
+    
+    <div id="controls">
+      <button id="start" style="display: none;">TSindex laden</button>
+      <p id="status_output" style="display: none; font-size: 14px; margin: 0"></p>
+
+      <span id="timeStatusLabel" style="font-size: 20px; margin-left: 8px; font-weight: bold"></span>
+      <span id="frameLabel" style="font-size: 18px; margin-left: 8px; font-weight: bold">---</span>
+      
+      <div class="slider-wrapper">
+        <div id="t0-marker" class="t0-marker" style="display: none;"></div>
+        <input id="frameSlider" type="range" min="0" max="10" value="0" disabled />
+      </div>
+      
+      <button id="playPause" disabled>▶️ Play</button>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="legend" class="legend" style="display: none">
+      <div id="legend-hint" style="font-size: 12px; color: #444">
+        ℹ️ Tippe auf die Karte für Details
+      </div>
+
+      <div id="legend-click" style="font-size: 14px; display: none">
+        <span id="clickColorBox" style="
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 1px solid #ccc;
+            vertical-align: middle;
+            margin-right: 6px;
+          "></span>
+        <span id="clickValue" style="font-weight: bold"></span>
+      </div>
+      <div style="font-size: 10px; margin-top: 6px; color: #444">
+        Quelle: Deutscher Wetterdienst (ICON-D2 RUC),
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+      </div>
+    </div>
+
+    <!-- Hamburgermenu Script -->
+    <script type="module" src="./../scripts/shared/Hamburgermenu_script.js"></script>
+
+    <!-- Hauptscript laden (Pfad anpassen, falls dein Ordner anders heißt!) -->
+    <script type="module" src="./../scripts/TSindex/main.js"></script>
+  </body>
+</html>

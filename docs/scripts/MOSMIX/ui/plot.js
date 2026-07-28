@@ -239,7 +239,7 @@ function renderConvectivePotentialPlot(plotlyDiv, param, xData, seriesMap, timeS
         if (val !== null) {
           if (ep.yaxis === "y") y1Vals.push(val);
           if (ep.yaxis === "y2") y2Vals.push(val);
-          if (idx < minDataIndex) minDataIndex = idx-2;
+          if (idx < minDataIndex) minDataIndex = idx;
           if (idx > maxDataIndex) maxDataIndex = idx;
         }
       });
@@ -265,8 +265,27 @@ function renderConvectivePotentialPlot(plotlyDiv, param, xData, seriesMap, timeS
   const rangeY2 = [ -(maxY2 * maxRatio) * tickPadding, maxY2 * tickPadding ];
 
   let rangeX = null;
+  
   if (minDataIndex <= maxDataIndex) {
-    rangeX = [xData[minDataIndex], xData[maxDataIndex]];
+    // 1. Die exakten Start- und Endzeitpunkte in Millisekunden holen
+    // Wir nutzen timeSteps anstatt xData, da timeSteps ein standardisiertes Datumsformat hat, 
+    // das von 'new Date()' auf jedem Browser (inkl. Safari) 100% fehlerfrei gelesen wird.
+    const startMs = new Date(timeSteps[minDataIndex]).getTime();
+    const endMs = new Date(timeSteps[maxDataIndex]).getTime();
+
+    // 2. Zeitspanne und das 5% Padding berechnen (mindestens 2 Stunden als Fallback)
+    const diffMs = endMs - startMs;
+    const paddingMs = Math.max(diffMs * 0.05, 2 * 60 * 60 * 1000);
+
+    // 3. Das errechnete Padding vorne abziehen und hinten aufaddieren
+    const paddedStart = new Date(startMs - paddingMs);
+    const paddedEnd = new Date(endMs + paddingMs);
+
+    // 4. Die neuen Zeiten wieder in das richtige Plotly-Format der lokalen Zeitzone formatieren
+    rangeX = [
+      getStationTime(paddedStart, timeZoneId).plotlyString,
+      getStationTime(paddedEnd, timeZoneId).plotlyString
+    ];
   }
 
   const baseLayout = getLayout(param, timeSteps, timeZoneId);

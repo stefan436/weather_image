@@ -12,7 +12,7 @@ OUT_DIR = "/WWW/users/ge47fab/weather_data/index/Forecast/mosmix_s/"
 COORDS_JSON = "/WWW/users/ge47fab/weather_data/mosmix_stationen_coords.json"
 
 # WARNMOS_DOWNLOAD_PATH = "./data/WarnMOS"
-WARNMOS_DOWNLOAD_PATH = "/WWW/users/ge47fab/weather_data/index/WarnMOS"
+WARNMOS_DOWNLOAD_PATH = "/scratch/ge47fab/Wetter-data/index-MCP/WarnMOS"
 WARNMOS_BASE_URL = "https://opendata.dwd.de/weather/local_forecasts/warnmos/"
 
 MOSMIX_TARGETS = {'TTT', 'Td', 'RR1c', 'Neff', 'DD', 'FF', 'FX1', 'wwM', 'ww', 'Rad1h'}

@@ -95,10 +95,12 @@ def export_data(da_web, da_brn_4326, leaflet_bounds, da_mask_web, relative_time_
     frames_dir = Path(config.save_path_webp).parent
     frames_dir.mkdir(parents=True, exist_ok=True)
     
-    # Alte Dateien aufräumen
-    for element in meta_json_dir.iterdir():
-        if element.is_file():
-            element.unlink()
+    # 1. Nur die meta.json löschen
+    meta_file = Path(config.meta_json_path)
+    if meta_file.is_file():
+        meta_file.unlink()
+        
+    # 2. Den Ordner für die Frames komplett leeren
     for element in frames_dir.iterdir():
         if element.is_file():
             element.unlink()

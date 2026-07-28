@@ -1,13 +1,8 @@
-// geoService.js - Kapselung von API-Anfragen und mathematischen Berechnungen
+import { haversineDistance } from "../utils/mathUtils.js";
 
 const cache = new Map();
 let lastRequestTime = 0;
 
-/**
- * Führt das Geocoding für eine Adresse via Nominatim durch.
- * Kapselt das Rate-Limiting und Caching intern.
- * Gibt entweder die Daten oder eine Fehlermeldung zurück.
- */
 export async function fetchCoordinates(address) {
   if (!address) return { error: "Bitte gib eine Adresse ein." };
 
@@ -53,26 +48,6 @@ export async function fetchCoordinates(address) {
   }
 }
 
-// Mathematische Hilfsfunktionen zur Distanzberechnung
-function toRadians(deg) {
-  return (deg * Math.PI) / 180;
-}
-
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // Erdradius in Metern
-  const φ1 = toRadians(lat1),
-    φ2 = toRadians(lat2);
-  const Δφ = toRadians(lat2 - lat1),
-    Δλ = toRadians(lon2 - lon1);
-  const a =
-    Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-/**
- * Filtert aus der Gesamtliste aller Stationen die 5 nächstgelegenen heraus
- * und gibt sie sortiert nach Entfernung zurück.
- */
 export function getNearestStations(lat, lon, stationData) {
   const stationsWithDist = stationData
     .map((row) => {
@@ -86,35 +61,4 @@ export function getNearestStations(lat, lon, stationData) {
 
   stationsWithDist.sort((a, b) => a.distance - b.distance);
   return stationsWithDist.slice(0, 5);
-}
-
-
-
-export function getStationTime(dateInput, timeZoneId) {
-  // Dynamische Instanziierung mit der Zeitzone der Station
-  const formatter = new Intl.DateTimeFormat('de-DE', {
-    timeZone: timeZoneId,
-    year: 'numeric', month: 'numeric', day: 'numeric',
-    hour: 'numeric', minute: 'numeric', second: 'numeric',
-    hour12: false
-  });
-  
-  const d = new Date(dateInput);
-  const parts = formatter.formatToParts(d);
-  
-  const getP = (type) => parseInt(parts.find(p => p.type === type).value, 10);
-  
-  const year = getP('year');
-  const month = getP('month');
-  const day = getP('day');
-  const hour = getP('hour');
-  
-  const pad = (n) => String(n).padStart(2, '0');
-  
-  return {
-    d, 
-    year, month, day, hour,
-    dayIso: `${year}-${pad(month)}-${pad(day)}`, // YYYY-MM-DD
-    plotlyString: `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:00:00`
-  };
 }

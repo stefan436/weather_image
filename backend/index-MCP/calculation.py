@@ -5,9 +5,19 @@ import numpy as np
 def calculate_TSindex(cape, cin, cape_ref, cin_ref):
     """
     Berechnet die Kombination von a und b über die Formel:
-    (cape / cape_ref) * exp(-cin / cin_ref)
+    (cape / cape_ref) * exp(-cin / cin_ref) * 10
     """
-    return (cape / cape_ref) * np.exp(-cin / cin_ref)
+    # 1. Term berechnen: exp(-cin / cin_ref)
+    cin_factor = np.exp(-cin / cin_ref)
+    
+    # 2. Wo CIN ein NaN war, setzen wir den Dämpfungsfaktor auf 1.0 (keine Hemmung)
+    cin_factor = np.where(np.isnan(cin_factor), 1.0, cin_factor)
+    
+    # 3. TS-Index berechnen
+    ts_index = (cape / cape_ref) * cin_factor * 100
+    # * 100 für bessere lesbarkeit
+    
+    return ts_index
 
 def calculate_BRN(cape, wshear_u, wshear_v):
     """

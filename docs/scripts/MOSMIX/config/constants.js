@@ -1,5 +1,3 @@
-// config.js
-
 export const USE_MOSMIX_S = true;
 
 /* Schwellenwerte für die Summary cards nach denen die Bewölkung klassifiziert wird
@@ -28,28 +26,16 @@ export const periods = [
 ];
 
 export const combinedParams = [
-  {
-    value: "Temperatur (°C)",
-    error: "Absolute error temperature 2m above surface",
-  },
-  {
-    value: "Windgeschwindigkeit (km/h)",
-    error: "Absolute error wind speed 10m above surface",
-  },
+  { value: "Temperatur (°C)", error: "Absolute error temperature 2m above surface" },
+  { value: "Windgeschwindigkeit (km/h)", error: "Absolute error wind speed 10m above surface" },
   { value: "Windrichtung", error: "Absolute error wind direction" },
 ];
 
-/**
- * Die preferredOrder bestimmt die Reihenfolge der Elemente, wie sie im 
- * Dropdown-Menü der Benutzeroberfläche erscheinen sollen.
- * Elemente, die hier weiter oben stehen, werden zuerst angezeigt.
- * Elemente, die nicht in dieser Liste stehen, werden im Dropdown 
- * alphabetisch an das Ende angehängt.
- */
 export const preferredOrder = [
   "Temperatur (°C)",
   "Niederschlagswahrscheinlichkeit",
   "Gewitterwahrscheinlichkeit (WarnMOS)",
+  "Konvektionspotential",
   "Glättewahrscheinlichkeit",
   "Totale Niederschlagsmenge (mm)",
   "Bewölkung",
@@ -66,12 +52,11 @@ export const preferredOrder = [
   "reduzierter Oberflächendruck",
 ];
 
-// Definiert explizit, welche Parameter im UI-Dropdown auswählbar sein sollen.
-// Ersetzt das alte "excludedElements"-Array für mehr Kontrolle.
 export const includedDropdownElements = [
   "Temperatur (°C)",
   "Niederschlagswahrscheinlichkeit",
   "Gewitterwahrscheinlichkeit (WarnMOS)",
+  "Konvektionspotential",
   "Totale Niederschlagsmenge (mm)",
   "Bewölkung",
   "Windgeschwindigkeit (km/h)",
@@ -83,11 +68,6 @@ export const includedDropdownElements = [
   "Strahlungsintensität (W/m^2)"
 ]; 
 
-/**
- * unitProcessingConfig fasst die Einheitenzuweisung und Umrechnung zusammen.
- * Jeder Schlüssel entspricht dem rohen DWD-Kürzel.
- * Wenn ein Kürzel hier nicht gelistet ist, wird der Wert 1:1 übernommen.
- */
 export const unitProcessingConfig = {
   // --- Temperatur (Kelvin zu Celsius) ---
   TTT: { unit: "°C", convert: (v) => v - 273.15 },
@@ -145,8 +125,19 @@ export const unitProcessingConfig = {
   SunD1: { unit: "min", convert: (v) => v / 60 },
   SunD3: { unit: "min", convert: (v) => v / 60 },
   SunD: { unit: "min", convert: (v) => v / 60 },
-  DRR1: { unit: "min", convert: (v) => v / 60 }
+  DRR1: { unit: "min", convert: (v) => v / 60 },
+
+  // --- Convective Potentials ---
+  CAPE: { unit: "J/kg", convert: (v) => v },
+  CIN: { unit: "J/kg", convert: (v) => v },
+
+  // --- Idize/Faktoren (Einheitenlos) ---
+  MCP: { unit: "", convert: (v) => v },
+  BRN: { unit: "", convert: (v) => v }
+
+
 };
+
 
 export const wwIconMap = {
   // Gewitter

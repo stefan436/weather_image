@@ -130,5 +130,10 @@ export const elementNamesMap = {
     "U_GEWSW_01": "Schweres Gewitter (WarnMOS)",            // Wahrscheinlichkeit während der letzten vergangenen stunde
     "FZ": "Prob Glaette",
     "FZRA": "Prob oertlich Glatteis",
-    "FZRAX": "Glättewahrscheinlichkeit"
+    "FZRAX": "Glättewahrscheinlichkeit",
+    "CAPE": "Convective Available Potential Energy",
+    "CIN": "Convective Inhibition",
+    "MCP": "Modified Convective Potential",
+    "BRN": "Bulk Richardson Number",
+    "CCPot": "Konvektionspotential"
 };

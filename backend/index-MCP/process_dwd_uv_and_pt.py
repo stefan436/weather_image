@@ -45,8 +45,8 @@ def download_latest_dwd_file(target_folder, date=None, typ="uvi"):
                 with requests.get(file_url, stream=True) as r:
                     r.raise_for_status()
                     with open(target_path, "wb") as f:
-                        for chunk in r.iter_content(chunk_size=8192):
-                            f.write(chunk)
+                        # write all chunks from the streaming response
+                        f.writelines(r.iter_content(chunk_size=8192))
                 return target_path
             except Exception as e:
                 print(f"Error downloading file: {e}")
@@ -71,7 +71,7 @@ def clean_array(arr):
     return [round(float(x), 2) if not np.isnan(x) else None for x in arr]
 
 def main():
-    download_folder = "/scratch/TUMid/tmp_download"
+    download_folder = "/scratch/ge47fab/tmp_download"
     os.makedirs(download_folder, exist_ok=True)
 
     file_paths = download_all_dwd_types(download_folder)
@@ -103,11 +103,11 @@ def main():
     min_lon_uv, max_lon_uv = np.min(lon_uv), np.max(lon_uv)
 
     # Lade die bekannten MOSMIX-Stationen
-    with open("/WWW/users/TUMid/weather_data/mosmix_stationen_coords.json", "r", encoding="utf-8") as f:
+    with open("/WWW/users/ge47fab/weather_data/mosmix_stationen_coords.json", "r", encoding="utf-8") as f:
         stations = json.load(f)
 
     # Zielverzeichnis für die vorverarbeiteten JSONs
-    out_dir = "/WWW/users/TUMid/weather_data/uv_gft"
+    out_dir = "/WWW/users/ge47fab/weather_data/index/Forecast/uv_gft"
     os.makedirs(out_dir, exist_ok=True)
     
     for st in stations:
@@ -137,11 +137,11 @@ def main():
 
     # Zeitstempel global abspeichern, da das Frontend diese weiterhin zur Zuordnung braucht
     times_str_gft = [str(t) for t in gft['valid_time'].values]
-    with open("/WWW/users/TUMid/weather_data/gft_forecast_times.json", "w", encoding="utf-8") as f:
+    with open("/WWW/users/ge47fab/weather_data/index/Forecast/gft_forecast_times.json", "w", encoding="utf-8") as f:
         json.dump(times_str_gft, f)
 
     times_str_uvi = [str(t) for t in uvi['valid_time'].values]
-    with open("/WWW/users/TUMid/weather_data/uvi_forecast_times.json", "w", encoding="utf-8") as f:
+    with open("/WWW/users/ge47fab/weather_data/index/Forecast/uvi_forecast_times.json", "w", encoding="utf-8") as f:
         json.dump(times_str_uvi, f)
 
     gft.close()

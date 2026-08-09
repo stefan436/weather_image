@@ -7,14 +7,25 @@ def calculate_TSindex(cape, cin, cape_ref, cin_ref):
     Berechnet die Kombination von a und b über die Formel:
     (cape / cape_ref) * exp(-cin / cin_ref) * 10
     """
+    # 0. Flexibler Dimensionalitätscheck
+    if cape.shape[-2:] != cape_ref.shape[-2:]:
+        raise ValueError(f"Shape-Mismatch (spatial): cape {cape.shape} vs. cape_ref {cape_ref.shape}")
+    if cin.shape[-2:] != cin_ref.shape[-2:]:
+        raise ValueError(f"Shape-Mismatch (spatial): cin {cin.shape} vs. cin_ref {cin_ref.shape}")
+    if cape.shape != cin.shape:
+        raise ValueError(f"Shape-Mismatch: cape {cape.shape} vs. cin {cin.shape}")
+    
     # 1. Term berechnen: exp(-cin / cin_ref)
-    cin_factor = np.exp(-cin / cin_ref)
+    cin_factor = np.exp(-np.abs(cin) / np.abs(cin_ref))
     
     # 2. Wo CIN ein NaN war, setzen wir den Dämpfungsfaktor auf 1.0 (keine Hemmung)
     cin_factor = np.where(np.isnan(cin_factor), 1.0, cin_factor)
     
     # 3. TS-Index berechnen
-    ts_index = (cape / cape_ref) * cin_factor * 100
+    ts_index_raw = (cape / cape_ref) * cin_factor
+    
+    # 4. Nutze squashing funktion um in "Pseudo-wharscheinlichkeit" umzuwandeln
+    ts_index = (1 - 4**(-ts_index_raw)) * 100
     # * 100 für bessere lesbarkeit
     
     return ts_index

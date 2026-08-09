@@ -13,5 +13,5 @@ eccodes
 tqdm
 h5py
 pyproj
-python-cdo
+# python-cdo
 rioxarray

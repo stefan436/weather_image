@@ -24,32 +24,19 @@ def get_timezone_finder():
 MOSMIX_L_ALL_URL = "https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/all_stations/kml/MOSMIX_L_LATEST.kmz"
 
 # Ordner, in dem die MOSMIX_S JSON-Dateien aus deinem Backend liegen
-MOSMIX_S_DIR = "/WWW/users/TUMid/weather_data/index/Forecast/mosmix_s"
+MOSMIX_S_DIR = "/WWW/users/ge47fab/weather_data/index/Forecast/mosmix_s"
 
-# Zielordner für die generierten Wetter-Zusammenfassungen (pro Station eine Datei)
-OUTPUT_DIR = "/WWW/users/TUMid/weather_data/widget"
+# NEU: Eigener Zielordner für die generierten Tages-Zusammenfassungen
+OUTPUT_DIR = "/WWW/users/ge47fab/weather_data/widget_daily"
 
 ICON_BASE_URL = "https://raw.githubusercontent.com/stefan436/Wetterinfo/main/docs/icons/"
 
-COORDS_JSON_PATH = "/WWW/users/TUMid/weather_data/mosmix_stationen_coords.json"
+COORDS_JSON_PATH = "/WWW/users/ge47fab/weather_data/mosmix_stationen_coords.json"
 
 # Schwellenwerte für die Bewölkung
 CLOUD_COVER_THRESHOLDS = [30, 60, 80]
 
-WINDY_THRESHOLD = 13            # everything >= WINDY_THRESHOLD is marked windy; in km/h
-
-PERIODS = [
-    {"name": "Früh", "startHour": 6, "endHour": 10},
-    {"name": "Mittag", "startHour": 10, "endHour": 14},
-    {"name": "Nachmittag", "startHour": 14, "endHour": 18},
-    {"name": "Abend", "startHour": 18, "endHour": 22},
-    {"name": "Spät Abends", "startHour": 22, "endHour": 2},
-    {"name": "Nacht", "startHour": 2, "endHour": 6},
-]
-
-PERIOD_ORDER = ["Nacht", "Früh", "Mittag", "Nachmittag", "Abend", "Spät Abends"]
-
-NEEDED_ELEMENTS = {"ww", "Neff", "TTT", "wwP", "FF"}
+NEEDED_ELEMENTS = {"ww", "Neff", "TTT", "wwP", "FF", "DD"}
 
 WW_ICON_MAP = {
     95: "thunderstorm.png", 57: "heavy freezing rain.png", 56: "light freezing rain.png",
@@ -62,12 +49,6 @@ WW_ICON_MAP = {
     53: "moderate rain.png", 51: "light rain.png", 49: "fog.png",
     45: "fog.png", 3: "total cloud cover.png", 2: "medium cloud cover.png",
     1: "low cloud cover.png", 0: "clear day.png",
-}
-
-WW_ICON_MAP_NIGHT = {
-    0: "clear night.png",
-    1: "low cloud cover night.png",
-    2: "medium cloud cover night.png",
 }
 
 def log(msg):
@@ -117,17 +98,19 @@ def merge_mosmix_s_local(station_id, timeSteps, forecasts):
                     if s_idx is not None and s_idx < len(s_values) and s_values[s_idx] is not None:
                         forecasts[param][l_idx] = float(s_values[s_idx])
                         
-    except Exception as e:
+    except Exception:
         # Fehltoleranz: Wenn S-Daten defekt sind, L-Daten als Fallback behalten
         pass
 
-def build_summary(timeSteps, forecasts, name, description, tz_name):
+def build_daily_summary(timeSteps, forecasts, name, description, tz_name):
     tz = ZoneInfo(tz_name)
     now = datetime.now(tz)
     current_hour = now.replace(minute=0, second=0, microsecond=0)
     today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    entries = []
+    daysMap = {}
+    
+    # 1. Daten in Tage gruppieren
     for i, ts in enumerate(timeSteps):
         dt_utc = datetime.strptime(ts.replace("Z", ""), "%Y-%m-%dT%H:%M:%S.000").replace(tzinfo=ZoneInfo("UTC"))
         dt_local = dt_utc.astimezone(tz)
@@ -135,46 +118,30 @@ def build_summary(timeSteps, forecasts, name, description, tz_name):
         shifted_dt = dt_local - timedelta(hours=1)
 
         if shifted_dt >= current_hour:
+            day_iso = shifted_dt.strftime("%Y-%m-%d")
+            
+            group_midnight = shifted_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+            diff_days = (group_midnight - today_midnight).days
+
+            if diff_days == 0:
+                display_date = "Heute"
+            elif diff_days == 1:
+                display_date = "Morgen"
+            elif diff_days == 2:
+                display_date = "Übermorgen"
+            else:
+                weekdays = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."]
+                display_date = f"{weekdays[shifted_dt.weekday()]} {shifted_dt.strftime('%d.%m.')}"
+
+            if day_iso not in daysMap:
+                daysMap[day_iso] = {"displayDate": display_date, "entries": []}
+            
             code = get_value(forecasts, "ww", i, int)
-            entries.append({
+            daysMap[day_iso]["entries"].append({
                 "timestamp": shifted_dt,
-                "hour": shifted_dt.hour,
                 "code": code,
                 "index": i
             })
-
-    daysMap = {}
-    for entry in entries:
-        period = next((p for p in PERIODS if (
-            (p["startHour"] <= entry["hour"] < p["endHour"]) if p["startHour"] < p["endHour"] 
-            else (entry["hour"] >= p["startHour"] or entry["hour"] < p["endHour"])
-        )), None)
-        
-        if not period: continue
-
-        group_date = entry["timestamp"]
-        if period["startHour"] > period["endHour"] and entry["hour"] < period["endHour"]:
-            group_date -= timedelta(days=1)
-
-        day_iso = group_date.strftime("%Y-%m-%d")
-        group_midnight = group_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        diff_days = (group_midnight - today_midnight).days
-
-        if diff_days == 0:
-            display_date = "Heute"
-        elif diff_days == 1:
-            display_date = "Morgen"
-        elif diff_days == 2:
-            display_date = "Übermorgen"
-        else:
-            weekdays = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."]
-            display_date = f"{weekdays[group_date.weekday()]} {group_date.strftime('%d.%m.')}"
-
-        if day_iso not in daysMap:
-            daysMap[day_iso] = {"displayDate": display_date, "groups": {}}
-        if period["name"] not in daysMap[day_iso]["groups"]:
-            daysMap[day_iso]["groups"][period["name"]] = []
-        daysMap[day_iso]["groups"][period["name"]].append(entry)
 
     result = {
         "name": name,
@@ -182,79 +149,87 @@ def build_summary(timeSteps, forecasts, name, description, tz_name):
         "days": {}
     }
 
+    # 2. Werte für jeden Tag berechnen
     for day_iso in sorted(daysMap.keys()):
         day_data = daysMap[day_iso]
         display_date = day_data["displayDate"]
-        result["days"][display_date] = []
+        entries = day_data["entries"]
 
-        for period_name in PERIOD_ORDER:
-            period_entries = day_data["groups"].get(period_name, [])
-            if not period_entries: continue
+        if not entries: continue
 
-            valid_codes = [e["code"] for e in period_entries if e["code"] is not None]
-            if not valid_codes: continue
+        # --- Höchstes signifikantes Wetter (Wolkenlogik) ---
+        valid_codes = [e["code"] for e in entries if e["code"] is not None]
+        dominant_code = max(valid_codes) if valid_codes else None
+
+        if dominant_code is not None and dominant_code in [0, 1, 2, 3]:
+            cloud_covers = []
+            for e in entries:
+                prev_idx = e["index"] - 1
+                if prev_idx >= 0:
+                    neff = get_value(forecasts, "Neff", prev_idx)
+                    if neff is not None: cloud_covers.append(neff)
             
-            dominant_code = max(valid_codes)
-
-            if dominant_code in [0, 1, 2, 3]:
-                cloud_covers = []
-                for e in period_entries:
-                    prev_idx = e["index"] - 1
-                    if prev_idx >= 0:
-                        neff = get_value(forecasts, "Neff", prev_idx)
-                        if neff is not None: cloud_covers.append(neff)
-                
-                if cloud_covers:
-                    avg_cloud = sum(cloud_covers) / len(cloud_covers)
-                    if avg_cloud <= CLOUD_COVER_THRESHOLDS[0]: dominant_code = 0
-                    elif avg_cloud <= CLOUD_COVER_THRESHOLDS[1]: dominant_code = 1
-                    elif avg_cloud <= CLOUD_COVER_THRESHOLDS[2]: dominant_code = 2
-                    else: dominant_code = 3
-                else:
-                    dominant_code = None
-
-            is_night = period_name in ["Abend", "Spät Abends", "Nacht"]
-            if dominant_code is None:
-                icon_file = "unknown.png"
-            elif is_night and dominant_code <= 2:
-                icon_file = WW_ICON_MAP_NIGHT.get(dominant_code, "unknown.png")
+            if cloud_covers:
+                avg_cloud = sum(cloud_covers) / len(cloud_covers)
+                if avg_cloud <= CLOUD_COVER_THRESHOLDS[0]: dominant_code = 0
+                elif avg_cloud <= CLOUD_COVER_THRESHOLDS[1]: dominant_code = 1
+                elif avg_cloud <= CLOUD_COVER_THRESHOLDS[2]: dominant_code = 2
+                else: dominant_code = 3
             else:
-                icon_file = WW_ICON_MAP.get(dominant_code, "unknown.png")
-            
-            full_icon_url = f"{ICON_BASE_URL}{icon_file}"
+                dominant_code = None
 
-            temps = []
-            for e in period_entries:
-                prev_idx = e["index"] - 1
-                if prev_idx >= 0:
-                    t = get_value(forecasts, "TTT", prev_idx, lambda x: x - 273.15)
-                    if t is not None: temps.append(t)
-            avg_temp = round(sum(temps) / len(temps)) if temps else None
+        icon_file = WW_ICON_MAP.get(dominant_code, "unknown.png") if dominant_code is not None else "unknown.png"
+        full_icon_url = f"{ICON_BASE_URL}{icon_file}"
 
-            precip_prob = None
-            if dominant_code is not None and dominant_code >= 50:
-                probs = []
-                for e in period_entries:
-                    p = get_value(forecasts, "wwP", e["index"])
-                    if p is not None: probs.append(p)
-                precip_prob = round(max(probs)) if probs else 0
+        # --- Max / Min Temperatur ---
+        temps = []
+        for e in entries:
+            prev_idx = e["index"] - 1
+            if prev_idx >= 0:
+                t = get_value(forecasts, "TTT", prev_idx, lambda x: x - 273.15)
+                if t is not None: temps.append(t)
+        
+        max_temp = round(max(temps)) if temps else None
+        min_temp = round(min(temps)) if temps else None
 
-            is_windy = False
-            for e in period_entries:
-                prev_idx = e["index"] - 1
-                if prev_idx >= 0:
-                    ff = get_value(forecasts, "FF", prev_idx, lambda x: x * 3.6)
-                    if ff is not None and ff >= WINDY_THRESHOLD:
-                        is_windy = True
-                        break
+        # --- Regenwahrscheinlichkeit (nur wenn ww >= 50) ---
+        precip_prob = None
+        if dominant_code is not None and dominant_code >= 50:
+            probs = []
+            for e in entries:
+                p = get_value(forecasts, "wwP", e["index"])
+                if p is not None: probs.append(p)
+            precip_prob = round(max(probs)) if probs else 0
 
-            result["days"][display_date].append({
-                "period": period_name,
-                "icon": full_icon_url,
-                "avgTemp": avg_temp,
-                "precipProb": precip_prob,
-                "isWindy": is_windy
-            })
+        # --- Max Windgeschwindigkeit & Richtung ---
+        max_ff = None
+        wind_dir_at_max = None
+        for e in entries:
+            prev_idx = e["index"] - 1
+            if prev_idx >= 0:
+                ff = get_value(forecasts, "FF", prev_idx, lambda x: x * 3.6)
+                dd = get_value(forecasts, "DD", prev_idx)
+                
+                if ff is not None:
+                    if max_ff is None or ff > max_ff:
+                        max_ff = ff
+                        wind_dir_at_max = dd
+
+        wind_icon_url = None
+        if wind_dir_at_max is not None:
+            # Runden auf 0, 45, 90, 135, 180, 225, 270, 315
+            rounded_dir = int(round(wind_dir_at_max / 45.0) * 45) % 360
+            wind_icon_url = f"{ICON_BASE_URL}wind_{rounded_dir}.png"
+
+        # --- Zusammenfassung speichern ---
+        result["days"][display_date] = {
+            "icon": full_icon_url,
+            "maxTemp": max_temp,
+            "minTemp": min_temp,
+            "precipProb": precip_prob,
+            "maxWindSpeed": round(max_ff) if max_ff is not None else None,
+            "windIcon": wind_icon_url
+        }
 
     return result
 
@@ -264,25 +239,21 @@ def process_station_worker(station_id, name, description, lat, lon, raw_forecast
     Wandelt die raw_forecasts um, mergt MOSMIX_S rein und erstellt das Widget-Summary.
     """
     try:
-        # NEU: Zeitzone dynamisch anhand der Koordinaten bestimmen
         tf = get_timezone_finder()
         tz_name = tf.timezone_at(lng=lon, lat=lat)
         if not tz_name:
-            tz_name = "UTC"  # Fallback, falls Koordinaten ungültig (z.B. 0.0, 0.0)
+            tz_name = "UTC"
             
-        # 1. Rohdaten (Strings) in Listen von Floats umwandeln
         forecasts = {}
         for el_name, val_text in raw_forecasts:
             vals = [float(v) if v != '-' else None for v in val_text.split()]
             forecasts[el_name] = vals
         
-        # 2. MOSMIX S Daten mergen (falls vorhanden)
         merge_mosmix_s_local(station_id, timeSteps, forecasts)
         
-        # 3. Summary generieren - NEU: tz_name übergeben
-        summary = build_summary(timeSteps, forecasts, name, description, tz_name)
+        # Aufruf der neuen Tageszusammenfassung
+        summary = build_daily_summary(timeSteps, forecasts, name, description, tz_name)
         
-        # 4. JSON schreiben
         out_file = os.path.join(OUTPUT_DIR, f"{station_id}.json")
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
@@ -301,7 +272,6 @@ def main():
     with open(COORDS_JSON_PATH, "r", encoding="utf-8") as f:
         coords_data = json.load(f)
     
-    # Lookup-Table erstellen: {"station_id": (lat, lon)}
     coords_map = {}
     for item in coords_data:
         coords_map[item["station_id"]] = (float(item["lat"]), float(item["lon"]))
@@ -326,12 +296,10 @@ def main():
             
             for event, elem in context:
                 if event == 'end':
-                    # 1. TimeSteps sammeln
                     if elem.tag == f"{{{ns['dwd']}}}TimeStep":
                         timeSteps.append(elem.text)
                         elem.clear()
                     
-                    # 2. Stationen (Placemarks) verarbeiten
                     elif elem.tag == f"{{{ns['kml']}}}Placemark":
                         name_node = elem.find('kml:name', ns)
                         desc_node = elem.find('kml:description', ns)
@@ -340,7 +308,6 @@ def main():
                             station_id = name_node.text.strip()
                             description = desc_node.text.strip() if desc_node is not None else ""
                             
-                            # Koordinaten aus dem JSON-Mapping abfragen
                             lat, lon = coords_map.get(station_id, (0.0, 0.0))
                             
                             raw_forecasts = []
@@ -353,12 +320,9 @@ def main():
                                         if val_node is not None and val_node.text:
                                             raw_forecasts.append((el_name, val_node.text))
                             
-                            # Wenn die Station Wetterdaten hat, packe sie in die Tasks
                             if raw_forecasts:
-                                # lat und lon an den Worker übergeben
                                 tasks.append((station_id, station_id, description, lat, lon, raw_forecasts, timeSteps))
                         
-                        # RAM sofort freigeben
                         elem.clear()
 
     log(f"Starte parallele Verarbeitung für {len(tasks)} Stationen...")
@@ -369,11 +333,9 @@ def main():
             for task in tasks
         ]
         for future in futures:
-            future.result() # Fängt Exceptions der Worker ab
+            future.result()
             
-    log("Alle Stationen erfolgreich verarbeitet und gespeichert.")
+    log("Alle Stationen erfolgreich verarbeitet und gespeichert (Tageszusammenfassung).")
 
 if __name__ == "__main__":
     main()
-    
-    

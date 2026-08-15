@@ -16,7 +16,7 @@ def calculate_TSindex(cape, cin, cape_ref, cin_ref):
         raise ValueError(f"Shape-Mismatch: cape {cape.shape} vs. cin {cin.shape}")
     
     # 1. Term berechnen: exp(-cin / cin_ref)
-    cin_factor = np.exp(-np.abs(cin) / np.abs(cin_ref))
+    cin_factor = np.exp(-np.abs(cin- cin_ref) / np.abs(cin_ref))
     
     # 2. Wo CIN ein NaN war, setzen wir den Dämpfungsfaktor auf 1.0 (keine Hemmung)
     cin_factor = np.where(np.isnan(cin_factor), 1.0, cin_factor)
